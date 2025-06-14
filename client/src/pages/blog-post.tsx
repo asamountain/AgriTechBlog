@@ -73,135 +73,82 @@ export default function BlogPost() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
+    <div className="min-h-screen relative">
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('${post.featuredImage}')` }}
+      />
       
-      {/* Article Header */}
-      <article className="pt-24 pb-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back Button */}
-          <Link href="/">
-            <Button variant="ghost" className="mb-6 text-gray-600 hover:text-sage-green">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Articles
-            </Button>
-          </Link>
+      {/* Overlay */}
+      <div className="fixed inset-0 bg-black/30" />
+      
+      {/* Back Button - Fixed Position */}
+      <Link href="/">
+        <Button 
+          variant="ghost" 
+          className="fixed top-6 left-6 z-50 bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-black/30 hover:text-white rounded-full p-3"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      </Link>
 
-          {/* Article Meta */}
-          <div className="mb-6">
-            <Badge 
-              className="text-white font-medium mb-4"
-              style={{ backgroundColor: post.category.color }}
-            >
-              {post.category.name}
-            </Badge>
-          </div>
-
-          {/* Title */}
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 mb-6 leading-tight">
-            {post.title}
-          </h1>
-
-          {/* Excerpt */}
-          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            {post.excerpt}
-          </p>
-
-          {/* Author and Meta Info */}
-          <div className="flex flex-wrap items-center gap-6 mb-8 pb-8 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-sage-green text-white">
-                  {post.author.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-semibold text-gray-900">{post.author.name}</p>
-                {post.author.bio && (
-                  <p className="text-sm text-gray-600">{post.author.bio}</p>
-                )}
-              </div>
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full">
+          {/* Glassmorphism Card */}
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
+            {/* Category Badge */}
+            <div className="mb-6">
+              <span 
+                className="inline-block px-4 py-2 rounded-full text-sm font-medium text-white"
+                style={{ backgroundColor: post.category.color }}
+              >
+                {post.category.name}
+              </span>
             </div>
             
-            <div className="flex items-center space-x-6 text-sm text-gray-500">
-              <div className="flex items-center space-x-1">
-                <Calendar className="h-4 w-4" />
-                <span>{formatDate(post.createdAt)}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Clock className="h-4 w-4" />
-                <span>{post.readTime} min read</span>
-              </div>
+            {/* Title */}
+            <h1 className="text-white font-bold text-3xl md:text-4xl mb-6 leading-tight font-serif">
+              {post.title}
+            </h1>
+            
+            {/* Divider */}
+            <div className="w-full h-px bg-white/30 mb-6" />
+            
+            {/* Author Info */}
+            <div className="text-white/90 text-sm font-light mb-6">
+              <span className="italic">By </span>
+              <span className="font-medium">{post.author.name}</span>
+              <span className="italic"> | {formatDate(post.createdAt)}</span>
             </div>
-          </div>
-
-          {/* Featured Image */}
-          <div className="mb-12">
-            <img
-              src={post.featuredImage}
-              alt={post.title}
-              className="w-full h-96 object-cover rounded-2xl shadow-lg"
-            />
-          </div>
-
-          {/* Article Content */}
-          <div className="prose prose-lg max-w-none">
-            <div className="text-gray-700 leading-relaxed">
-              {post.content.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-6">
+            
+            {/* Excerpt */}
+            <p className="text-white/90 text-lg leading-relaxed font-light mb-8">
+              {post.excerpt}
+            </p>
+            
+            {/* Main Content */}
+            <div className="text-white/80 text-base leading-relaxed font-light space-y-4">
+              {post.content.split('\n').slice(0, 3).map((paragraph, index) => (
+                <p key={index}>
                   {paragraph}
                 </p>
               ))}
             </div>
-          </div>
-        </div>
-      </article>
-
-      {/* Related Posts */}
-      {relatedPosts && relatedPosts.length > 0 && (
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-playfair font-bold text-gray-900 mb-8">
-              Related Articles
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {relatedPosts.map((relatedPost) => (
-                <Link key={relatedPost.id} href={`/blog/${relatedPost.slug}`}>
-                  <Card className="group bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
-                    <div 
-                      className="relative h-48 bg-cover bg-center"
-                      style={{ backgroundImage: `url('${relatedPost.featuredImage}')` }}
-                    >
-                      <div className="absolute top-3 left-3">
-                        <Badge 
-                          className="text-white font-medium text-xs"
-                          style={{ backgroundColor: relatedPost.category.color }}
-                        >
-                          {relatedPost.category.name}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-sage-green transition-colors line-clamp-2">
-                        {relatedPost.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4 line-clamp-3">
-                        {relatedPost.excerpt}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <span>{relatedPost.author.name}</span>
-                        <span>{formatDate(relatedPost.createdAt)}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+            
+            {/* Bottom Divider */}
+            <div className="w-full h-px bg-white/30 mt-8 mb-6" />
+            
+            {/* Meta Info */}
+            <div className="flex justify-between items-center text-white/70 text-sm">
+              <span className="font-light">{post.readTime} min read</span>
+              <span className="italic font-light">AgroTech Insights</span>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </div>
 
-      <Footer />
     </div>
   );
 }
