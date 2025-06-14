@@ -194,7 +194,12 @@ export class MemStorage implements IStorage {
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
     const id = this.currentCategoryId++;
-    const category: Category = { ...insertCategory, id };
+    const category: Category = { 
+      ...insertCategory, 
+      id,
+      color: insertCategory.color || "#52B788",
+      description: insertCategory.description || null
+    };
     this.categories.set(id, category);
     return category;
   }
@@ -210,7 +215,12 @@ export class MemStorage implements IStorage {
 
   async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
     const id = this.currentAuthorId++;
-    const author: Author = { ...insertAuthor, id };
+    const author: Author = { 
+      ...insertAuthor, 
+      id,
+      bio: insertAuthor.bio || null,
+      avatar: insertAuthor.avatar || null
+    };
     this.authors.set(id, author);
     return author;
   }
@@ -272,6 +282,9 @@ export class MemStorage implements IStorage {
     const post: BlogPost = { 
       ...insertPost, 
       id, 
+      readTime: insertPost.readTime || 5,
+      isFeatured: insertPost.isFeatured || false,
+      isPublished: insertPost.isPublished || true,
       createdAt: now,
       updatedAt: now
     };
