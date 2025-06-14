@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(143, 64%, 24%);
+  --muted: hsl(120, 7%, 96%);
+  --muted-foreground: hsl(143, 8%, 45%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(143, 64%, 24%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(143, 64%, 24%);
+  --border: hsl(120, 13%, 85%);
+  --input: hsl(120, 13%, 85%);
+  --primary: hsl(158, 64%, 52%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(120, 7%, 96%);
+  --secondary-foreground: hsl(143, 64%, 24%);
+  --accent: hsl(120, 7%, 96%);
+  --accent-foreground: hsl(143, 64%, 24%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(143, 64%, 24%);
+  --radius: 0.75rem;
+  
+  /* Custom AgroTech colors */
+  --forest-green: hsl(143, 64%, 24%);
+  --sage-green: hsl(158, 64%, 52%);
+  --fresh-lime: hsl(139, 69%, 69%);
+  --earth-brown: hsl(25, 59%, 42%);
+  --warm-beige: hsl(60, 29%, 96%);
+  --golden-yellow: hsl(50, 100%, 52%);
+}
+
+.dark {
+  --background: hsl(143, 32%, 8%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(143, 16%, 15%);
+  --muted-foreground: hsl(143, 8%, 65%);
+  --popover: hsl(143, 32%, 8%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(143, 32%, 8%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(143, 16%, 15%);
+  --input: hsl(143, 16%, 15%);
+  --primary: hsl(158, 64%, 52%);
+  --primary-foreground: hsl(143, 64%, 24%);
+  --secondary: hsl(143, 16%, 15%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(143, 16%, 15%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(158, 64%, 52%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-forest-green {
+    color: var(--forest-green);
+  }
+  
+  .text-sage-green {
+    color: var(--sage-green);
+  }
+  
+  .text-fresh-lime {
+    color: var(--fresh-lime);
+  }
+  
+  .text-earth-brown {
+    color: var(--earth-brown);
+  }
+  
+  .text-golden-yellow {
+    color: var(--golden-yellow);
+  }
+  
+  .bg-forest-green {
+    background-color: var(--forest-green);
+  }
+  
+  .bg-sage-green {
+    background-color: var(--sage-green);
+  }
+  
+  .bg-fresh-lime {
+    background-color: var(--fresh-lime);
+  }
+  
+  .bg-earth-brown {
+    background-color: var(--earth-brown);
+  }
+  
+  .bg-warm-beige {
+    background-color: var(--warm-beige);
+  }
+  
+  .bg-golden-yellow {
+    background-color: var(--golden-yellow);
+  }
+  
+  .border-sage-green {
+    border-color: var(--sage-green);
+  }
+  
+  .border-forest-green {
+    border-color: var(--forest-green);
+  }
+  
+  .hover\:bg-sage-green:hover {
+    background-color: var(--sage-green);
+  }
+  
+  .hover\:bg-forest-green:hover {
+    background-color: var(--forest-green);
+  }
+  
+  .hover\:text-sage-green:hover {
+    color: var(--sage-green);
+  }
+  
+  .hover\:text-fresh-lime:hover {
+    color: var(--fresh-lime);
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Animation classes */
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    transform: translate3d(0,-30px,0);
+  }
+  70% {
+    transform: translate3d(0,-15px,0);
+  }
+  90% {
+    transform: translate3d(0,-4px,0);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+/* Custom font imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Smooth transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
