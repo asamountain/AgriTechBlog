@@ -44,50 +44,59 @@ export default function FeaturedStories() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredPosts?.map((story) => (
             <Link key={story.id} href={`/blog/${story.slug}`}>
-              <Card className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer">
+              <div className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105">
+                {/* Background Image */}
                 <div 
-                  className="relative h-64 bg-cover bg-center"
+                  className="relative h-[28rem] bg-cover bg-center rounded-3xl overflow-hidden"
                   style={{ backgroundImage: `url('${story.featuredImage}')` }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-4 left-4">
-                    <Badge 
-                      className="text-white font-medium"
-                      style={{ backgroundColor: story.category.color }}
-                    >
-                      {story.category.name}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <h3 className="text-xl font-semibold mb-2 group-hover:text-fresh-lime transition-colors line-clamp-2">
-                      {story.title}
-                    </h3>
-                    <p className="text-sm text-gray-200">
-                      {story.readTime} min read
-                    </p>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+                  
+                  {/* Glassmorphism Card */}
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-2xl">
+                      {/* Category Badge */}
+                      <div className="mb-4">
+                        <span 
+                          className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
+                          style={{ backgroundColor: story.category.color }}
+                        >
+                          {story.category.name}
+                        </span>
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 className="text-white font-bold text-2xl mb-4 leading-tight group-hover:text-fresh-lime transition-colors line-clamp-2">
+                        {story.title}
+                      </h3>
+                      
+                      {/* Divider */}
+                      <div className="w-full h-px bg-white/30 mb-4" />
+                      
+                      {/* Author Info */}
+                      <div className="text-white/90 text-sm font-light mb-3">
+                        <span className="italic">By </span>
+                        <span className="font-medium">{story.author.name}</span>
+                      </div>
+                      
+                      {/* Excerpt */}
+                      <p className="text-white/80 text-sm leading-relaxed font-light line-clamp-3 mb-4">
+                        {story.excerpt}
+                      </p>
+                      
+                      {/* Bottom Divider */}
+                      <div className="w-full h-px bg-white/30 mb-3" />
+                      
+                      {/* Meta Info */}
+                      <div className="flex justify-between items-center text-white/70 text-xs">
+                        <span className="font-light">{formatDate(story.createdAt)}</span>
+                        <span className="italic font-light">{story.readTime} min read</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <CardContent className="p-6">
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {story.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-sage-green text-white text-xs">
-                          {story.author.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm text-gray-500">
-                        {story.author.name}
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-400">
-                      {formatDate(story.createdAt)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+              </div>
             </Link>
           ))}
         </div>

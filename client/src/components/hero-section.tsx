@@ -1,5 +1,5 @@
-import { ChevronDown, Play, Sprout } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
+import naturalBackground from "@assets/IMG_8696_1749914332545.png";
 
 export default function HeroSection() {
   const scrollToContent = () => {
@@ -8,67 +8,55 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden mt-16">
+    <section className="relative h-screen flex items-end justify-center overflow-hidden">
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&h=1080')`
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.4)), url('${naturalBackground}')`
         }}
       />
       
-      <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
-        <div className="mb-6">
-          <span className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
-            <span className="mr-2">📅</span>
-            Latest Insights
+      {/* Content positioned at bottom */}
+      <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-6 pb-32">
+        {/* Top indicator */}
+        <div className="mb-8">
+          <span className="text-xs uppercase tracking-widest text-white/80 font-light">
+            03 / 01 / 2025
           </span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-playfair font-bold mb-6 leading-tight">
-          Future of{" "}
-          <span className="text-fresh-lime">Smart</span>
-          <br />
-          Agriculture
-        </h1>
-        
-        <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
-          Exploring cutting-edge technology solutions that revolutionize modern farming 
-          practices and sustainable food production.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button 
-            size="lg"
-            onClick={scrollToContent}
-            className="bg-sage-green hover:bg-forest-green text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105"
-          >
-            Explore Articles
-          </Button>
-          <Button 
-            variant="outline"
-            size="lg"
-            className="border-2 border-white text-white hover:bg-white hover:text-forest-green font-semibold py-3 px-8 rounded-lg transition-all duration-300"
-          >
-            <Play className="h-4 w-4 mr-2" />
-            Watch Demo
-          </Button>
+        {/* Back to link */}
+        <div className="mb-6">
+          <span className="text-sm text-white/90 font-light tracking-wide">
+            back to ●
+          </span>
         </div>
         
-        <div className="mt-12 text-sm text-gray-300">
-          <p className="flex items-center justify-center gap-2">
-            <Sprout className="h-4 w-4 text-fresh-lime" />
-            Empowering 10,000+ farmers with technology insights
-          </p>
+        {/* Main heading */}
+        <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-normal mb-8 leading-none tracking-tight">
+          AgroTech
+        </h1>
+        
+        {/* Subtitle */}
+        <p className="text-lg md:text-xl mb-12 text-white/90 max-w-lg mx-auto leading-relaxed font-light">
+          Memahami teknologi pertanian modern yang menghadirkan solusi inovatif untuk masa depan yang berkelanjutan
+        </p>
+        
+        {/* Created by */}
+        <div className="text-xs text-white/70 font-light tracking-widest">
+          <span className="italic">Created by |</span>
+          <br />
+          <span className="font-medium tracking-wider">agriculturist</span>
         </div>
       </div>
       
       {/* Scroll Indicator */}
       <div 
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce cursor-pointer"
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/80 animate-bounce cursor-pointer"
         onClick={scrollToContent}
       >
-        <ChevronDown className="h-8 w-8" />
+        <ChevronDown className="h-6 w-6" />
       </div>
     </section>
   );

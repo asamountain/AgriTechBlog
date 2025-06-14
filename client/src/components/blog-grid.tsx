@@ -53,37 +53,59 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {displayedPosts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`}>
-                  <Card className="group bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+                  <div className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105">
+                    {/* Background Image */}
                     <div 
-                      className="relative h-48 bg-cover bg-center"
+                      className="relative h-96 bg-cover bg-center rounded-3xl overflow-hidden"
                       style={{ backgroundImage: `url('${post.featuredImage}')` }}
                     >
-                      <div className="absolute top-3 left-3">
-                        <Badge 
-                          className="text-white font-medium text-xs"
-                          style={{ backgroundColor: post.category.color }}
-                        >
-                          {post.category.name}
-                        </Badge>
+                      {/* Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+                      
+                      {/* Glassmorphism Card */}
+                      <div className="absolute bottom-6 left-6 right-6">
+                        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-2xl">
+                          {/* Category Badge */}
+                          <div className="mb-4">
+                            <span 
+                              className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
+                              style={{ backgroundColor: post.category.color }}
+                            >
+                              {post.category.name}
+                            </span>
+                          </div>
+                          
+                          {/* Title */}
+                          <h3 className="text-white font-bold text-xl mb-3 leading-tight group-hover:text-fresh-lime transition-colors line-clamp-2">
+                            {post.title}
+                          </h3>
+                          
+                          {/* Divider */}
+                          <div className="w-full h-px bg-white/30 mb-4" />
+                          
+                          {/* Author Info */}
+                          <div className="text-white/90 text-sm font-light">
+                            <span className="italic">By </span>
+                            <span className="font-medium">{post.author.name}</span>
+                          </div>
+                          
+                          {/* Excerpt */}
+                          <p className="text-white/80 text-sm mt-3 line-clamp-2 leading-relaxed font-light">
+                            {post.excerpt}
+                          </p>
+                          
+                          {/* Bottom Divider */}
+                          <div className="w-full h-px bg-white/30 mt-4 mb-3" />
+                          
+                          {/* Meta Info */}
+                          <div className="flex justify-between items-center text-white/70 text-xs">
+                            <span className="font-light">{formatDate(post.createdAt)}</span>
+                            <span className="italic font-light">{post.readTime} min read</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-sage-green transition-colors line-clamp-2">
-                        {post.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4 line-clamp-3">
-                        {post.excerpt}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex items-center space-x-2">
-                          <span>{post.author.name}</span>
-                          <span>•</span>
-                          <span>{post.readTime} min read</span>
-                        </div>
-                        <span>{formatDate(post.createdAt)}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  </div>
                 </Link>
               ))}
             </div>

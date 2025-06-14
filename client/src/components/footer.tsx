@@ -61,9 +61,9 @@ export default function Footer() {
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}>
-                    <a className="text-gray-300 hover:text-fresh-lime transition-colors">
+                    <span className="text-gray-300 hover:text-fresh-lime transition-colors cursor-pointer">
                       {link.label}
-                    </a>
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -77,9 +77,9 @@ export default function Footer() {
               {categories.map((category) => (
                 <li key={category.href}>
                   <Link href={category.href}>
-                    <a className="text-gray-300 hover:text-fresh-lime transition-colors">
+                    <span className="text-gray-300 hover:text-fresh-lime transition-colors cursor-pointer">
                       {category.label}
-                    </a>
+                    </span>
                   </Link>
                 </li>
               ))}

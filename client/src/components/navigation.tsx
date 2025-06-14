@@ -36,13 +36,13 @@ export default function Navigation() {
               <div className="flex items-center space-x-8">
                 {navItems.map((item) => (
                   <Link key={item.href} href={item.href}>
-                    <a className={`transition-colors ${
+                    <span className={`transition-colors cursor-pointer ${
                       location === item.href 
                         ? "text-sage-green font-medium" 
                         : "text-gray-700 hover:text-sage-green"
                     }`}>
                       {item.label}
-                    </a>
+                    </span>
                   </Link>
                 ))}
                 <Button
@@ -67,8 +67,8 @@ export default function Navigation() {
                   <div className="flex flex-col space-y-4 mt-6">
                     {navItems.map((item) => (
                       <Link key={item.href} href={item.href}>
-                        <a 
-                          className={`block py-2 text-lg transition-colors ${
+                        <span 
+                          className={`block py-2 text-lg transition-colors cursor-pointer ${
                             location === item.href 
                               ? "text-sage-green font-medium" 
                               : "text-gray-700 hover:text-sage-green"
@@ -76,7 +76,7 @@ export default function Navigation() {
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           {item.label}
-                        </a>
+                        </span>
                       </Link>
                     ))}
                     <Button
