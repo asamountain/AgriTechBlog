@@ -93,7 +93,7 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
             <h4 className="font-medium text-gray-900 mb-2">Share this article</h4>
             
             {/* Native Share (if supported) */}
-            {navigator.share && (
+            {typeof navigator !== 'undefined' && 'share' in navigator && (
               <Button
                 variant="ghost"
                 size="sm"

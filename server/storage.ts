@@ -25,7 +25,7 @@ export interface IStorage {
   createAuthor(author: InsertAuthor): Promise<Author>;
   
   // Blog Posts
-  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean }): Promise<BlogPostWithDetails[]>;
+  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean }): Promise<BlogPostWithDetails[]>;
   getBlogPostBySlug(slug: string): Promise<BlogPostWithDetails | undefined>;
   getBlogPost(id: number): Promise<BlogPostWithDetails | undefined>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
@@ -227,8 +227,13 @@ export class MemStorage implements IStorage {
   }
 
   // Blog post methods
-  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean } = {}): Promise<BlogPostWithDetails[]> {
-    let posts = Array.from(this.blogPosts.values()).filter(post => post.isPublished);
+  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean } = {}): Promise<BlogPostWithDetails[]> {
+    let posts = Array.from(this.blogPosts.values());
+    
+    // Filter by published status unless includeDrafts is true
+    if (!options.includeDrafts) {
+      posts = posts.filter(post => post.isPublished);
+    }
     
     if (options.featured !== undefined) {
       posts = posts.filter(post => post.isFeatured === options.featured);

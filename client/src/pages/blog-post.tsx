@@ -2,6 +2,7 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import SocialShare from "@/components/social-share";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -103,17 +104,24 @@ export default function BlogPost() {
           </h1>
 
           {/* Meta Info */}
-          <div className="flex items-center space-x-6 text-sm text-gray-500 mb-8">
-            <div className="flex items-center space-x-2">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-sage-green text-white text-xs">
-                  {post.author.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <span className="font-medium">{post.author.name}</span>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-6 text-sm text-gray-500">
+              <div className="flex items-center space-x-2">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-sage-green text-white text-xs">
+                    {post.author.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium">{post.author.name}</span>
+              </div>
+              <span>{formatDate(post.createdAt)}</span>
+              <span>{post.readTime} min read</span>
             </div>
-            <span>{formatDate(post.createdAt)}</span>
-            <span>{post.readTime} min read</span>
+            <SocialShare 
+              title={post.title}
+              url={`${window.location.origin}/blog/${post.slug}`}
+              excerpt={post.excerpt}
+            />
           </div>
         </div>
       </section>

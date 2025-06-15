@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/blog-posts", async (req, res) => {
     try {
       // Get all posts including drafts for admin
-      const posts = await activeStorage.getBlogPosts({ limit: 100 });
+      const posts = await activeStorage.getBlogPosts({ limit: 100, includeDrafts: true });
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch admin posts" });
@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/stats", async (req, res) => {
     try {
-      const allPosts = await activeStorage.getBlogPosts({ limit: 1000 });
+      const allPosts = await activeStorage.getBlogPosts({ limit: 1000, includeDrafts: true });
       const publishedPosts = allPosts.filter(post => post.isPublished);
       const draftPosts = allPosts.filter(post => !post.isPublished);
       const featuredPosts = allPosts.filter(post => post.isFeatured);
