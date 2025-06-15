@@ -26,7 +26,8 @@ import {
   X,
   LogOut,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  MessageCircle
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -34,6 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { trackEvent } from "@/lib/analytics";
 import AdminLogin from "@/components/admin-login";
 import MigrationPanel from "@/components/migration-panel";
+import CommentManagement from "@/components/comment-management";
 
 interface BlogPost {
   id: number;
@@ -475,7 +477,7 @@ export default function AdminDashboard() {
           </div>
 
           <Tabs defaultValue="posts" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="migration">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Migration
@@ -483,6 +485,10 @@ export default function AdminDashboard() {
               <TabsTrigger value="posts">
                 <FileText className="w-4 h-4 mr-2" />
                 Posts
+              </TabsTrigger>
+              <TabsTrigger value="comments">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Comments
               </TabsTrigger>
               <TabsTrigger value="analytics">
                 <BarChart3 className="w-4 h-4 mr-2" />
@@ -504,6 +510,10 @@ export default function AdminDashboard() {
 
             <TabsContent value="posts">
               <PostsManagement />
+            </TabsContent>
+
+            <TabsContent value="comments">
+              <CommentManagement />
             </TabsContent>
 
             <TabsContent value="analytics">

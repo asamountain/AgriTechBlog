@@ -324,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/comments/:id/approve", async (req, res) => {
+  app.put("/api/comments/:id/approve", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const comment = await activeStorage.approveComment(parseInt(id));
@@ -343,6 +343,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting comment:", error);
       res.status(400).json({ message: "Failed to delete comment" });
+    }
+  });
+
+  // Admin comment management endpoints
+  app.get("/api/admin/comments", requireAuth, async (req, res) => {
+    try {
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      
+      // Get all posts for this user to find their comments
+      const userPosts = await activeStorage.getBlogPosts({ 
+        limit: 1000, 
+        includeDrafts: true,
+        userId: userId 
+      });
+      
+      // Get comments for all user posts
+      const allComments = [];
+      for (const post of userPosts) {
+        const postComments = await activeStorage.getCommentsByPostId(post.id);
+        const commentsWithPost = postComments.map(comment => ({
+          ...comment,
+          postTitle: post.title,
+          postSlug: post.slug
+        }));
+        allComments.push(...commentsWithPost);
+      }
+      
+      // Sort by creation date (newest first)
+      allComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      res.json(allComments);
+    } catch (error) {
+      console.error("Error fetching admin comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
     }
   });
 
