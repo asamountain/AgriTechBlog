@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authors
   app.get("/api/authors", async (req, res) => {
     try {
-      const authors = await storage.getAuthors();
+      const authors = await activeStorage.getAuthors();
       res.json(authors);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch authors" });
@@ -45,7 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/authors", async (req, res) => {
     try {
       const authorData = insertAuthorSchema.parse(req.body);
-      const author = await storage.createAuthor(authorData);
+      const author = await activeStorage.createAuthor(authorData);
       res.status(201).json(author);
     } catch (error) {
       res.status(400).json({ message: "Invalid author data" });
@@ -63,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         featured: featured ? featured === 'true' : undefined,
       };
       
-      const posts = await storage.getBlogPosts(options);
+      const posts = await activeStorage.getBlogPosts(options);
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch blog posts" });
@@ -72,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/blog-posts/featured", async (req, res) => {
     try {
-      const posts = await storage.getBlogPosts({ featured: true, limit: 3 });
+      const posts = await activeStorage.getBlogPosts({ featured: true, limit: 3 });
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch featured posts" });
@@ -86,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search query is required" });
       }
       
-      const posts = await storage.searchBlogPosts(q);
+      const posts = await activeStorage.searchBlogPosts(q);
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to search blog posts" });
@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/blog-posts/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
-      const post = await storage.getBlogPostBySlug(slug);
+      const post = await activeStorage.getBlogPostBySlug(slug);
       
       if (!post) {
         return res.status(404).json({ message: "Blog post not found" });
@@ -112,13 +112,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const postId = parseInt(id);
-      const post = await storage.getBlogPost(postId);
+      const post = await activeStorage.getBlogPost(postId);
       
       if (!post) {
         return res.status(404).json({ message: "Blog post not found" });
       }
       
-      const relatedPosts = await storage.getRelatedPosts(postId, post.categoryId);
+      const relatedPosts = await activeStorage.getRelatedPosts(postId, post.categoryId);
       res.json(relatedPosts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch related posts" });
@@ -128,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/blog-posts", async (req, res) => {
     try {
       const postData = insertBlogPostSchema.parse(req.body);
-      const post = await storage.createBlogPost(postData);
+      const post = await activeStorage.createBlogPost(postData);
       res.status(201).json(post);
     } catch (error) {
       res.status(400).json({ message: "Invalid blog post data" });
