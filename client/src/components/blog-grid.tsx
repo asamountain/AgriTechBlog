@@ -37,8 +37,14 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
   }
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Latest Articles
+          </h2>
+          <div className="w-16 h-1 bg-sage-green"></div>
+        </div>
         {displayedPosts.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-2xl font-playfair font-bold text-gray-900 mb-4">
@@ -51,70 +57,74 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {displayedPosts.map((post) => (
-                <Link key={post.id} href={`/blog/${post.slug}`}>
-                  <div className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105">
-                    {/* Background Image */}
-                    <div 
-                      className="relative h-96 bg-cover bg-center rounded-3xl overflow-hidden"
-                      style={{ backgroundImage: `url('${post.featuredImage}')` }}
-                    >
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
-                      
-                      {/* Glassmorphism Card */}
-                      <div className="absolute bottom-6 left-6 right-6">
-                        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-2xl">
+              {displayedPosts.map((post, index) => {
+                // Alternate between different layouts for visual interest
+                const isLarge = index % 6 === 0;
+                const isWide = index % 4 === 1;
+                
+                return (
+                  <Link key={post.id} href={`/blog/${post.slug}`}>
+                    <article className={`group cursor-pointer ${
+                      isLarge ? 'md:col-span-2 lg:col-span-2' : 
+                      isWide ? 'md:col-span-2 lg:col-span-1' : ''
+                    }`}>
+                      <div className="bg-white rounded-none overflow-hidden transition-all duration-300 hover:shadow-lg">
+                        <div className="relative">
+                          <img
+                            src={post.featuredImage}
+                            alt={post.title}
+                            className={`w-full object-cover ${
+                              isLarge ? 'h-80 md:h-96' : 'h-64'
+                            }`}
+                          />
+                          
                           {/* Category Badge */}
-                          <div className="mb-4">
+                          <div className="absolute top-4 left-4">
                             <span 
-                              className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
+                              className="inline-block px-3 py-1 text-xs font-medium text-white uppercase tracking-wide"
                               style={{ backgroundColor: post.category.color }}
                             >
                               {post.category.name}
                             </span>
                           </div>
-                          
+                        </div>
+                        
+                        <div className={`p-6 ${isLarge ? 'md:p-8' : ''}`}>
                           {/* Title */}
-                          <h3 className="text-white font-bold text-xl mb-3 leading-tight group-hover:text-fresh-lime transition-colors line-clamp-2">
+                          <h3 className={`font-bold text-gray-900 mb-3 leading-tight group-hover:text-sage-green transition-colors ${
+                            isLarge ? 'text-2xl md:text-3xl' : 'text-xl'
+                          }`}>
                             {post.title}
                           </h3>
                           
-                          {/* Divider */}
-                          <div className="w-full h-px bg-white/30 mb-4" />
-                          
-                          {/* Author Info */}
-                          <div className="text-white/90 text-sm font-light">
-                            <span className="italic">By </span>
-                            <span className="font-medium">{post.author.name}</span>
-                          </div>
-                          
                           {/* Excerpt */}
-                          <p className="text-white/80 text-sm mt-3 line-clamp-2 leading-relaxed font-light">
+                          <p className={`text-gray-600 mb-4 leading-relaxed ${
+                            isLarge ? 'text-lg line-clamp-3' : 'text-base line-clamp-2'
+                          }`}>
                             {post.excerpt}
                           </p>
                           
-                          {/* Bottom Divider */}
-                          <div className="w-full h-px bg-white/30 mt-4 mb-3" />
-                          
                           {/* Meta Info */}
-                          <div className="flex justify-between items-center text-white/70 text-xs">
-                            <span className="font-light">{formatDate(post.createdAt)}</span>
-                            <span className="italic font-light">{post.readTime} min read</span>
+                          <div className="flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center space-x-4">
+                              <span className="font-medium text-gray-700">{post.author.name}</span>
+                              <span>{formatDate(post.createdAt)}</span>
+                            </div>
+                            <span className="text-xs uppercase tracking-wide">{post.readTime} min read</span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                    </article>
+                  </Link>
+                );
+              })}
             </div>
 
             {hasMore && (
-              <div className="text-center mt-12">
+              <div className="text-center mt-16">
                 <Button
                   onClick={() => setPage(page + 1)}
-                  className="bg-sage-green hover:bg-forest-green text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105"
+                  className="bg-sage-green hover:bg-forest-green text-white font-medium py-3 px-8 uppercase tracking-wide text-sm transition-all duration-300"
                 >
                   Load More Articles
                 </Button>

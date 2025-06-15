@@ -42,63 +42,76 @@ export default function FeaturedStories() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredPosts?.map((story) => (
-            <Link key={story.id} href={`/blog/${story.slug}`}>
-              <div className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105">
-                {/* Background Image */}
-                <div 
-                  className="relative h-[28rem] bg-cover bg-center rounded-3xl overflow-hidden"
-                  style={{ backgroundImage: `url('${story.featuredImage}')` }}
-                >
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
-                  
-                  {/* Glassmorphism Card */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-2xl">
+          {featuredPosts?.map((story, index) => {
+            const isHero = index === 0;
+            
+            return (
+              <Link key={story.id} href={`/blog/${story.slug}`}>
+                <article className={`group cursor-pointer ${isHero ? 'md:col-span-2 lg:col-span-2' : ''}`}>
+                  <div className="bg-white rounded-none overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
+                    <div className="relative">
+                      <img
+                        src={story.featuredImage}
+                        alt={story.title}
+                        className={`w-full object-cover ${isHero ? 'h-80 md:h-96' : 'h-72'}`}
+                      />
+                      
+                      {/* Featured Badge */}
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-block px-3 py-1 bg-sage-green text-white text-xs font-medium uppercase tracking-wide">
+                          Featured
+                        </span>
+                      </div>
+                      
                       {/* Category Badge */}
-                      <div className="mb-4">
+                      <div className="absolute top-4 right-4">
                         <span 
-                          className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
+                          className="inline-block px-3 py-1 text-xs font-medium text-white uppercase tracking-wide"
                           style={{ backgroundColor: story.category.color }}
                         >
                           {story.category.name}
                         </span>
                       </div>
+                    </div>
+                    
+                    <div className={`p-6 ${isHero ? 'md:p-8' : ''}`}>
+                      {/* Date */}
+                      <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">
+                        {formatDate(story.createdAt)}
+                      </div>
                       
                       {/* Title */}
-                      <h3 className="text-white font-bold text-2xl mb-4 leading-tight group-hover:text-fresh-lime transition-colors line-clamp-2">
+                      <h3 className={`font-bold text-gray-900 mb-4 leading-tight group-hover:text-sage-green transition-colors ${
+                        isHero ? 'text-3xl md:text-4xl' : 'text-2xl'
+                      }`}>
                         {story.title}
                       </h3>
                       
-                      {/* Divider */}
-                      <div className="w-full h-px bg-white/30 mb-4" />
-                      
-                      {/* Author Info */}
-                      <div className="text-white/90 text-sm font-light mb-3">
-                        <span className="italic">By </span>
-                        <span className="font-medium">{story.author.name}</span>
-                      </div>
-                      
                       {/* Excerpt */}
-                      <p className="text-white/80 text-sm leading-relaxed font-light line-clamp-3 mb-4">
+                      <p className={`text-gray-600 mb-6 leading-relaxed ${
+                        isHero ? 'text-lg line-clamp-4' : 'text-base line-clamp-3'
+                      }`}>
                         {story.excerpt}
                       </p>
                       
-                      {/* Bottom Divider */}
-                      <div className="w-full h-px bg-white/30 mb-3" />
-                      
-                      {/* Meta Info */}
-                      <div className="flex justify-between items-center text-white/70 text-xs">
-                        <span className="font-light">{formatDate(story.createdAt)}</span>
-                        <span className="italic font-light">{story.readTime} min read</span>
+                      {/* Author & Read Time */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="bg-sage-green text-white text-xs font-medium">
+                              {story.author.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium text-gray-700">{story.author.name}</span>
+                        </div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wide">{story.readTime} min read</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+                </article>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

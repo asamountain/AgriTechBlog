@@ -40,45 +40,44 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   }
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-white border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-playfair font-bold text-forest-green mb-4">
-            Explore by Category
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Browse Categories
           </h2>
+          <div className="w-16 h-1 bg-sage-green"></div>
         </div>
         
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          <Button
+        <div className="flex flex-wrap gap-3">
+          <button
             onClick={() => onCategoryChange(null)}
-            variant={selectedCategory === null ? "default" : "outline"}
-            className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+            className={`px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
               selectedCategory === null
-                ? "bg-sage-green text-white hover:bg-forest-green"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-sage-green hover:text-white hover:border-sage-green"
+                ? "bg-sage-green text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-sage-green hover:text-white"
             }`}
           >
             All Articles
-          </Button>
+          </button>
           
           {categories?.map((category) => {
             const IconComponent = categoryIcons[category.slug] || Sprout;
             const isSelected = selectedCategory === category.slug;
             
             return (
-              <Button
+              <button
                 key={category.id}
                 onClick={() => onCategoryChange(category.slug)}
-                variant={isSelected ? "default" : "outline"}
-                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                className={`px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-300 flex items-center space-x-2 ${
                   isSelected
-                    ? "bg-sage-green text-white hover:bg-forest-green"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-sage-green hover:text-white hover:border-sage-green"
+                    ? "bg-sage-green text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-sage-green hover:text-white"
                 }`}
               >
-                <IconComponent className="h-4 w-4 mr-2" />
-                {category.name}
-              </Button>
+                <IconComponent className="h-3 w-3" />
+                <span>{category.name}</span>
+              </button>
             );
           })}
         </div>
