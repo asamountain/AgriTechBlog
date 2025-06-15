@@ -22,7 +22,7 @@ export class MongoStorage implements IStorage {
     this.usersCollection = this.db.collection("users");
     this.categoriesCollection = this.db.collection("categories");
     this.authorsCollection = this.db.collection("authors");
-    this.blogPostsCollection = this.db.collection("blogPosts");
+    this.blogPostsCollection = this.db.collection("posts"); // Your actual collection name
   }
 
   async connect(): Promise<void> {

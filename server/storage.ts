@@ -6,7 +6,7 @@ import {
   type BlogPost, type InsertBlogPost,
   type BlogPostWithDetails
 } from "@shared/schema";
-import { MongoStorage } from "./mongodb-storage";
+import { MongoStorage } from "./mongodb-storage-updated";
 
 export interface IStorage {
   // Users
