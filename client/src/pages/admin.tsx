@@ -478,7 +478,7 @@ export default function AdminDashboard() {
           </div>
 
           <Tabs defaultValue="posts" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="migration">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Migration
@@ -490,6 +490,10 @@ export default function AdminDashboard() {
               <TabsTrigger value="comments">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Comments
+              </TabsTrigger>
+              <TabsTrigger value="ai-tagging">
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Tagging
               </TabsTrigger>
               <TabsTrigger value="analytics">
                 <BarChart3 className="w-4 h-4 mr-2" />
@@ -515,6 +519,10 @@ export default function AdminDashboard() {
 
             <TabsContent value="comments">
               <CommentManagement />
+            </TabsContent>
+
+            <TabsContent value="ai-tagging">
+              <AITaggingPanel />
             </TabsContent>
 
             <TabsContent value="analytics">

@@ -31,16 +31,21 @@ export function AITaggingPanel() {
   // Fetch user's blog posts
   const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ['/api/blog-posts'],
-    select: (data) => data?.filter((post: any) => post.userId) || []
+    select: (data: any) => data?.filter((post: any) => post.userId) || []
   });
 
   // Single post analysis mutation
   const analyzePostMutation = useMutation({
     mutationFn: async (postId: number) => {
-      const response = await apiRequest(`/api/ai-tagging/analyze/${postId}`, {
-        method: 'POST'
+      const response = await fetch(`/api/ai-tagging/analyze/${postId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
       });
-      return response;
+      if (!response.ok) throw new Error('Failed to analyze post');
+      return response.json();
     },
     onSuccess: (data, postId) => {
       toast({
@@ -61,10 +66,15 @@ export function AITaggingPanel() {
   // Bulk analysis mutation
   const bulkAnalyzeMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/ai-tagging/bulk-analyze', {
-        method: 'POST'
+      const response = await fetch('/api/ai-tagging/bulk-analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
       });
-      return response;
+      if (!response.ok) throw new Error('Failed to perform bulk analysis');
+      return response.json();
     },
     onSuccess: (data) => {
       const successCount = data.results.filter((r: AnalysisResult) => !r.error).length;
@@ -87,11 +97,16 @@ export function AITaggingPanel() {
   // Tag generation mutation
   const generateTagsMutation = useMutation({
     mutationFn: async (content: string) => {
-      const response = await apiRequest('/api/ai-tagging/generate-tags', {
+      const response = await fetch('/api/ai-tagging/generate-tags', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({ content })
       });
-      return response;
+      if (!response.ok) throw new Error('Failed to generate tags');
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -111,11 +126,16 @@ export function AITaggingPanel() {
   // Category suggestion mutation
   const suggestCategoryMutation = useMutation({
     mutationFn: async ({ title, content }: { title: string; content: string }) => {
-      const response = await apiRequest('/api/ai-tagging/suggest-category', {
+      const response = await fetch('/api/ai-tagging/suggest-category', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({ title, content })
       });
-      return response;
+      if (!response.ok) throw new Error('Failed to suggest category');
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -272,7 +292,7 @@ export function AITaggingPanel() {
                 <div>
                   <h4 className="font-medium mb-2">Suggested Tags:</h4>
                   <div className="flex flex-wrap gap-2">
-                    {analysisData.suggestedTags.map((tag, index) => (
+                    {analysisData.suggestedTags.map((tag: string, index: number) => (
                       <Badge key={index} variant="outline">
                         {tag}
                       </Badge>
@@ -366,7 +386,7 @@ export function AITaggingPanel() {
                               </span>
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {result.analysis.suggestedTags.slice(0, 3).map((tag, tagIndex) => (
+                              {result.analysis.suggestedTags.slice(0, 3).map((tag: string, tagIndex: number) => (
                                 <Badge key={tagIndex} variant="outline" className="text-xs">
                                   {tag}
                                 </Badge>
