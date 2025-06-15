@@ -64,8 +64,7 @@ export class AITaggingService {
           max_tokens: 500,
           temperature: 0.2,
           top_p: 0.9,
-          stream: false,
-          response_format: { type: "json_object" }
+          stream: false
         })
       });
 
@@ -118,8 +117,7 @@ Respond with a JSON object containing an array of tags:
           ],
           max_tokens: 200,
           temperature: 0.3,
-          stream: false,
-          response_format: { type: "json_object" }
+          stream: false
         })
       });
 
@@ -194,8 +192,7 @@ Respond with a JSON object containing the best category and confidence:
           ],
           max_tokens: 150,
           temperature: 0.2,
-          stream: false,
-          response_format: { type: "json_object" }
+          stream: false
         })
       });
 

@@ -34,6 +34,7 @@ export const blogPosts = pgTable("blog_posts", {
   categoryId: integer("category_id").references(() => categories.id).notNull(),
   authorId: integer("author_id").references(() => authors.id).notNull(),
   userId: text("user_id").notNull(), // Links posts to authenticated users
+  tags: text("tags").array().default([]), // Array of tags for SEO
   readTime: integer("read_time").notNull().default(5),
   isFeatured: boolean("is_featured").notNull().default(false),
   isPublished: boolean("is_published").notNull().default(true),
