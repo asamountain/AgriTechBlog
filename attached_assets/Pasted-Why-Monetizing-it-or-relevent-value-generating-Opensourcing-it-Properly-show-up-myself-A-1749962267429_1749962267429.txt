@@ -1,0 +1,57 @@
+Why?
+	Monetizing it or relevent value generating 
+		Opensourcing it
+	Properly show up myself
+		Audience Side Check
+			UX/UI
+				Their Interest First
+					Check What they want to know
+						Can sense their behavior
+				Connection Speed
+					SEO/GEO
+				Color Theme
+					Farmer like, and seasonal
+					.text-forest-green {
+    color: var(--forest-green);
+}
+				Each components follow up the golden ratio 1.1613
+		Show my strengthes
+			Designs
+				Photography
+			Writing Abilities
+			Organizing Skillset
+How
+	Upload about what I learn
+		TOC shows up so they can see how the whole
+		Text-to-Speak Functionality upload
+	Log each updates properly for showing up how much I manage well each update as capable developer
+		so attracting more opensourcing opportunity and other developers engagements
+	Make them people inspired and follow it up
+	and share
+	Check Audiences behaviors
+	Each components maximize with User Interaction
+	Found out from global users by exposing it through SEO, GEO connected
+	Create Guidelines as detail as possible so AI can expand it as much as possible
+	Gradient for lifting up the user interactions
+		Creating the knowhow as tips
+	Photographical my possibility shows up by putting and connecting with my photo portfolio
+		https://asamountain.myportfolio.com/
+	Landing page
+		https://cdn.myportfolio.com/e5b750a4-50d3-4551-bd7b-c4c4e3e39d73/8b70ddf3-e9a7-49a7-a1cd-b84056520f4a.jpg?h=23852e2440450a21161999cbfb84a425
+		Image or video
+			background video showing up with my youtube video portfolio
+				https://www.youtube.com/playlist?list=PLBsrsimlDkLDrohYzmDERCsacIMNkGIgb
+		welcome messages with slogan?
+			but I have no idea how to 
+	Categorization
+		Another page
+			interesting interaction within menu
+			Fetching data from each posts
+				Using AI generated Automatical Categorization
+					Summarize the whole context
+					Intelligently pick the best category for that
+	Admin Page
+		Locked up with account
+			Google Account
+			Github
+			so they don't have to reveal what the personal contents revealed by anonimous contact
