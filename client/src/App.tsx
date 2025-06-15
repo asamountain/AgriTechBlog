@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import BlogPost from "@/pages/blog-post";
 import AdminDashboard from "@/pages/admin";
-import CategoriesPage from "@/pages/categories";
+import TaggedPosts from "@/pages/tagged-posts";
 import AuthCallback from "@/pages/auth-callback";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
@@ -22,7 +22,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/auth/callback" component={AuthCallback} />
-      <Route path="/categories" component={CategoriesPage} />
+      <Route path="/tags/:tag" component={TaggedPosts} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route component={NotFound} />
     </Switch>

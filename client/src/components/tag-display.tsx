@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Hash } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface TagDisplayProps {
   tags: string[];
