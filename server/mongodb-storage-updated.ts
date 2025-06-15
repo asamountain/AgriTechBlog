@@ -82,6 +82,7 @@ export class MongoStorage implements IStorage {
       readTime: doc.readTime || this.calculateReadTime(doc.content || ''),
       isFeatured: doc.featured || doc.isFeatured || false,
       isPublished: !doc.draft,
+      tags: doc.tags || [],
       createdAt: doc.date || doc.createdAt || new Date(),
       updatedAt: doc.lastModified || doc.updatedAt || new Date(),
       category: {

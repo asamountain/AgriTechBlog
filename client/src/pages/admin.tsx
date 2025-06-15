@@ -191,25 +191,7 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
         />
       </div>
 
-      {/* Category */}
-      <div className="space-y-golden-xs">
-        <Label htmlFor="category">Category</Label>
-        <select
-          value={formData.categoryId || ""}
-          onChange={(e) => setFormData(prev => ({ 
-            ...prev, 
-            categoryId: e.target.value ? parseInt(e.target.value) : undefined 
-          }))}
-          className="w-full p-2 border rounded-golden-sm"
-        >
-          <option value="">Select category</option>
-          {categories.map((category: any) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
+
 
       {/* Tags */}
       <div className="space-y-golden-sm">
