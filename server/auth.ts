@@ -13,15 +13,18 @@ interface User {
   avatar?: string;
 }
 
-// Configure session middleware
+// Configure session middleware with persistent storage
 export function setupSession(app: Express) {
   app.use(session({
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset expiration on activity
     cookie: {
       secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days for persistent login
+      httpOnly: true, // Prevent XSS attacks
+      sameSite: 'lax' // CSRF protection
     }
   }));
 }

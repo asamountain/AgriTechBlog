@@ -372,6 +372,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin session verification endpoint
+  app.get("/api/admin/verify-session", (req, res) => {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      const user = req.user as any;
+      const adminEmails = ['admin@hopeinvest.com', 'seungjinyoun@gmail.com'];
+      const isAdmin = adminEmails.includes(user.email?.toLowerCase());
+      
+      if (isAdmin) {
+        res.json({ 
+          authenticated: true, 
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            provider: user.provider,
+            avatar: user.avatar,
+            isAdmin: true
+          }
+        });
+      } else {
+        res.status(403).json({ authenticated: false, message: "Admin access required" });
+      }
+    } else {
+      res.status(401).json({ authenticated: false, message: "Not authenticated" });
+    }
+  });
+
+  // Admin logout endpoint
+  app.post("/api/admin/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ message: "Session destruction failed" });
+        }
+        res.clearCookie('connect.sid');
+        res.json({ message: "Logged out successfully" });
+      });
+    });
+  });
+
   // Simplified AI tagging endpoint
   app.post("/api/ai-tagging/analyze/:id", async (req, res) => {
     try {

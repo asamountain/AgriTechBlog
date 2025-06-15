@@ -32,6 +32,7 @@ import {
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { useAuth } from "@/hooks/useAuth";
+import { usePersistentAuth } from "@/hooks/usePersistentAuth";
 import { trackEvent } from "@/lib/analytics";
 import AdminLogin from "@/components/admin-login";
 import MigrationPanel from "@/components/migration-panel";
@@ -531,20 +532,38 @@ function Analytics() {
 
 export default function AdminDashboard() {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const { 
+    user: persistentUser, 
+    isAuthenticated: isPersistentAuth, 
+    isLoading: isPersistentLoading,
+    logout: persistentLogout,
+    isAdminUser
+  } = usePersistentAuth();
+
+  // Use persistent auth as primary, fallback to regular auth
+  const finalUser = persistentUser || user;
+  const finalIsAuthenticated = isPersistentAuth || isAuthenticated;
+  const finalIsLoading = isPersistentLoading || isLoading;
 
   const handleLogout = () => {
     trackEvent('admin_logout', 'authentication', 'logout_button');
-    fetch('/api/auth/logout', { method: 'POST' })
-      .then(() => {
-        window.location.href = '/admin';
-      })
-      .catch(() => {
-        window.location.href = '/admin';
-      });
+    
+    // Use persistent logout if available
+    if (persistentLogout) {
+      persistentLogout();
+    } else {
+      fetch('/api/auth/logout', { method: 'POST' })
+        .then(() => {
+          window.location.href = '/admin';
+        })
+        .catch(() => {
+          window.location.href = '/admin';
+        });
+    }
   };
 
   // Show loading state
-  if (isLoading) {
+  if (finalIsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -556,7 +575,7 @@ export default function AdminDashboard() {
   }
 
   // Show login if not authenticated
-  if (!isAuthenticated) {
+  if (!finalIsAuthenticated) {
     return <AdminLogin />;
   }
 
@@ -569,7 +588,7 @@ export default function AdminDashboard() {
           <div className="mb-8 flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-2">Welcome back, {user?.name}</p>
+              <p className="text-gray-600 mt-2">Welcome back, {finalUser?.name}</p>
             </div>
             <Button onClick={handleLogout} variant="outline">
               <LogOut className="h-4 w-4 mr-2" />
