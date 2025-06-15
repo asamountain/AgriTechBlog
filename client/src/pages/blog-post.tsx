@@ -14,6 +14,7 @@ import type { BlogPostWithDetails } from "@shared/schema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import CommentSection from "@/components/comment-section";
+import { TagDisplay } from "@/components/tag-display";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -165,6 +166,20 @@ export default function BlogPost() {
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           </div>
+
+          {/* Tags and Categories */}
+          {(post.tags?.length || post.category) && (
+            <div className="mt-12 pt-8 border-t border-gray-200">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Topics & Tags</h3>
+                <TagDisplay 
+                  tags={post.tags || []} 
+                  category={post.category}
+                  size="md"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

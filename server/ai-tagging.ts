@@ -233,6 +233,7 @@ Reasoning: Brief explanation`;
 
   private parseAnalysisResult(content: string): TaggingResult {
     try {
+      // Try to parse as JSON first
       const parsed = JSON.parse(content);
       return {
         suggestedTags: parsed.suggestedTags || [],
@@ -241,12 +242,32 @@ Reasoning: Brief explanation`;
         reasoning: parsed.reasoning || 'AI analysis completed'
       };
     } catch (error) {
-      console.error('Failed to parse AI analysis result:', error);
+      // Parse plain text format
+      const lines = content.split('\n');
+      let tags: string[] = [];
+      let category = 'Agricultural Technology';
+      let confidence = 0.7;
+      let reasoning = 'AI analysis completed';
+
+      for (const line of lines) {
+        if (line.toLowerCase().includes('tags:')) {
+          const tagsPart = line.substring(line.indexOf(':') + 1).trim();
+          tags = tagsPart.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        } else if (line.toLowerCase().includes('category:')) {
+          category = line.substring(line.indexOf(':') + 1).trim();
+        } else if (line.toLowerCase().includes('confidence:')) {
+          const confStr = line.substring(line.indexOf(':') + 1).trim();
+          confidence = parseFloat(confStr) || 0.7;
+        } else if (line.toLowerCase().includes('reasoning:')) {
+          reasoning = line.substring(line.indexOf(':') + 1).trim();
+        }
+      }
+
       return {
-        suggestedTags: [],
-        suggestedCategory: 'Agricultural Technology',
-        confidence: 0.3,
-        reasoning: 'Fallback analysis due to parsing error'
+        suggestedTags: tags,
+        suggestedCategory: category,
+        confidence: confidence,
+        reasoning: reasoning
       };
     }
   }
