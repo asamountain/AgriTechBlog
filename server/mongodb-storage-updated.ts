@@ -248,14 +248,9 @@ export class MongoStorage implements IStorage {
   }
 
   async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
-    // Handle both numeric IDs and ObjectId strings
-    let query: any;
-    if (typeof id === 'string' && id.length === 24) {
-      query = { _id: new ObjectId(id) };
-    } else {
-      // For numeric IDs, use the _id field directly
-      query = { _id: id.toString() };
-    }
+    // Convert to number for MongoDB query since your documents use numeric _id
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const query = { _id: numericId };
     
     // Prepare update data
     const updateDoc: any = {
@@ -278,7 +273,7 @@ export class MongoStorage implements IStorage {
     }
 
     const result = await this.blogPostsCollection.updateOne(
-      { _id: objectId },
+      query,
       { $set: updateDoc }
     );
 
@@ -287,7 +282,7 @@ export class MongoStorage implements IStorage {
     }
 
     // Return the updated post
-    const updatedDoc = await this.blogPostsCollection.findOne({ _id: objectId });
+    const updatedDoc = await this.blogPostsCollection.findOne(query);
     if (!updatedDoc) {
       throw new Error("Failed to retrieve updated post");
     }
