@@ -8,14 +8,14 @@ export default function HeroSection() {
   const [showVideo, setShowVideo] = useState(false);
 
   const scrollToContent = () => {
-    const element = document.getElementById('featured-stories');
-    element?.scrollIntoView({ behavior: 'smooth' });
-    trackEvent('scroll_to_content', 'navigation', 'hero_scroll');
+    const element = document.getElementById("featured-stories");
+    element?.scrollIntoView({ behavior: "smooth" });
+    trackEvent("scroll_to_content", "navigation", "hero_scroll");
   };
 
   const openPortfolio = () => {
-    trackEvent('portfolio_click', 'external_link', 'photography_portfolio');
-    window.open('https://asamountain.myportfolio.com/', '_blank');
+    trackEvent("portfolio_click", "external_link", "photography_portfolio");
+    window.open("https://asamountain.myportfolio.com/", "_blank");
   };
 
   useEffect(() => {
@@ -36,18 +36,21 @@ export default function HeroSection() {
           playsInline
           poster="https://cdn.myportfolio.com/e5b750a4-50d3-4551-bd7b-c4c4e3e39d73/8b70ddf3-e9a7-49a7-a1cd-b84056520f4a.jpg?h=23852e2440450a21161999cbfb84a425"
         >
-          <source src="https://www.youtube.com/embed/videoseries?list=PLBsrsimlDkLDrohYzmDERCsacIMNkGIgb&autoplay=1&mute=1" type="video/mp4" />
+          <source
+            src="https://www.youtube.com/embed/videoseries?list=PLBsrsimlDkLDrohYzmDERCsacIMNkGIgb&autoplay=1&mute=1"
+            type="video/mp4"
+          />
         </video>
       )}
-      
+
       {/* Fallback Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url('https://cdn.myportfolio.com/e5b750a4-50d3-4551-bd7b-c4c4e3e39d73/8b70ddf3-e9a7-49a7-a1cd-b84056520f4a.jpg?h=23852e2440450a21161999cbfb84a425')`
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url('https://cdn.myportfolio.com/e5b750a4-50d3-4551-bd7b-c4c4e3e39d73/8b70ddf3-e9a7-49a7-a1cd-b84056520f4a.jpg?h=23852e2440450a21161999cbfb84a425')`,
         }}
       />
-      
+
       {/* Content positioned at bottom */}
       <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-6 pb-32">
         {/* Top indicator */}
@@ -56,47 +59,38 @@ export default function HeroSection() {
             03 / 01 / 2025
           </span>
         </div>
-        
+
         {/* Back to link */}
         <div className="mb-6">
-          <span className="text-sm text-white/90 font-light tracking-wide">
-            back to ●
-          </span>
+          <span className="text-sm text-white/90 font-light tracking-wide"></span>
         </div>
-        
+
         {/* Main heading */}
         <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-normal mb-8 leading-none tracking-tight">
-          AgroTech
+          San
         </h1>
-        
+
         {/* Subtitle */}
         <p className="text-lg md:text-xl mb-12 text-white/90 max-w-lg mx-auto leading-relaxed font-light">
-          Memahami teknologi pertanian modern yang menghadirkan solusi inovatif untuk masa depan yang berkelanjutan
+          Bridging Nature and Technology, One Data Point at a Time
         </p>
-        
+
         {/* Photography Portfolio Link */}
         <div className="mb-8">
-          <Button 
+          <Button
             onClick={openPortfolio}
-            variant="outline" 
+            variant="outline"
             className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
           >
             <Camera className="h-4 w-4 mr-2" />
-            View Photography Portfolio
+            View His journey
             <ExternalLink className="h-4 w-4 ml-2" />
           </Button>
         </div>
-
-        {/* Created by */}
-        <div className="text-xs text-white/70 font-light tracking-widest">
-          <span className="italic">Created by |</span>
-          <br />
-          <span className="font-medium tracking-wider">agriculturist & photographer</span>
-        </div>
       </div>
-      
+
       {/* Scroll Indicator */}
-      <div 
+      <div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/80 animate-bounce cursor-pointer"
         onClick={scrollToContent}
       >

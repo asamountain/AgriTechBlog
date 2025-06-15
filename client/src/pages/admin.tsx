@@ -71,6 +71,268 @@ interface PostFormData {
   featuredImage: string;
   isFeatured: boolean;
   isPublished: boolean;
+  categoryId?: number;
+  tags?: string[];
+}
+
+function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => void }) {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState<PostFormData>({
+    title: post?.title || "",
+    content: post?.content || "",
+    excerpt: post?.excerpt || "",
+    slug: post?.slug || "",
+    featuredImage: post?.featuredImage || "",
+    isFeatured: post?.isFeatured || false,
+    isPublished: post?.isPublished || false,
+    categoryId: post?.category?.id || undefined,
+    tags: post?.tags || [],
+  });
+  const [newTag, setNewTag] = useState("");
+
+  // Fetch categories for the dropdown
+  const { data: categories = [] } = useQuery({
+    queryKey: ['/api/categories'],
+  });
+
+  const updatePostMutation = useMutation({
+    mutationFn: async (data: PostFormData) => {
+      const response = await fetch(`/api/blog-posts/${post?.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update post');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Post updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog-posts"] });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update post",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const generateTagsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/ai-tagging/analyze/${post?.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('Failed to generate tags');
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      if (data.suggestedTags) {
+        setFormData(prev => ({ ...prev, tags: data.suggestedTags }));
+      }
+      if (data.suggestedCategory) {
+        const matchingCategory = categories.find((cat: any) => 
+          cat.name.toLowerCase() === data.suggestedCategory.toLowerCase()
+        );
+        if (matchingCategory) {
+          setFormData(prev => ({ ...prev, categoryId: matchingCategory.id }));
+        }
+      }
+      toast({
+        title: "AI Analysis Complete",
+        description: `Generated ${data.suggestedTags?.length || 0} tags`,
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (post) {
+      updatePostMutation.mutate(formData);
+    }
+  };
+
+  const addTag = () => {
+    if (newTag.trim() && !formData.tags?.includes(newTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...(prev.tags || []), newTag.trim()]
+      }));
+      setNewTag("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags?.filter(tag => tag !== tagToRemove) || []
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-golden-md p-golden-lg">
+      {/* Title */}
+      <div className="space-y-golden-xs">
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+          className="rounded-golden-sm"
+          required
+        />
+      </div>
+
+      {/* Category */}
+      <div className="space-y-golden-xs">
+        <Label htmlFor="category">Category</Label>
+        <select
+          value={formData.categoryId || ""}
+          onChange={(e) => setFormData(prev => ({ 
+            ...prev, 
+            categoryId: e.target.value ? parseInt(e.target.value) : undefined 
+          }))}
+          className="w-full p-2 border rounded-golden-sm"
+        >
+          <option value="">Select category</option>
+          {categories.map((category: any) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tags */}
+      <div className="space-y-golden-sm">
+        <div className="flex items-center justify-between">
+          <Label>Tags</Label>
+          <Button
+            type="button"
+            onClick={() => generateTagsMutation.mutate()}
+            disabled={generateTagsMutation.isPending}
+            size="sm"
+            className="bg-forest-green text-white hover:opacity-80"
+          >
+            {generateTagsMutation.isPending ? "Generating..." : "AI Generate"}
+          </Button>
+        </div>
+        
+        {/* Current Tags */}
+        <div className="flex flex-wrap gap-golden-xs">
+          {formData.tags?.map((tag, index) => (
+            <Badge
+              key={index}
+              variant="outline"
+              className="border-forest-green text-forest-green p-golden-xs rounded-golden-sm"
+            >
+              {tag}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto p-0 ml-1 hover:bg-transparent"
+                onClick={() => removeTag(tag)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+
+        {/* Add New Tag */}
+        <div className="flex gap-golden-xs">
+          <Input
+            placeholder="Add new tag"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+            className="flex-1 rounded-golden-sm"
+          />
+          <Button type="button" onClick={addTag} size="sm" variant="outline">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Excerpt */}
+      <div className="space-y-golden-xs">
+        <Label htmlFor="excerpt">Excerpt</Label>
+        <Textarea
+          id="excerpt"
+          value={formData.excerpt}
+          onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+          rows={3}
+          className="rounded-golden-sm"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="space-y-golden-xs">
+        <Label htmlFor="content">Content</Label>
+        <Textarea
+          id="content"
+          value={formData.content}
+          onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+          rows={12}
+          className="rounded-golden-sm"
+          required
+        />
+      </div>
+
+      {/* Featured Image */}
+      <div className="space-y-golden-xs">
+        <Label htmlFor="featuredImage">Featured Image URL</Label>
+        <Input
+          id="featuredImage"
+          value={formData.featuredImage}
+          onChange={(e) => setFormData(prev => ({ ...prev, featuredImage: e.target.value }))}
+          placeholder="https://example.com/image.jpg"
+          className="rounded-golden-sm"
+        />
+      </div>
+
+      {/* Switches */}
+      <div className="flex items-center space-x-golden-lg">
+        <div className="flex items-center space-x-golden-xs">
+          <Switch
+            id="featured"
+            checked={formData.isFeatured}
+            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: checked }))}
+          />
+          <Label htmlFor="featured">Featured Post</Label>
+        </div>
+
+        <div className="flex items-center space-x-golden-xs">
+          <Switch
+            id="published"
+            checked={formData.isPublished}
+            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublished: checked }))}
+          />
+          <Label htmlFor="published">Published</Label>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-golden-sm pt-golden-sm border-t">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={updatePostMutation.isPending}
+          className="bg-forest-green text-white hover:opacity-80"
+        >
+          {updatePostMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </form>
+  );
 }
 
 
@@ -144,10 +406,7 @@ function PostsManagement() {
                 {selectedPost ? "Update the blog post details below." : "Fill in the details for your new blog post."}
               </DialogDescription>
             </DialogHeader>
-            {/* Simple inline editor for now */}
-            <div className="p-4">
-              <p>Post editing functionality simplified - click Edit on a post to manage it.</p>
-            </div>
+            <PostEditorForm post={selectedPost} onClose={closeEditor} />
           </DialogContent>
         </Dialog>
       </div>
