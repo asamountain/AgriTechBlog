@@ -84,7 +84,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await activeStorage.getCategories();
+      let categories = await activeStorage.getCategories();
+      
+      // If no categories exist, create default agricultural categories
+      if (categories.length === 0) {
+        const defaultCategories = [
+          {
+            name: "Agricultural Technology",
+            slug: "agricultural-technology", 
+            description: "Latest innovations in farming technology and precision agriculture",
+            color: "#2D5016"
+          },
+          {
+            name: "Sustainable Farming",
+            slug: "sustainable-farming",
+            description: "Eco-friendly practices and sustainable agriculture methods", 
+            color: "#2D5016"
+          },
+          {
+            name: "Crop Management",
+            slug: "crop-management",
+            description: "Best practices for crop planning, growth, and harvest optimization",
+            color: "#2D5016"
+          },
+          {
+            name: "Farm Equipment",
+            slug: "farm-equipment", 
+            description: "Modern farming machinery and equipment innovations",
+            color: "#2D5016"
+          },
+          {
+            name: "Market Analysis",
+            slug: "market-analysis",
+            description: "Agricultural market trends and economic insights",
+            color: "#2D5016"
+          },
+          {
+            name: "Weather & Climate",
+            slug: "weather-climate",
+            description: "Climate impact on agriculture and weather-based farming",
+            color: "#2D5016"
+          },
+          {
+            name: "Soil Health",
+            slug: "soil-health", 
+            description: "Soil management and health optimization techniques",
+            color: "#2D5016"
+          },
+          {
+            name: "Irrigation Systems",
+            slug: "irrigation-systems",
+            description: "Water management and irrigation technology solutions",
+            color: "#2D5016"
+          }
+        ];
+
+        for (const categoryData of defaultCategories) {
+          await activeStorage.createCategory(categoryData);
+        }
+        
+        categories = await activeStorage.getCategories();
+      }
+      
       res.json(categories);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch categories" });

@@ -16,21 +16,19 @@ interface TagDisplayProps {
 
 export function TagDisplay({ tags = [], category, showIcons = true, size = "md" }: TagDisplayProps) {
   const badgeSize = size === "sm" ? "text-xs" : size === "lg" ? "text-base" : "text-sm";
+  const iconSize = size === "sm" ? "h-3 w-3" : size === "lg" ? "h-4 w-4" : "h-3 w-3";
+  const spacing = size === "sm" ? "gap-golden-xs" : size === "lg" ? "gap-golden-md" : "gap-golden-sm";
   
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className={`flex flex-wrap items-center ${spacing}`}>
       {/* Category */}
       {category && (
         <Link href={`/category/${category.slug}`}>
           <Badge 
             variant="secondary" 
-            className={`${badgeSize} hover:bg-opacity-80 cursor-pointer transition-colors`}
-            style={{ 
-              backgroundColor: category.color || '#52B788',
-              color: 'white'
-            }}
+            className={`${badgeSize} bg-forest-green text-white hover:opacity-80 cursor-pointer transition-all duration-200 p-golden-xs rounded-golden-sm`}
           >
-            {showIcons && <Folder className="h-3 w-3 mr-1" />}
+            {showIcons && <Folder className={`${iconSize} mr-1`} />}
             {category.name}
           </Badge>
         </Link>
@@ -41,9 +39,9 @@ export function TagDisplay({ tags = [], category, showIcons = true, size = "md" 
         <Link key={index} href={`/search?q=${encodeURIComponent(tag)}`}>
           <Badge 
             variant="outline" 
-            className={`${badgeSize} hover:bg-green-50 hover:border-green-300 dark:hover:bg-green-950 cursor-pointer transition-colors`}
+            className={`${badgeSize} border-forest-green text-forest-green hover:bg-forest-green hover:text-white cursor-pointer transition-all duration-200 p-golden-xs rounded-golden-sm`}
           >
-            {showIcons && index === 0 && <Tag className="h-3 w-3 mr-1" />}
+            {showIcons && index === 0 && <Tag className={`${iconSize} mr-1`} />}
             {tag}
           </Badge>
         </Link>

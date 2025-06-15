@@ -27,13 +27,29 @@
   --ring: hsl(143, 64%, 24%);
   --radius: 0.75rem;
   
-  /* Custom AgroTech colors */
-  --forest-green: hsl(143, 64%, 24%);
-  --sage-green: hsl(158, 64%, 52%);
-  --fresh-lime: hsl(139, 69%, 69%);
-  --earth-brown: hsl(25, 59%, 42%);
-  --warm-beige: hsl(60, 29%, 96%);
-  --golden-yellow: hsl(50, 100%, 52%);
+  /* Forest Green Primary Color - All accents use this color */
+  --forest-green: #2D5016;
+  --forest-green-hsl: hsl(86, 69%, 20%);
+  
+  /* Golden Ratio Spacing Variables */
+  --space-xs: 6px;     /* Base small spacing */
+  --space-sm: 10px;    /* 6 × 1.618 ≈ 10px */
+  --space-md: 16px;    /* 10 × 1.618 ≈ 16px */
+  --space-lg: 26px;    /* 16 × 1.618 ≈ 26px */
+  --space-xl: 42px;    /* 26 × 1.618 ≈ 42px */
+  --space-2xl: 68px;   /* 42 × 1.618 ≈ 68px */
+  
+  /* Golden Ratio Typography */
+  --text-xs: 10px;     /* Small text */
+  --text-sm: 16px;     /* Base text */
+  --text-md: 26px;     /* 16 × 1.618 ≈ 26px */
+  --text-lg: 42px;     /* 26 × 1.618 ≈ 42px */
+  --text-xl: 68px;     /* 42 × 1.618 ≈ 68px */
+  
+  /* Golden Ratio Border Radius */
+  --radius-sm: 6px;    /* Small radius */
+  --radius-md: 10px;   /* 6 × 1.618 ≈ 10px */
+  --radius-lg: 16px;   /* 10 × 1.618 ≈ 16px */
 }
 
 .dark {
@@ -69,33 +85,49 @@
 }
 
 @layer utilities {
+  /* Forest Green Color Utilities - All accents use forest green */
   .text-forest-green {
     color: var(--forest-green);
-  }
-  
-  .text-sage-green {
-    color: var(--sage-green);
-  }
-  
-  .text-fresh-lime {
-    color: var(--fresh-lime);
-  }
-  
-  .text-earth-brown {
-    color: var(--earth-brown);
-  }
-  
-  .text-golden-yellow {
-    color: var(--golden-yellow);
   }
   
   .bg-forest-green {
     background-color: var(--forest-green);
   }
   
-  .bg-sage-green {
-    background-color: var(--sage-green);
+  .border-forest-green {
+    border-color: var(--forest-green);
   }
+  
+  .hover\:bg-forest-green:hover {
+    background-color: var(--forest-green);
+  }
+  
+  .hover\:text-forest-green:hover {
+    color: var(--forest-green);
+  }
+  
+  /* Golden Ratio Spacing Utilities */
+  .p-golden-xs { padding: var(--space-xs); }
+  .p-golden-sm { padding: var(--space-sm); }
+  .p-golden-md { padding: var(--space-md); }
+  .p-golden-lg { padding: var(--space-lg); }
+  .p-golden-xl { padding: var(--space-xl); }
+  
+  .m-golden-xs { margin: var(--space-xs); }
+  .m-golden-sm { margin: var(--space-sm); }
+  .m-golden-md { margin: var(--space-md); }
+  .m-golden-lg { margin: var(--space-lg); }
+  .m-golden-xl { margin: var(--space-xl); }
+  
+  .gap-golden-xs { gap: var(--space-xs); }
+  .gap-golden-sm { gap: var(--space-sm); }
+  .gap-golden-md { gap: var(--space-md); }
+  .gap-golden-lg { gap: var(--space-lg); }
+  
+  /* Golden Ratio Border Radius */
+  .rounded-golden-sm { border-radius: var(--radius-sm); }
+  .rounded-golden-md { border-radius: var(--radius-md); }
+  .rounded-golden-lg { border-radius: var(--radius-lg); }
   
   .bg-fresh-lime {
     background-color: var(--fresh-lime);
@@ -219,7 +251,7 @@
 }
 
 .blog-content blockquote {
-  @apply border-l-4 border-sage-green pl-6 italic text-gray-600 my-6;
+  @apply border-l-4 border-forest-green pl-6 italic text-gray-600 my-6;
 }
 
 .blog-content ul, .blog-content ol {
@@ -239,5 +271,5 @@
 }
 
 .blog-content a {
-  @apply text-sage-green hover:text-forest-green underline;
+  @apply text-forest-green hover:opacity-80 underline;
 }
