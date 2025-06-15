@@ -191,7 +191,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/stats", async (req, res) => {
     try {
-      const allPosts = await activeStorage.getBlogPosts({ limit: 1000, includeDrafts: true });
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      const allPosts = await activeStorage.getBlogPosts({ 
+        limit: 1000, 
+        includeDrafts: true,
+        userId: userId 
+      });
       const publishedPosts = allPosts.filter(post => post.isPublished);
       const draftPosts = allPosts.filter(post => !post.isPublished);
       const featuredPosts = allPosts.filter(post => post.isFeatured);
