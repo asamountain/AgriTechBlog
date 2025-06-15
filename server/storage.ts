@@ -1,9 +1,10 @@
 import { 
-  users, categories, authors, blogPosts,
+  users, categories, authors, blogPosts, comments,
   type User, type InsertUser,
   type Category, type InsertCategory,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
+  type Comment, type InsertComment,
   type BlogPostWithDetails
 } from "@shared/schema";
 import { MongoStorage } from "./mongodb-storage-updated";
@@ -32,6 +33,12 @@ export interface IStorage {
   updateBlogPost(id: number | string, post: Partial<InsertBlogPost>): Promise<BlogPost>;
   searchBlogPosts(query: string): Promise<BlogPostWithDetails[]>;
   getRelatedPosts(postId: number | string, categoryId: number, limit?: number): Promise<BlogPostWithDetails[]>;
+  
+  // Comments
+  getCommentsByPostId(postId: number | string): Promise<Comment[]>;
+  createComment(comment: InsertComment): Promise<Comment>;
+  approveComment(commentId: number): Promise<Comment>;
+  deleteComment(commentId: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {

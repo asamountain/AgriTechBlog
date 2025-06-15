@@ -22,6 +22,13 @@ export default function BlogPost() {
     enabled: !!slug,
   });
 
+  // Track blog post view when post loads
+  useEffect(() => {
+    if (post) {
+      trackEvent('page_view', 'blog_post', post.title, post.readTime);
+    }
+  }, [post]);
+
   const { data: relatedPosts } = useQuery<BlogPostWithDetails[]>({
     queryKey: [`/api/blog-posts/${post?.id}/related`],
     enabled: !!post?.id,
