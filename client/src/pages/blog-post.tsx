@@ -13,6 +13,7 @@ import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
+import CommentSection from "@/components/comment-section";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -164,6 +165,13 @@ export default function BlogPost() {
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Comments Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <CommentSection postId={post.id} postTitle={post.title} />
         </div>
       </section>
 
