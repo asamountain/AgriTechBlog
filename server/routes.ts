@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage, getStorage, type IStorage } from "./storage";
-import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema } from "@shared/schema";
+import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -208,6 +208,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Post deleted successfully" });
     } catch (error) {
       res.status(400).json({ message: "Failed to delete blog post" });
+    }
+  });
+
+  // Comments routes
+  app.get("/api/blog-posts/:id/comments", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const comments = await activeStorage.getCommentsByPostId(id);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  app.post("/api/blog-posts/:id/comments", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const commentData = insertCommentSchema.parse({
+        ...req.body,
+        blogPostId: parseInt(id)
+      });
+      
+      const comment = await activeStorage.createComment(commentData);
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(400).json({ message: "Failed to create comment" });
+    }
+  });
+
+  app.put("/api/comments/:id/approve", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const comment = await activeStorage.approveComment(parseInt(id));
+      res.json(comment);
+    } catch (error) {
+      console.error("Error approving comment:", error);
+      res.status(400).json({ message: "Failed to approve comment" });
+    }
+  });
+
+  app.delete("/api/comments/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await activeStorage.deleteComment(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(400).json({ message: "Failed to delete comment" });
     }
   });
 

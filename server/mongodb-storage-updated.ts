@@ -4,6 +4,7 @@ import {
   type Category, type InsertCategory,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
+  type Comment, type InsertComment,
   type BlogPostWithDetails
 } from "@shared/schema";
 import { IStorage } from "./storage";
@@ -15,6 +16,7 @@ export class MongoStorage implements IStorage {
   private categoriesCollection: Collection;
   private authorsCollection: Collection;
   private blogPostsCollection: Collection;
+  private commentsCollection: Collection;
 
   constructor(connectionString: string, databaseName: string) {
     this.client = new MongoClient(connectionString);
@@ -23,6 +25,7 @@ export class MongoStorage implements IStorage {
     this.categoriesCollection = this.db.collection("categories");
     this.authorsCollection = this.db.collection("authors");
     this.blogPostsCollection = this.db.collection("posts");
+    this.commentsCollection = this.db.collection("comments");
   }
 
   async connect(): Promise<void> {
@@ -328,5 +331,88 @@ export class MongoStorage implements IStorage {
       .toArray();
     
     return docs.map(doc => this.mapPostDocument(doc));
+  }
+
+  // Comment Methods
+  async getCommentsByPostId(postId: number | string): Promise<Comment[]> {
+    const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
+    
+    const comments = await this.commentsCollection
+      .find({ blogPostId: numericId, isApproved: true })
+      .sort({ createdAt: 1 })
+      .toArray();
+
+    return comments.map(comment => ({
+      id: parseInt(comment._id.toString().substring(0, 8), 16),
+      blogPostId: comment.blogPostId,
+      parentId: comment.parentId || null,
+      authorName: comment.authorName,
+      authorEmail: comment.authorEmail,
+      content: comment.content,
+      createdAt: new Date(comment.createdAt),
+      isApproved: comment.isApproved
+    }));
+  }
+
+  async createComment(insertComment: InsertComment): Promise<Comment> {
+    const commentDoc = {
+      ...insertComment,
+      createdAt: new Date(),
+      isApproved: false
+    };
+
+    const result = await this.commentsCollection.insertOne(commentDoc);
+    
+    return {
+      id: parseInt(result.insertedId.toString().substring(0, 8), 16),
+      ...commentDoc
+    };
+  }
+
+  async approveComment(commentId: number): Promise<Comment> {
+    const hexPrefix = commentId.toString(16).padStart(8, '0');
+    const allComments = await this.commentsCollection.find({}).toArray();
+    const targetComment = allComments.find(comment => {
+      const objectIdStr = comment._id.toString();
+      return objectIdStr.startsWith(hexPrefix);
+    });
+
+    if (!targetComment) {
+      throw new Error("Comment not found");
+    }
+
+    const result = await this.commentsCollection.findOneAndUpdate(
+      { _id: targetComment._id },
+      { $set: { isApproved: true } },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      throw new Error("Comment not found");
+    }
+
+    return {
+      id: parseInt(result._id.toString().substring(0, 8), 16),
+      blogPostId: result.blogPostId,
+      parentId: result.parentId || null,
+      authorName: result.authorName,
+      authorEmail: result.authorEmail,
+      content: result.content,
+      createdAt: new Date(result.createdAt),
+      isApproved: result.isApproved
+    };
+  }
+
+  async deleteComment(commentId: number): Promise<void> {
+    const hexPrefix = commentId.toString(16).padStart(8, '0');
+    const allComments = await this.commentsCollection.find({}).toArray();
+    const targetComment = allComments.find(comment => {
+      const objectIdStr = comment._id.toString();
+      return objectIdStr.startsWith(hexPrefix);
+    });
+
+    if (targetComment) {
+      await this.commentsCollection.deleteOne({ _id: targetComment._id });
+    }
   }
 }
