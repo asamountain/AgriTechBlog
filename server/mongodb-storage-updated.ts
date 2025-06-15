@@ -248,9 +248,20 @@ export class MongoStorage implements IStorage {
   }
 
   async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
-    // Convert to number for MongoDB query since your documents use numeric _id
-    const numericId = typeof id === 'string' ? parseInt(id) : id;
-    const query = { _id: numericId };
+    // Find all documents and search for the one with matching converted ID
+    const allDocs = await this.blogPostsCollection.find({}).toArray();
+    const targetDoc = allDocs.find(doc => {
+      const convertedDoc = this.convertMongoDoc(doc);
+      return convertedDoc.id == id.toString() || convertedDoc.id == id;
+    });
+    
+    if (!targetDoc) {
+      console.log('Available document IDs:', allDocs.slice(0, 5).map(doc => this.convertMongoDoc(doc).id));
+      throw new Error("Blog post not found");
+    }
+    
+    // Use the actual _id from the found document for the update
+    const query = { _id: targetDoc._id };
     
     // Prepare update data
     const updateDoc: any = {
