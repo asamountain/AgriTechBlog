@@ -11,6 +11,8 @@ import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
+import { trackEvent } from "@/lib/analytics";
+import { useEffect } from "react";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
