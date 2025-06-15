@@ -380,7 +380,7 @@ function PostsManagement() {
 
   const closeEditor = () => {
     setShowEditor(false);
-    setSelectedPost(null);
+    setSelectedPost(undefined);
   };
 
   if (isLoading) {
@@ -393,7 +393,7 @@ function PostsManagement() {
         <h2 className="text-2xl font-bold">Manage Posts</h2>
         <Dialog open={showEditor} onOpenChange={setShowEditor}>
           <DialogTrigger asChild>
-            <Button onClick={() => setSelectedPost(null)}>
+            <Button onClick={() => setSelectedPost(undefined)}>
               <Plus className="w-4 h-4 mr-2" />
               New Post
             </Button>
