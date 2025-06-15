@@ -332,15 +332,18 @@ let storageInstance: IStorage | null = null;
 async function createStorage(): Promise<IStorage> {
   const mongoUri = process.env.MONGODB_URI;
   
-  if (mongoUri) {
+  if (mongoUri && (mongoUri.startsWith('mongodb://') || mongoUri.startsWith('mongodb+srv://'))) {
     try {
       console.log('Connecting to MongoDB...');
       const mongoStorage = new MongoStorage(mongoUri, 'agrotech_blog');
       await mongoStorage.connect();
+      console.log('Successfully connected to MongoDB');
       return mongoStorage;
     } catch (error) {
       console.error('Failed to connect to MongoDB, falling back to memory storage:', error);
     }
+  } else if (mongoUri) {
+    console.log('Invalid MongoDB URI format. Must start with "mongodb://" or "mongodb+srv://". Using in-memory storage.');
   }
   
   console.log('Using in-memory storage');

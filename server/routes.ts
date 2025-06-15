@@ -1,11 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage, getStorage } from "./storage";
+import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
-  let activeStorage = storage;
+  let activeStorage: IStorage = storage;
   try {
     activeStorage = await getStorage();
   } catch (error) {
