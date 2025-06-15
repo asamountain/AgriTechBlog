@@ -58,7 +58,7 @@ export default function FeaturedStories() {
                       
                       {/* Featured Badge */}
                       <div className="absolute top-4 left-4">
-                        <span className="inline-block px-3 py-1 bg-sage-green text-white text-xs font-medium uppercase tracking-wide">
+                        <span className="inline-block px-3 py-1 bg-forest-green text-white text-xs font-medium uppercase tracking-wide">
                           Featured
                         </span>
                       </div>
@@ -81,7 +81,7 @@ export default function FeaturedStories() {
                       </div>
                       
                       {/* Title */}
-                      <h3 className={`font-bold text-gray-900 mb-4 leading-tight group-hover:text-sage-green transition-colors ${
+                      <h3 className={`font-bold text-gray-900 mb-4 leading-tight group-hover:text-forest-green transition-colors ${
                         isHero ? 'text-3xl md:text-4xl' : 'text-2xl'
                       }`}>
                         {story.title}
@@ -98,7 +98,7 @@ export default function FeaturedStories() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-sage-green text-white text-xs font-medium">
+                            <AvatarFallback className="bg-forest-green text-white text-xs font-medium">
                               {story.author.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>

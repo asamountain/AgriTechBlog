@@ -39,8 +39,8 @@ export default function Navigation() {
                   <Link key={item.href} href={item.href}>
                     <span className={`transition-colors cursor-pointer ${
                       location === item.href 
-                        ? "text-sage-green font-medium" 
-                        : "text-gray-700 hover:text-sage-green"
+                        ? "text-forest-green font-medium" 
+                        : "text-gray-700 hover:text-forest-green"
                     }`}>
                       {item.label}
                     </span>
@@ -48,7 +48,7 @@ export default function Navigation() {
                 ))}
                 <Button
                   onClick={() => setIsSearchOpen(true)}
-                  className="bg-sage-green text-white hover:bg-forest-green"
+                  className="bg-forest-green text-white hover:opacity-80"
                   size="sm"
                 >
                   <Search className="h-4 w-4" />
@@ -71,8 +71,8 @@ export default function Navigation() {
                         <span 
                           className={`block py-2 text-lg transition-colors cursor-pointer ${
                             location === item.href 
-                              ? "text-sage-green font-medium" 
-                              : "text-gray-700 hover:text-sage-green"
+                              ? "text-forest-green font-medium" 
+                              : "text-gray-700 hover:text-forest-green"
                           }`}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
@@ -85,7 +85,7 @@ export default function Navigation() {
                         setIsSearchOpen(true);
                         setIsMobileMenuOpen(false);
                       }}
-                      className="bg-sage-green text-white hover:bg-forest-green justify-start"
+                      className="bg-forest-green text-white hover:bg-forest-green justify-start"
                     >
                       <Search className="h-4 w-4 mr-2" />
                       Search

@@ -44,7 +44,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               placeholder="Search for articles, topics, or authors..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-4 text-lg border-gray-300 focus:ring-2 focus:ring-sage-green focus:border-transparent"
+              className="pl-12 pr-4 py-4 text-lg border-gray-300 focus:ring-2 focus:ring-forest-green focus:border-transparent"
               autoFocus
             />
           </div>
@@ -81,7 +81,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       style={{ backgroundImage: `url('${post.featuredImage}')` }}
                     />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-sage-green transition-colors line-clamp-1">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-forest-green transition-colors line-clamp-1">
                         {post.title}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">

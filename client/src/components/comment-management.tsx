@@ -163,7 +163,7 @@ export default function CommentManagement() {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-6">
-          <MessageCircle className="h-6 w-6 text-sage-green" />
+          <MessageCircle className="h-6 w-6 text-forest-green" />
           <h2 className="text-2xl font-bold text-gray-900">Comment Management</h2>
         </div>
         {[1, 2, 3].map((i) => (
@@ -186,7 +186,7 @@ export default function CommentManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
-        <MessageCircle className="h-6 w-6 text-sage-green" />
+        <MessageCircle className="h-6 w-6 text-forest-green" />
         <h2 className="text-2xl font-bold text-gray-900">Comment Management</h2>
       </div>
 

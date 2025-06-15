@@ -63,7 +63,7 @@ export default function AdvancedSearch() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5 text-sage-green" />
+              <Search className="h-5 w-5 text-forest-green" />
               Advanced Search
             </CardTitle>
           </CardHeader>
@@ -146,7 +146,7 @@ export default function AdvancedSearch() {
             )}
           </div>
           {searchQuery && (
-            <Badge variant="secondary" className="bg-sage-green/10 text-sage-green">
+            <Badge variant="secondary" className="bg-forest-green/10 text-forest-green">
               Search: "{searchQuery}"
             </Badge>
           )}
@@ -202,7 +202,7 @@ export default function AdvancedSearch() {
                   </div>
                   
                   <CardContent className="p-6">
-                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-sage-green transition-colors line-clamp-2">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-forest-green transition-colors line-clamp-2">
                       {post.title}
                     </h3>
                     

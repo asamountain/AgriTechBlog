@@ -72,7 +72,7 @@ export default function BlogPost() {
               The article you're looking for doesn't exist or has been moved.
             </p>
             <Link href="/">
-              <Button className="bg-sage-green hover:bg-forest-green text-white">
+              <Button className="bg-forest-green hover:bg-forest-green text-white">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
               </Button>
@@ -93,7 +93,7 @@ export default function BlogPost() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <Link href="/">
-            <Button variant="ghost" className="mb-8 text-gray-600 hover:text-sage-green">
+            <Button variant="ghost" className="mb-8 text-gray-600 hover:text-forest-green">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Articles
             </Button>
@@ -119,7 +119,7 @@ export default function BlogPost() {
             <div className="flex items-center space-x-6 text-sm text-gray-500">
               <div className="flex items-center space-x-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-sage-green text-white text-xs">
+                  <AvatarFallback className="bg-forest-green text-white text-xs">
                     {post.author.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
@@ -153,7 +153,7 @@ export default function BlogPost() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Excerpt */}
           <div className="mb-12">
-            <div className="w-1 h-16 bg-sage-green mr-6 float-left"></div>
+            <div className="w-1 h-16 bg-forest-green mr-6 float-left"></div>
             <p className="text-xl text-gray-700 leading-relaxed font-light italic">
               {post.excerpt}
             </p>
@@ -191,7 +191,7 @@ export default function BlogPost() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 bg-sage-green">
+      <section className="py-16 bg-forest-green">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Stay Updated with AgroTech Insights
@@ -200,7 +200,7 @@ export default function BlogPost() {
             Get the latest insights on agricultural innovation and sustainable farming practices delivered to your inbox.
           </p>
           <Link href="/">
-            <Button className="bg-white text-sage-green hover:bg-gray-100 font-medium py-3 px-8 text-lg">
+            <Button className="bg-white text-forest-green hover:bg-gray-100 font-medium py-3 px-8 text-lg">
               Explore More Articles
             </Button>
           </Link>

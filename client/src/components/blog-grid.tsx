@@ -43,7 +43,7 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Latest Articles
           </h2>
-          <div className="w-16 h-1 bg-sage-green"></div>
+          <div className="w-16 h-1 bg-forest-green"></div>
         </div>
         {displayedPosts.length === 0 ? (
           <div className="text-center py-16">
@@ -91,7 +91,7 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
                         
                         <div className={`p-6 ${isLarge ? 'md:p-8' : ''}`}>
                           {/* Title */}
-                          <h3 className={`font-bold text-gray-900 mb-3 leading-tight group-hover:text-sage-green transition-colors ${
+                          <h3 className={`font-bold text-gray-900 mb-3 leading-tight group-hover:text-forest-green transition-colors ${
                             isLarge ? 'text-2xl md:text-3xl' : 'text-xl'
                           }`}>
                             {post.title}
@@ -124,7 +124,7 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
               <div className="text-center mt-16">
                 <Button
                   onClick={() => setPage(page + 1)}
-                  className="bg-sage-green hover:bg-forest-green text-white font-medium py-3 px-8 uppercase tracking-wide text-sm transition-all duration-300"
+                  className="bg-forest-green hover:bg-forest-green text-white font-medium py-3 px-8 uppercase tracking-wide text-sm transition-all duration-300"
                 >
                   Load More Articles
                 </Button>

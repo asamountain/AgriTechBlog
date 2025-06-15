@@ -46,7 +46,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Browse Categories
           </h2>
-          <div className="w-16 h-1 bg-sage-green"></div>
+          <div className="w-16 h-1 bg-forest-green"></div>
         </div>
         
         <div className="flex flex-wrap gap-3">
@@ -54,8 +54,8 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
             onClick={() => onCategoryChange(null)}
             className={`px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
               selectedCategory === null
-                ? "bg-sage-green text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-sage-green hover:text-white"
+                ? "bg-forest-green text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-forest-green hover:text-white"
             }`}
           >
             All Articles
@@ -71,8 +71,8 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                 onClick={() => onCategoryChange(category.slug)}
                 className={`px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-300 flex items-center space-x-2 ${
                   isSelected
-                    ? "bg-sage-green text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-sage-green hover:text-white"
+                    ? "bg-forest-green text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-forest-green hover:text-white"
                 }`}
               >
                 <IconComponent className="h-3 w-3" />

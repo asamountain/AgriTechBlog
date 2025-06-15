@@ -81,7 +81,7 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
         variant="ghost"
         size="sm"
         onClick={() => setShowShareMenu(!showShareMenu)}
-        className="text-gray-600 hover:text-sage-green"
+        className="text-gray-600 hover:text-forest-green"
       >
         <Share2 className="w-4 h-4 mr-2" />
         Share
@@ -98,7 +98,7 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
                 variant="ghost"
                 size="sm"
                 onClick={handleNativeShare}
-                className="justify-start text-gray-700 hover:text-sage-green hover:bg-sage-green/10"
+                className="justify-start text-gray-700 hover:text-forest-green hover:bg-forest-green/10"
               >
                 <Share2 className="w-4 h-4 mr-3" />
                 Share via device
@@ -162,7 +162,7 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
               variant="ghost"
               size="sm"
               onClick={copyToClipboard}
-              className="justify-start text-gray-700 hover:text-sage-green hover:bg-sage-green/10"
+              className="justify-start text-gray-700 hover:text-forest-green hover:bg-forest-green/10"
             >
               <Link className="w-4 h-4 mr-3" />
               Copy link

@@ -145,24 +145,16 @@
     background-color: var(--golden-yellow);
   }
   
-  .border-sage-green {
-    border-color: var(--sage-green);
-  }
-  
   .border-forest-green {
     border-color: var(--forest-green);
-  }
-  
-  .hover\:bg-sage-green:hover {
-    background-color: var(--sage-green);
   }
   
   .hover\:bg-forest-green:hover {
     background-color: var(--forest-green);
   }
   
-  .hover\:text-sage-green:hover {
-    color: var(--sage-green);
+  .hover\:text-forest-green:hover {
+    color: var(--forest-green);
   }
   
   .hover\:text-fresh-lime:hover {
