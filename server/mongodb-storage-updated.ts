@@ -247,6 +247,47 @@ export class MongoStorage implements IStorage {
     };
   }
 
+  async updateBlogPost(id: number, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
+    const objectId = new ObjectId(id.toString());
+    
+    // Prepare update data
+    const updateDoc: any = {
+      ...updateData,
+      lastModified: new Date()
+    };
+
+    // Convert boolean fields properly
+    if (updateData.isFeatured !== undefined) {
+      updateDoc.featured = updateData.isFeatured;
+      delete updateDoc.isFeatured;
+    }
+    if (updateData.isPublished !== undefined) {
+      updateDoc.draft = !updateData.isPublished;
+      delete updateDoc.isPublished;
+    }
+    if (updateData.featuredImage !== undefined) {
+      updateDoc.coverImage = updateData.featuredImage;
+      delete updateDoc.featuredImage;
+    }
+
+    const result = await this.blogPostsCollection.updateOne(
+      { _id: objectId },
+      { $set: updateDoc }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error("Blog post not found");
+    }
+
+    // Return the updated post
+    const updatedDoc = await this.blogPostsCollection.findOne({ _id: objectId });
+    if (!updatedDoc) {
+      throw new Error("Failed to retrieve updated post");
+    }
+
+    return this.convertMongoDoc(updatedDoc);
+  }
+
   async searchBlogPosts(query: string): Promise<BlogPostWithDetails[]> {
     const searchTerm = { $regex: query, $options: 'i' };
     const docs = await this.blogPostsCollection.find({

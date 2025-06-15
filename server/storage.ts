@@ -27,10 +27,11 @@ export interface IStorage {
   // Blog Posts
   getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean }): Promise<BlogPostWithDetails[]>;
   getBlogPostBySlug(slug: string): Promise<BlogPostWithDetails | undefined>;
-  getBlogPost(id: number): Promise<BlogPostWithDetails | undefined>;
+  getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: number | string, post: Partial<InsertBlogPost>): Promise<BlogPost>;
   searchBlogPosts(query: string): Promise<BlogPostWithDetails[]>;
-  getRelatedPosts(postId: number, categoryId: number, limit?: number): Promise<BlogPostWithDetails[]>;
+  getRelatedPosts(postId: number | string, categoryId: number, limit?: number): Promise<BlogPostWithDetails[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -296,6 +297,23 @@ export class MemStorage implements IStorage {
     };
     this.blogPosts.set(id, post);
     return post;
+  }
+
+  async updateBlogPost(id: number, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
+    const existingPost = this.blogPosts.get(id);
+    if (!existingPost) {
+      throw new Error("Blog post not found");
+    }
+
+    const updatedPost: BlogPost = {
+      ...existingPost,
+      ...updateData,
+      id,
+      updatedAt: new Date().toISOString()
+    };
+
+    this.blogPosts.set(id, updatedPost);
+    return updatedPost;
   }
 
   async searchBlogPosts(query: string): Promise<BlogPostWithDetails[]> {

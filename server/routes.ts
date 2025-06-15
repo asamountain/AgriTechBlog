@@ -185,13 +185,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/blog-posts/:id", async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      const postData = insertBlogPostSchema.parse(req.body);
+      const { id } = req.params;
+      const postId = isNaN(parseInt(id)) ? parseInt(id) : parseInt(id);
       
-      // This would need to be implemented in the storage layer
-      // For now, return success
-      res.json({ message: "Post updated successfully" });
+      // Validate the request body but make fields optional for updates
+      const updateData = req.body;
+      
+      const updatedPost = await activeStorage.updateBlogPost(postId, updateData);
+      res.json(updatedPost);
     } catch (error) {
+      console.error("Update blog post error:", error);
       res.status(400).json({ message: "Failed to update blog post" });
     }
   });
