@@ -180,3 +180,64 @@
 * {
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
+
+/* Blog content styling */
+.blog-content h1 {
+  @apply text-4xl font-bold text-gray-900 mb-8 mt-12 leading-tight;
+  font-family: 'Playfair Display', serif;
+}
+
+.blog-content h2 {
+  @apply text-3xl font-bold text-gray-900 mb-6 mt-10 leading-tight;
+  font-family: 'Playfair Display', serif;
+}
+
+.blog-content h3 {
+  @apply text-2xl font-semibold text-gray-900 mb-4 mt-8 leading-tight;
+  font-family: 'Playfair Display', serif;
+}
+
+.blog-content h4 {
+  @apply text-xl font-semibold text-gray-800 mb-3 mt-6;
+}
+
+.blog-content p {
+  @apply text-lg text-gray-700 leading-relaxed mb-6;
+  line-height: 1.8;
+}
+
+.blog-content code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800;
+}
+
+.blog-content pre {
+  @apply bg-gray-100 p-4 rounded-lg overflow-x-auto mb-6;
+}
+
+.blog-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.blog-content blockquote {
+  @apply border-l-4 border-sage-green pl-6 italic text-gray-600 my-6;
+}
+
+.blog-content ul, .blog-content ol {
+  @apply mb-6 pl-6;
+}
+
+.blog-content li {
+  @apply text-lg text-gray-700 leading-relaxed mb-2;
+}
+
+.blog-content strong {
+  @apply font-semibold text-gray-900;
+}
+
+.blog-content em {
+  @apply italic;
+}
+
+.blog-content a {
+  @apply text-sage-green hover:text-forest-green underline;
+}

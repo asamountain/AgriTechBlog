@@ -111,7 +111,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/blog-posts/:id/related", async (req, res) => {
     try {
       const { id } = req.params;
-      const postId = parseInt(id);
+      // Handle both string and numeric IDs
+      const postId = isNaN(parseInt(id)) ? id : parseInt(id);
       const post = await activeStorage.getBlogPost(postId);
       
       if (!post) {
@@ -121,6 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const relatedPosts = await activeStorage.getRelatedPosts(postId, post.categoryId);
       res.json(relatedPosts);
     } catch (error) {
+      console.error("Related posts error:", error);
       res.status(500).json({ message: "Failed to fetch related posts" });
     }
   });

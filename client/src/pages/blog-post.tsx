@@ -150,13 +150,10 @@ export default function BlogPost() {
 
           {/* Main Content */}
           <div className="prose prose-lg max-w-none">
-            <div className="text-gray-700 leading-relaxed space-y-6">
-              {post.content.split('\n').map((paragraph, index) => (
-                <p key={index} className="text-lg leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            <div 
+              className="text-gray-700 leading-relaxed blog-content"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
           </div>
         </div>
       </section>
