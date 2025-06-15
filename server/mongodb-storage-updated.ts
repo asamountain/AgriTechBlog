@@ -62,28 +62,53 @@ export class MongoStorage implements IStorage {
   private mapPostDocument(doc: any): BlogPostWithDetails {
     const post = this.convertMongoDoc(doc);
     
+    // Handle date conversion properly
+    let createdAt = new Date();
+    let updatedAt = new Date();
+    
+    if (post.date) {
+      if (post.date.$date) {
+        createdAt = new Date(post.date.$date);
+      } else {
+        createdAt = new Date(post.date);
+      }
+    }
+    
+    if (post.lastModified) {
+      if (post.lastModified.$date) {
+        updatedAt = new Date(post.lastModified.$date);
+      } else {
+        updatedAt = new Date(post.lastModified);
+      }
+    } else {
+      updatedAt = createdAt;
+    }
+    
     return {
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      excerpt: this.extractExcerpt(post.content),
-      slug: post.slug || this.generateSlug(post.title),
+      id: parseInt(post.id.substring(0, 8), 16), // Convert ObjectId to number for compatibility
+      title: post.title || 'Untitled',
+      content: post.content || '',
+      excerpt: this.extractExcerpt(post.content || ''),
+      slug: post.slug || this.generateSlug(post.title || 'untitled'),
       featuredImage: post.coverImage || '/api/placeholder/800/400',
-      createdAt: post.date?.$date || post.date || new Date().toISOString(),
-      updatedAt: post.lastModified?.$date || post.lastModified || post.date?.$date || new Date().toISOString(),
-      featured: post.featured || false,
-      readTime: this.calculateReadTime(post.content),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isFeatured: post.featured || false,
+      isPublished: !post.draft,
+      readTime: this.calculateReadTime(post.content || ''),
       categoryId: 1,
       authorId: 1,
       category: {
         id: 1,
         name: 'AgroTech',
         slug: 'agrotech',
+        description: 'Agricultural Technology',
         color: '#10B981'
       },
       author: {
         id: 1,
         name: 'Admin',
+        email: 'admin@agrotech.com',
         bio: 'Blog Administrator',
         avatar: '/api/placeholder/100/100'
       }
@@ -139,28 +164,46 @@ export class MongoStorage implements IStorage {
 
   // Blog post methods (working with your actual data)
   async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean } = {}): Promise<BlogPostWithDetails[]> {
-    const query: any = {};
-    
-    // Only show non-draft posts
-    query.draft = { $ne: true };
-    
-    // Filter by featured status if specified
-    if (options.featured !== undefined) {
-      query.featured = options.featured;
+    try {
+      // First, let's check what collections exist
+      const collections = await this.db.listCollections().toArray();
+      console.log('Available collections:', collections.map(c => c.name));
+      
+      // Try to find all documents without any filter first
+      const allDocs = await this.blogPostsCollection.find({}).limit(5).toArray();
+      console.log('Total documents in posts collection:', await this.blogPostsCollection.countDocuments());
+      
+      if (allDocs.length > 0) {
+        console.log('Sample document structure:', JSON.stringify(allDocs[0], null, 2));
+      }
+      
+      const query: any = {};
+      
+      // Only filter by draft if the featured flag is specifically requested
+      if (options.featured !== undefined) {
+        query.featured = options.featured;
+      }
+      
+      console.log('MongoDB query:', query);
+      
+      let cursor = this.blogPostsCollection.find(query).sort({ date: -1 });
+      
+      if (options.offset) {
+        cursor = cursor.skip(options.offset);
+      }
+      
+      if (options.limit) {
+        cursor = cursor.limit(options.limit);
+      }
+      
+      const docs = await cursor.toArray();
+      console.log('Found documents with query:', docs.length);
+      
+      return docs.map(doc => this.mapPostDocument(doc));
+    } catch (error) {
+      console.error('Error fetching blog posts:', error);
+      return [];
     }
-
-    let cursor = this.blogPostsCollection.find(query).sort({ date: -1 });
-    
-    if (options.offset) {
-      cursor = cursor.skip(options.offset);
-    }
-    
-    if (options.limit) {
-      cursor = cursor.limit(options.limit);
-    }
-    
-    const docs = await cursor.toArray();
-    return docs.map(doc => this.mapPostDocument(doc));
   }
 
   async getBlogPostBySlug(slug: string): Promise<BlogPostWithDetails | undefined> {
@@ -194,7 +237,7 @@ export class MongoStorage implements IStorage {
       date: now,
       lastModified: now,
       draft: false,
-      featured: insertPost.featured || false
+      featured: insertPost.isFeatured || false
     };
     
     const result = await this.blogPostsCollection.insertOne(postData);
