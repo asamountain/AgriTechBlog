@@ -346,6 +346,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/blog-posts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const postId = isNaN(parseInt(id)) ? id : parseInt(id);
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      
+      console.log("PATCH request for post:", postId, "with data:", req.body);
+      
+      // Validate the request body but make fields optional for updates
+      const updateData = req.body;
+      
+      const updatedPost = await activeStorage.updateBlogPost(postId, updateData, userId);
+      console.log("Updated post result:", updatedPost);
+      res.json(updatedPost);
+    } catch (error) {
+      console.error("PATCH blog post error:", error);
+      if (error.message === "Not authorized to update this post") {
+        res.status(403).json({ message: error.message });
+      } else if (error.message === "Blog post not found") {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(400).json({ message: "Failed to update blog post", error: error.message });
+      }
+    }
+  });
+
   // Simplified AI tagging endpoint
   app.post("/api/ai-tagging/analyze/:id", async (req, res) => {
     try {

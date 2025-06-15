@@ -48,6 +48,25 @@ All design components and spacing must follow the golden ratio for optimal visua
 - Forms: Input heights and spacing based on golden ratio
 
 ## Performance & Complexity Rules
+- Avoid duplicating complexity in code
+- Optimize Big O notation processing time
+- Eliminate redundant AI functions between tags and categories
+- Use single-purpose, streamlined functions instead of multiple overlapping features
+
+## Editor-Database Synchronization Rule
+**CRITICAL: Maintain perfect synchronization between post editor interface and MongoDB storage layer**
+- Any modification to the post editor form must include corresponding MongoDB schema updates
+- All fields in PostFormData interface must match BlogPost database schema exactly
+- Tags, categories, and metadata fields must be synchronized across:
+  1. Client-side editor form (`client/src/pages/admin.tsx`)
+  2. MongoDB storage implementation (`server/mongodb-storage-updated.ts`)
+  3. API route handlers (`server/routes.ts`)
+  4. Shared schema types (`shared/schema.ts`)
+- Never modify editor functionality without ensuring database compatibility
+- Test update operations immediately after any editor changes
+- This prevents "Failed to update post" errors and maintains data integrity
+
+## Performance & Complexity Rules
 - **Avoid duplicating functionality** - One feature should serve one purpose
 - **Minimize Big O complexity** - Optimize for performance in all operations
 - **No redundant processing** - If tagging includes categorization, don't separate them

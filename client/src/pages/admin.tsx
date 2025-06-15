@@ -51,6 +51,7 @@ interface BlogPost {
   isFeatured: boolean;
   isPublished: boolean;
   readTime: number;
+  tags: string[];
   author: {
     id: number;
     name: string;
@@ -91,7 +92,7 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
   const [newTag, setNewTag] = useState("");
 
   // Fetch categories for the dropdown
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<any[]>({
     queryKey: ['/api/categories'],
   });
 
@@ -136,7 +137,7 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
         setFormData(prev => ({ ...prev, tags: data.suggestedTags }));
       }
       if (data.suggestedCategory) {
-        const matchingCategory = categories.find((cat: any) => 
+        const matchingCategory = (categories as any[]).find((cat: any) => 
           cat.name.toLowerCase() === data.suggestedCategory.toLowerCase()
         );
         if (matchingCategory) {
@@ -338,7 +339,7 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
 
 
 function PostsManagement() {
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<BlogPost | undefined>(undefined);
   const [showEditor, setShowEditor] = useState(false);
   const { toast } = useToast();
 
@@ -406,7 +407,7 @@ function PostsManagement() {
                 {selectedPost ? "Update the blog post details below." : "Fill in the details for your new blog post."}
               </DialogDescription>
             </DialogHeader>
-            <PostEditorForm post={selectedPost} onClose={closeEditor} />
+            <PostEditorForm post={selectedPost || undefined} onClose={closeEditor} />
           </DialogContent>
         </Dialog>
       </div>
