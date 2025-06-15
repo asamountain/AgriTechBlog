@@ -163,12 +163,14 @@ export class MongoStorage implements IStorage {
   }
 
   // Blog post methods (working with your actual data)
-  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean } = {}): Promise<BlogPostWithDetails[]> {
+  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean } = {}): Promise<BlogPostWithDetails[]> {
     try {
       const query: any = {};
       
-      // Only show published posts (non-draft)
-      query.draft = { $ne: true };
+      // Only show published posts (non-draft) unless includeDrafts is true
+      if (!options.includeDrafts) {
+        query.draft = { $ne: true };
+      }
       
       // Filter by featured status if specified
       if (options.featured !== undefined) {
