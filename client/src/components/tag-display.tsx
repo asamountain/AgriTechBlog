@@ -27,25 +27,23 @@ export default function TagDisplay({
   category,
   size 
 }: TagDisplayProps) {
+  const [, setLocation] = useLocation();
+
+  const handleTagClick = (tag: string) => {
+    if (onTagClick) {
+      onTagClick(tag);
+    } else {
+      // Navigate to tagged posts page
+      setLocation(`/tags/${encodeURIComponent(tag)}`);
+    }
+  };
+
   if ((!tags || tags.length === 0) && !category) {
     return null;
   }
 
   return (
     <div className="space-y-golden-xs">
-      {/* Category Display */}
-      {category && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-600 mb-2">Category</h4>
-          <Badge
-            variant="default"
-            className="bg-forest-green text-white p-golden-xs rounded-golden-sm"
-          >
-            {category.name}
-          </Badge>
-        </div>
-      )}
-      
       {/* Tags Display */}
       {tags && tags.length > 0 && (
         <div>
@@ -60,10 +58,10 @@ export default function TagDisplay({
                     ? "bg-forest-green text-white" 
                     : "border-forest-green text-forest-green hover:bg-forest-green hover:text-white"
                   }
-                  ${onTagClick ? "cursor-pointer transition-colors" : ""}
+                  cursor-pointer transition-colors
                   p-golden-xs rounded-golden-sm
                 `}
-                onClick={() => onTagClick?.(tag)}
+                onClick={() => handleTagClick(tag)}
               >
                 {showHash && <Hash className="h-3 w-3 mr-1" />}
                 {tag}

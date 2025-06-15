@@ -8,16 +8,14 @@ import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 
-interface BlogGridProps {
-  selectedCategory: string | null;
-}
+interface BlogGridProps {}
 
-export default function BlogGrid({ selectedCategory }: BlogGridProps) {
+export default function BlogGrid({}: BlogGridProps) {
   const [page, setPage] = useState(0);
   const limit = 6;
 
   const { data: blogPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts", { category: selectedCategory, limit: (page + 1) * limit, offset: 0 }],
+    queryKey: ["/api/blog-posts", { limit: (page + 1) * limit, offset: 0 }],
   });
 
   const displayedPosts = blogPosts?.slice(0, (page + 1) * limit) || [];
