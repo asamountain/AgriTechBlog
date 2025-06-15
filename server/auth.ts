@@ -34,10 +34,14 @@ export function setupAuth(app: Express) {
 
   // Google OAuth Strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+    
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback"
+      callbackURL: `${baseUrl}/auth/google/callback`
     }, async (accessToken, refreshToken, profile, done) => {
       const user: User = {
         id: profile.id,
@@ -52,10 +56,14 @@ export function setupAuth(app: Express) {
 
   // GitHub OAuth Strategy
   if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+    
     passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: "/auth/github/callback"
+      callbackURL: `${baseUrl}/auth/github/callback`
     }, async (accessToken, refreshToken, profile, done) => {
       const user: User = {
         id: profile.id,
