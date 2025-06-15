@@ -426,15 +426,51 @@ function Analytics() {
 }
 
 export default function AdminDashboard() {
+  const { user, isLoading, isAuthenticated } = useAuth();
+
+  const handleLogout = () => {
+    trackEvent('admin_logout', 'authentication', 'logout_button');
+    fetch('/api/auth/logout', { method: 'POST' })
+      .then(() => {
+        window.location.href = '/admin';
+      })
+      .catch(() => {
+        window.location.href = '/admin';
+      });
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-green mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <AdminLogin />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
       <div className="pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your blog content and settings</p>
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">Welcome back, {user?.name}</p>
+            </div>
+            <Button onClick={handleLogout} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </div>
 
           <Tabs defaultValue="posts" className="space-y-6">

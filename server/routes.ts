@@ -14,6 +14,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Using fallback storage:", error);
   }
 
+  // Authentication API endpoint
+  app.get("/api/auth/user", (req, res) => {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      res.json(req.user);
+    } else {
+      res.status(401).json({ message: "Not authenticated" });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
