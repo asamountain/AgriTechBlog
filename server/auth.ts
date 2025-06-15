@@ -45,7 +45,7 @@ export function setupAuth(app: Express) {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: `${baseUrl}/auth/google/callback`
-    }, async (accessToken, refreshToken, profile, done) => {
+    }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       const user: User = {
         id: profile.id,
         email: profile.emails?.[0]?.value || '',
@@ -67,7 +67,7 @@ export function setupAuth(app: Express) {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: `${baseUrl}/auth/github/callback`
-    }, async (accessToken, refreshToken, profile, done) => {
+    }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       const user: User = {
         id: profile.id,
         email: profile.emails?.[0]?.value || '',

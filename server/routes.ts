@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
@@ -14,6 +15,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.log("Using fallback storage:", error);
   }
+
+  // OAuth routes with passport middleware
+  app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  
+  app.get('/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/admin' }),
+    (req, res) => {
+      res.redirect('/auth/callback');
+    }
+  );
+
+  app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+  
+  app.get('/auth/github/callback',
+    passport.authenticate('github', { failureRedirect: '/admin' }),
+    (req, res) => {
+      res.redirect('/auth/callback');
+    }
+  );
 
   // Authentication API endpoint
   app.get("/api/auth/user", (req, res) => {

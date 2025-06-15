@@ -3,16 +3,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LogIn, Github } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { trackEvent } from "@/lib/analytics";
+import { usePersistentAuth } from "@/hooks/usePersistentAuth";
 
 export default function AdminLogin() {
+  const { login } = usePersistentAuth();
+
   const handleGoogleLogin = () => {
     trackEvent('admin_login_attempt', 'authentication', 'google');
-    window.location.href = '/auth/google';
+    login('google');
   };
 
   const handleGithubLogin = () => {
     trackEvent('admin_login_attempt', 'authentication', 'github');
-    window.location.href = '/auth/github';
+    login('github');
   };
 
   return (
