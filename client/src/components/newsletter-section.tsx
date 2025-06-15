@@ -43,40 +43,39 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-br from-forest-green to-sage-green">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="text-white">
-          <h2 className="text-4xl font-playfair font-bold mb-4">
-            Stay Connected with AgroTech
-          </h2>
-          <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Get the latest insights on agricultural innovation, sustainability practices, 
-            and technology breakthroughs delivered to your inbox.
-          </p>
-          
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Input
-                type="email"
-                placeholder="Enter your email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-6 py-3 rounded-lg text-gray-900 placeholder-gray-500 bg-white border-0 focus:ring-4 focus:ring-white/30"
-                required
-              />
-              <Button 
-                type="submit"
-                disabled={subscribeNewsletter.isPending}
-                className="bg-golden-yellow hover:bg-yellow-500 text-forest-green font-semibold px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+    <section className="py-24 bg-slate-800">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="relative">
+            <Input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-transparent border-0 border-b-2 border-white/30 focus:border-white rounded-none px-0 py-4 text-white text-lg placeholder-white/60 focus:ring-0 focus:outline-none"
+              required
+            />
+            <button
+              type="submit"
+              disabled={subscribeNewsletter.isPending}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 text-green-400 hover:text-green-300 transition-colors"
+            >
+              <svg 
+                className="w-6 h-6" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
               >
-                {subscribeNewsletter.isPending ? "Subscribing..." : "Subscribe"}
-              </Button>
-            </div>
-            <p className="text-green-100 text-sm mt-4">
-              Join 15,000+ agricultural professionals. Unsubscribe anytime.
-            </p>
-          </form>
-        </div>
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M5 13l4 4L19 7" 
+                />
+              </svg>
+            </button>
+          </div>
+        </form>
       </div>
     </section>
   );
