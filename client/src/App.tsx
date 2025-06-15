@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import BlogPost from "@/pages/blog-post";
 import AdminDashboard from "@/pages/admin";
 import SearchPage from "@/pages/search";
+import CategoriesPage from "@/pages/categories";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import { initGA } from "./lib/analytics";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/search" component={SearchPage} />
+      <Route path="/categories" component={CategoriesPage} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route component={NotFound} />
     </Switch>

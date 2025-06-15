@@ -6,7 +6,6 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Link } from "wouter";
 import { Folder, ArrowRight, TrendingUp } from "lucide-react";
-import { Helmet } from "react-helmet-async";
 
 interface Category {
   id: number;
@@ -37,13 +36,13 @@ export default function CategoriesPage() {
   });
 
   // Calculate category post counts and popular tags
-  const categoriesWithCounts = categories.map((category: Category) => ({
+  const categoriesWithCounts = (categories as Category[]).map((category: Category) => ({
     ...category,
-    postCount: posts.filter((post: BlogPost) => post.category.id === category.id).length
+    postCount: (posts as BlogPost[]).filter((post: BlogPost) => post.category.id === category.id).length
   }));
 
   // Extract all unique tags and their frequency
-  const tagFrequency = posts.reduce((acc: { [key: string]: number }, post: BlogPost) => {
+  const tagFrequency = (posts as BlogPost[]).reduce((acc: { [key: string]: number }, post: BlogPost) => {
     if (post.tags && Array.isArray(post.tags)) {
       post.tags.forEach((tag: string) => {
         acc[tag] = (acc[tag] || 0) + 1;
@@ -76,47 +75,6 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Helmet>
-        <title>Categories - Agricultural Technology Blog | AgriTech Insights</title>
-        <meta 
-          name="description" 
-          content="Explore our comprehensive collection of agricultural technology categories including precision farming, sustainable agriculture, crop management, and more. Find expert insights organized by topic."
-        />
-        <meta name="keywords" content="agricultural technology categories, farming topics, agritech, precision agriculture, sustainable farming, crop management" />
-        <link rel="canonical" href="/categories" />
-        
-        {/* Open Graph tags */}
-        <meta property="og:title" content="Categories - Agricultural Technology Blog" />
-        <meta property="og:description" content="Explore our comprehensive collection of agricultural technology categories and topics." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="/categories" />
-        
-        {/* Schema.org structured data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            "name": "Agricultural Technology Categories",
-            "description": "Comprehensive collection of agricultural technology categories and topics",
-            "url": "/categories",
-            "mainEntity": {
-              "@type": "ItemList",
-              "numberOfItems": categoriesWithCounts.length,
-              "itemListElement": categoriesWithCounts.map((category, index) => ({
-                "@type": "ListItem",
-                "position": index + 1,
-                "item": {
-                  "@type": "Thing",
-                  "name": category.name,
-                  "description": category.description,
-                  "url": `/category/${category.slug}`
-                }
-              }))
-            }
-          })}
-        </script>
-      </Helmet>
-
       <Navigation />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -141,7 +99,7 @@ export default function CategoriesPage() {
           
           {categoriesWithCounts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categoriesWithCounts.map((category) => (
+              {categoriesWithCounts.map((category: any) => (
                 <Card key={category.id} className="hover:shadow-lg transition-shadow duration-200">
                   <CardHeader>
                     <div className="flex items-center justify-between">

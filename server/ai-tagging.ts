@@ -216,25 +216,19 @@ Respond with a JSON object containing the best category and confidence:
   }
 
   private buildAnalysisPrompt(post: BlogPostWithDetails): string {
-    return `Analyze this agricultural technology blog post and provide comprehensive tagging and categorization:
+    return `Analyze this agricultural technology blog post and provide tagging and categorization.
 
 Title: "${post.title}"
-Content: "${post.content.substring(0, 1500)}..."
+Content: "${post.content.substring(0, 1000)}..."
 Current Category: "${post.category.name}"
 
-Please analyze the content and provide:
-1. 5-8 relevant tags focusing on specific agricultural technologies, practices, crops, equipment mentioned
-2. Best category from: Agricultural Technology, Sustainable Farming, Crop Management, Farm Equipment, Market Analysis, Weather & Climate, Soil Health, Irrigation Systems, Livestock Technology, Food Safety, Agricultural Research, Farm Automation
-3. Confidence score (0-1)
-4. Brief reasoning for your choices
+Provide 5-8 relevant tags and suggest the best category from: Agricultural Technology, Sustainable Farming, Crop Management, Farm Equipment, Market Analysis, Weather & Climate, Soil Health, Irrigation Systems, Livestock Technology, Food Safety, Agricultural Research, Farm Automation.
 
-Respond with this exact JSON format:
-{
-  "suggestedTags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "suggestedCategory": "Category Name",
-  "confidence": 0.85,
-  "reasoning": "Brief explanation of why these tags and category were chosen"
-}`;
+Format your response as follows:
+Tags: tag1, tag2, tag3, tag4, tag5
+Category: Category Name
+Confidence: 0.85
+Reasoning: Brief explanation`;
   }
 
   private parseAnalysisResult(content: string): TaggingResult {
