@@ -9,6 +9,7 @@ import Footer from "@/components/footer";
 import TagDisplay from "@/components/tag-display";
 import { Link } from "wouter";
 import { Folder, ArrowRight, TrendingUp, Search, X } from "lucide-react";
+import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 
 interface Category {
   id: number;

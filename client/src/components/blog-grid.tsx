@@ -6,6 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
+import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 
 interface BlogGridProps {
   selectedCategory: string | null;
@@ -26,9 +27,18 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
     return (
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Latest Articles
+            </h2>
+            <div className="flex items-center space-x-3">
+              <div className="w-16 h-1 bg-forest-green"></div>
+              <AgricultureLoader theme="water" size="md" text="Watering fresh content..." />
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-gray-200 rounded-xl h-80 animate-pulse" />
+              <AgriculturalSkeleton key={i} />
             ))}
           </div>
         </div>

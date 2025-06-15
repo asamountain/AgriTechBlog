@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { usePersistentAuth } from '@/hooks/usePersistentAuth';
+import { AgricultureLoader } from '@/components/loading-animations';
 
 export default function AuthCallback() {
   const { saveAuthState } = usePersistentAuth();
@@ -39,10 +40,10 @@ export default function AuthCallback() {
   }, [saveAuthState]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-forest-green/10 flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-green mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing authentication...</p>
+        <AgricultureLoader theme="growth" size="lg" text="Planting your session..." />
+        <p className="text-gray-600 mt-4">Completing authentication...</p>
       </div>
     </div>
   );

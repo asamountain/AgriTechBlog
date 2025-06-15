@@ -43,15 +43,9 @@ export default function BlogPost() {
         <Navigation />
         <div className="pt-24 pb-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-3/4 mb-4" />
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8" />
-              <div className="h-96 bg-gray-200 rounded mb-8" />
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded" />
-                ))}
-              </div>
+            <AgriculturalSkeleton />
+            <div className="mt-8">
+              <AgriculturalSkeleton />
             </div>
           </div>
         </div>

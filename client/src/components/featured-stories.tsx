@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
+import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 
 export default function FeaturedStories() {
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
@@ -16,12 +17,16 @@ export default function FeaturedStories() {
       <section id="featured-stories" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="h-10 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse" />
-            <div className="h-6 bg-gray-200 rounded w-96 mx-auto animate-pulse" />
+            <h2 className="text-4xl font-playfair font-bold text-forest-green mb-4">
+              Featured Stories
+            </h2>
+            <div className="flex justify-center mb-8">
+              <AgricultureLoader theme="forest" size="lg" text="Cultivating featured content..." />
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-gray-200 rounded-2xl h-96 animate-pulse" />
+              <AgriculturalSkeleton key={i} />
             ))}
           </div>
         </div>
