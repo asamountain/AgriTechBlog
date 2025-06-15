@@ -63,7 +63,7 @@ export default function BlogGrid({ selectedCategory }: BlogGridProps) {
                 const isWide = index % 4 === 1;
                 
                 return (
-                  <Link key={post.id} href={`/blog/${post.slug}`}>
+                  <Link key={`${post.id}-${post.slug}-${index}`} href={`/blog/${post.slug}`}>
                     <article className={`group cursor-pointer ${
                       isLarge ? 'md:col-span-2 lg:col-span-2' : 
                       isWide ? 'md:col-span-2 lg:col-span-1' : ''

@@ -4,8 +4,8 @@ import {
   type Category, type InsertCategory,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
-  type BlogPostWithDetails,
-  type Comment, type InsertComment
+  type Comment, type InsertComment,
+  type BlogPostWithDetails
 } from "@shared/schema";
 import { IStorage } from "./storage";
 
@@ -49,193 +49,201 @@ export class MongoStorage implements IStorage {
   }
 
   private generateSlug(title: string): string {
-    return title.toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
   }
 
   private calculateReadTime(content: string): number {
     const wordsPerMinute = 200;
-    const words = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
-    return Math.ceil(words / wordsPerMinute);
+    const plainText = content.replace(/<[^>]*>/g, '');
+    const wordCount = plainText.split(/\s+/).length;
+    return Math.ceil(wordCount / wordsPerMinute);
   }
 
   private mapPostDocument(doc: any): BlogPostWithDetails {
-    if (!doc) throw new Error("Document is null or undefined");
-
-    // Convert ObjectId prefix to numeric ID for consistency
-    const objectIdStr = doc._id.toString();
-    const numericId = parseInt(objectIdStr.substring(0, 8), 16);
-
+    const post = this.convertMongoDoc(doc);
+    
+    // Handle date conversion properly
+    let createdAt = new Date();
+    let updatedAt = new Date();
+    
+    if (post.date) {
+      if (post.date.$date) {
+        createdAt = new Date(post.date.$date);
+      } else {
+        createdAt = new Date(post.date);
+      }
+    }
+    
+    if (post.lastModified) {
+      if (post.lastModified.$date) {
+        updatedAt = new Date(post.lastModified.$date);
+      } else {
+        updatedAt = new Date(post.lastModified);
+      }
+    } else {
+      updatedAt = createdAt;
+    }
+    
     return {
-      id: doc.id || numericId,
-      slug: doc.slug || this.generateSlug(doc.title || 'untitled'),
-      title: doc.title || 'Untitled',
-      excerpt: doc.excerpt || this.extractExcerpt(doc.content || ''),
-      content: doc.content || '',
-      featuredImage: doc.coverImage || doc.featuredImage || '',
-      categoryId: doc.categoryId || 1,
-      authorId: doc.authorId || 1,
-      userId: doc.userId || '',
-      readTime: doc.readTime || this.calculateReadTime(doc.content || ''),
-      isFeatured: doc.featured || doc.isFeatured || false,
-      isPublished: !doc.draft,
-      createdAt: doc.date || doc.createdAt || new Date(),
-      updatedAt: doc.lastModified || doc.updatedAt || new Date(),
+      id: typeof post.id === 'number' ? post.id : (post._id ? parseInt(post._id.toString().substring(0, 8), 16) : Date.now()),
+      title: post.title || 'Untitled',
+      content: post.content || '',
+      excerpt: this.extractExcerpt(post.content || ''),
+      slug: post.slug || this.generateSlug(post.title || 'untitled'),
+      featuredImage: post.coverImage || '/api/placeholder/800/400',
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isFeatured: post.featured || false,
+      isPublished: !post.draft,
+      readTime: this.calculateReadTime(post.content || ''),
+      categoryId: 1,
+      authorId: 1,
+      userId: post.userId || 'shared',
       category: {
-        id: doc.categoryId || 1,
-        name: doc.categoryName || 'Agricultural Technology',
-        slug: doc.categorySlug || 'agricultural-technology',
-        description: doc.categoryDescription || 'Latest in agricultural technology and innovation',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        id: 1,
+        name: 'AgroTech',
+        slug: 'agrotech',
+        description: 'Agricultural Technology',
+        color: '#10B981'
       },
       author: {
-        id: doc.authorId || 1,
-        name: doc.authorName || 'Hope Invest',
-        email: doc.authorEmail || 'admin@hopeinvest.com',
-        bio: doc.authorBio || 'Agricultural technology enthusiast',
-        avatar: doc.authorAvatar || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        id: 1,
+        name: 'Admin',
+        email: 'admin@agrotech.com',
+        bio: 'Blog Administrator',
+        avatar: '/api/placeholder/100/100'
       }
     };
   }
 
-  // User methods
+  // User methods (placeholder implementations)
   async getUser(id: number): Promise<User | undefined> {
-    const doc = await this.usersCollection.findOne({ _id: new ObjectId(id.toString()) });
-    return this.convertMongoDoc(doc);
+    return undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const doc = await this.usersCollection.findOne({ username });
-    return this.convertMongoDoc(doc);
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await this.usersCollection.insertOne(insertUser);
-    return { 
-      id: result.insertedId.toString(), 
-      ...insertUser,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    throw new Error("User creation not implemented");
   }
 
-  // Category methods
+  // Category methods (using default categories)
   async getCategories(): Promise<Category[]> {
-    const docs = await this.categoriesCollection.find({}).toArray();
-    return docs.map(doc => this.convertMongoDoc(doc));
+    return [
+      { id: 1, name: 'AgroTech', slug: 'agrotech', description: 'Agricultural Technology', color: '#10B981' },
+      { id: 2, name: 'Sustainability', slug: 'sustainability', description: 'Sustainable Farming', color: '#059669' },
+      { id: 3, name: 'Innovation', slug: 'innovation', description: 'Agricultural Innovation', color: '#0D9488' }
+    ];
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    const doc = await this.categoriesCollection.findOne({ slug });
-    return this.convertMongoDoc(doc);
+    const categories = await this.getCategories();
+    return categories.find(cat => cat.slug === slug);
   }
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const result = await this.categoriesCollection.insertOne(insertCategory);
-    return { 
-      id: result.insertedId.toString(), 
-      ...insertCategory,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    throw new Error("Category creation not implemented");
   }
 
-  // Author methods
+  // Author methods (using default author)
   async getAuthors(): Promise<Author[]> {
-    const docs = await this.authorsCollection.find({}).toArray();
-    return docs.map(doc => this.convertMongoDoc(doc));
+    return [
+      { id: 1, name: 'Admin', email: 'admin@agrotech.com', bio: 'Blog Administrator', avatar: '/api/placeholder/100/100' }
+    ];
   }
 
   async getAuthor(id: number): Promise<Author | undefined> {
-    const doc = await this.authorsCollection.findOne({ _id: new ObjectId(id.toString()) });
-    return this.convertMongoDoc(doc);
+    const authors = await this.getAuthors();
+    return authors.find(author => author.id === id);
   }
 
   async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
-    const result = await this.authorsCollection.insertOne(insertAuthor);
-    return { 
-      id: result.insertedId.toString(), 
-      ...insertAuthor,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    throw new Error("Author creation not implemented");
   }
 
-  // Blog Post methods
+  // Blog post methods (working with your actual data)
   async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
-    const { categorySlug, limit = 10, offset = 0, featured, includeDrafts = false, userId } = options;
-    
-    let query: any = {};
-    
-    if (!includeDrafts) {
-      query.draft = { $ne: true };
+    try {
+      const query: any = {};
+      
+      // Filter by user ID if specified (for user-specific content)
+      // If userId is provided, filter by it; otherwise show all posts (for backward compatibility)
+      if (options.userId) {
+        query.$or = [
+          { userId: options.userId },
+          { userId: { $exists: false } } // Include posts without userId (legacy posts)
+        ];
+      }
+      
+      // Only show published posts (non-draft) unless includeDrafts is true
+      if (!options.includeDrafts) {
+        query.draft = { $ne: true };
+      }
+      
+      // Filter by featured status if specified
+      if (options.featured !== undefined) {
+        query.featured = options.featured;
+      }
+      
+      let cursor = this.blogPostsCollection.find(query).sort({ date: -1 });
+      
+      if (options.offset) {
+        cursor = cursor.skip(options.offset);
+      }
+      
+      if (options.limit) {
+        cursor = cursor.limit(options.limit);
+      }
+      
+      const docs = await cursor.toArray();
+      return docs.map(doc => this.mapPostDocument(doc));
+    } catch (error) {
+      console.error('Error fetching blog posts:', error);
+      return [];
     }
-    
-    if (featured !== undefined) {
-      query.featured = featured;
-    }
-
-    if (userId) {
-      query.$or = [
-        { userId: userId },
-        { userId: { $exists: false } }
-      ];
-    }
-
-    const docs = await this.blogPostsCollection
-      .find(query)
-      .sort({ date: -1 })
-      .skip(offset)
-      .limit(limit)
-      .toArray();
-
-    return docs.map(doc => this.mapPostDocument(doc));
   }
 
-  async getBlogPostBySlug(slug: string, userId?: string): Promise<BlogPostWithDetails | undefined> {
-    let query: any = { slug };
+  async getBlogPostBySlug(slug: string): Promise<BlogPostWithDetails | undefined> {
+    const doc = await this.blogPostsCollection.findOne({ 
+      slug: slug,
+      draft: { $ne: true }
+    });
     
-    if (userId) {
-      query.$or = [
-        { userId: userId },
-        { userId: { $exists: false } }
-      ];
-    }
-
-    const doc = await this.blogPostsCollection.findOne(query);
-    return doc ? this.mapPostDocument(doc) : undefined;
-  }
-
-  async getBlogPost(id: number | string, userId?: string): Promise<BlogPostWithDetails | undefined> {
-    let doc;
-    
-    // Try to find by the generated ID field first (for migrated posts)
-    const allDocs = await this.blogPostsCollection.find({}).toArray();
-    doc = allDocs.find(d => d.id && d.id.toString() === id.toString());
-    
-    // If not found by ID field, try the ObjectId prefix method
     if (!doc) {
-      const numericId = typeof id === 'string' ? parseInt(id) : id;
-      const hexPrefix = numericId.toString(16).padStart(8, '0');
-      doc = allDocs.find(d => {
-        const objectIdStr = d._id.toString();
-        return objectIdStr.startsWith(hexPrefix);
-      });
-    }
-    
-    if (!doc) return undefined;
-
-    // Apply user filtering if provided
-    if (userId && doc.userId && doc.userId !== userId) {
+      // Try finding by generated slug if not found by original slug
+      const allDocs = await this.blogPostsCollection.find({ draft: { $ne: true } }).toArray();
+      const matchingDoc = allDocs.find(d => this.generateSlug(d.title) === slug);
+      if (matchingDoc) {
+        return this.mapPostDocument(matchingDoc);
+      }
       return undefined;
     }
+    
+    return this.mapPostDocument(doc);
+  }
 
+  async getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined> {
+    let query: any;
+    
+    // Check if id is a valid MongoDB ObjectId format
+    if (ObjectId.isValid(id.toString()) && id.toString().length === 24) {
+      query = { _id: new ObjectId(id.toString()) };
+    } else {
+      // Use numeric id field for integer IDs
+      query = { id: parseInt(id.toString()) };
+    }
+    
+    const doc = await this.blogPostsCollection.findOne({ 
+      ...query,
+      draft: { $ne: true }
+    });
+    
+    if (!doc) return undefined;
     return this.mapPostDocument(doc);
   }
 
@@ -250,20 +258,19 @@ export class MongoStorage implements IStorage {
       date: now,
       lastModified: now,
       draft: false,
-      featured: insertPost.isFeatured || false,
-      userId: insertPost.userId
+      featured: insertPost.isFeatured || false
     };
     
     const result = await this.blogPostsCollection.insertOne(postData);
     return { 
-      id: parseInt(result.insertedId.toString().substring(0, 8), 16),
+      id: result.insertedId.toString(), 
       ...insertPost,
-      createdAt: now,
-      updatedAt: now
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
     };
   }
 
-  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost> {
+  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
     try {
       let targetDoc;
       
@@ -285,34 +292,29 @@ export class MongoStorage implements IStorage {
         console.log(`Blog post not found for ID: ${id}`);
         throw new Error("Blog post not found");
       }
+    
+    // Use the actual _id from the found document for the update
+    const query = { _id: targetDoc._id };
+    
+    // Prepare update data
+    const updateDoc: any = {
+      ...updateData,
+      lastModified: new Date()
+    };
 
-      // Check user permission if userId provided
-      if (userId && targetDoc.userId && targetDoc.userId !== userId) {
-        throw new Error("Not authorized to update this post");
-      }
-
-      // Use the actual _id from the found document for the update
-      const query = { _id: targetDoc._id };
-      
-      // Prepare update data
-      const updateDoc: any = {
-        ...updateData,
-        lastModified: new Date()
-      };
-
-      // Convert boolean fields properly
-      if (updateData.isFeatured !== undefined) {
-        updateDoc.featured = updateData.isFeatured;
-        delete updateDoc.isFeatured;
-      }
-      if (updateData.isPublished !== undefined) {
-        updateDoc.draft = !updateData.isPublished;
-        delete updateDoc.isPublished;
-      }
-      if (updateData.featuredImage !== undefined) {
-        updateDoc.coverImage = updateData.featuredImage;
-        delete updateDoc.featuredImage;
-      }
+    // Convert boolean fields properly
+    if (updateData.isFeatured !== undefined) {
+      updateDoc.featured = updateData.isFeatured;
+      delete updateDoc.isFeatured;
+    }
+    if (updateData.isPublished !== undefined) {
+      updateDoc.draft = !updateData.isPublished;
+      delete updateDoc.isPublished;
+    }
+    if (updateData.featuredImage !== undefined) {
+      updateDoc.coverImage = updateData.featuredImage;
+      delete updateDoc.featuredImage;
+    }
 
       const result = await this.blogPostsCollection.updateOne(
         query,
@@ -360,56 +362,46 @@ export class MongoStorage implements IStorage {
     return docs.map(doc => this.mapPostDocument(doc));
   }
 
-  async getRelatedPosts(postId: number | string, categoryId: number, limit: number = 3, userId?: string): Promise<BlogPostWithDetails[]> {
+  async getRelatedPosts(postId: number | string, categoryId: number, limit: number = 3): Promise<BlogPostWithDetails[]> {
     let excludeQuery: any;
     
     // Check if postId is a valid MongoDB ObjectId format
     if (ObjectId.isValid(postId.toString()) && postId.toString().length === 24) {
       excludeQuery = { _id: { $ne: new ObjectId(postId.toString()) } };
     } else {
-      // For numeric IDs, exclude by the hex prefix method
-      const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
-      const hexPrefix = numericId.toString(16).padStart(8, '0');
-      excludeQuery = { _id: { $not: { $regex: `^${hexPrefix}` } } };
+      // Use numeric id field for integer IDs
+      excludeQuery = { id: { $ne: parseInt(postId.toString()) } };
     }
-
-    let query: any = {
-      ...excludeQuery,
-      draft: { $ne: true }
-    };
-
-    if (userId) {
-      query.$or = [
-        { userId: userId },
-        { userId: { $exists: false } }
-      ];
-    }
-
+    
     const docs = await this.blogPostsCollection
-      .find(query)
+      .find({ 
+        ...excludeQuery,
+        draft: { $ne: true }
+      })
       .limit(limit)
       .toArray();
-
+    
     return docs.map(doc => this.mapPostDocument(doc));
   }
 
-  // Comment methods
+  // Comment Methods
   async getCommentsByPostId(postId: number | string): Promise<Comment[]> {
     const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
     
-    const comments = await this.commentsCollection.find({
-      blogPostId: numericId
-    }).sort({ createdAt: -1 }).toArray();
-    
+    const comments = await this.commentsCollection
+      .find({ blogPostId: numericId, isApproved: true })
+      .sort({ createdAt: 1 })
+      .toArray();
+
     return comments.map(comment => ({
       id: parseInt(comment._id.toString().substring(0, 8), 16),
-      content: comment.content,
-      createdAt: comment.createdAt,
-      blogPostId: numericId,
+      blogPostId: comment.blogPostId,
       parentId: comment.parentId || null,
       authorName: comment.authorName,
       authorEmail: comment.authorEmail,
-      isApproved: comment.isApproved || false
+      content: comment.content,
+      createdAt: new Date(comment.createdAt),
+      isApproved: comment.isApproved
     }));
   }
 
@@ -419,7 +411,7 @@ export class MongoStorage implements IStorage {
       createdAt: new Date(),
       isApproved: false
     };
-    
+
     const result = await this.commentsCollection.insertOne(commentDoc);
     
     return {
@@ -435,29 +427,30 @@ export class MongoStorage implements IStorage {
       const objectIdStr = comment._id.toString();
       return objectIdStr.startsWith(hexPrefix);
     });
-    
+
     if (!targetComment) {
       throw new Error("Comment not found");
     }
-    
-    const result = await this.commentsCollection.updateOne(
+
+    const result = await this.commentsCollection.findOneAndUpdate(
       { _id: targetComment._id },
-      { $set: { isApproved: true } }
+      { $set: { isApproved: true } },
+      { returnDocument: 'after' }
     );
-    
-    if (result.matchedCount === 0) {
+
+    if (!result) {
       throw new Error("Comment not found");
     }
-    
+
     return {
-      id: commentId,
-      blogPostId: targetComment.blogPostId,
-      parentId: targetComment.parentId,
-      authorName: targetComment.authorName,
-      authorEmail: targetComment.authorEmail,
-      content: targetComment.content,
-      createdAt: new Date(targetComment.createdAt),
-      isApproved: targetComment.isApproved
+      id: parseInt(result._id.toString().substring(0, 8), 16),
+      blogPostId: result.blogPostId,
+      parentId: result.parentId || null,
+      authorName: result.authorName,
+      authorEmail: result.authorEmail,
+      content: result.content,
+      createdAt: new Date(result.createdAt),
+      isApproved: result.isApproved
     };
   }
 
@@ -468,7 +461,7 @@ export class MongoStorage implements IStorage {
       const objectIdStr = comment._id.toString();
       return objectIdStr.startsWith(hexPrefix);
     });
-    
+
     if (targetComment) {
       await this.commentsCollection.deleteOne({ _id: targetComment._id });
     }
@@ -477,15 +470,16 @@ export class MongoStorage implements IStorage {
   // Migration methods
   async migratePostsToUser(userId: string): Promise<{ migratedCount: number }> {
     try {
+      // Update all posts that don't have a userId to belong to the specified user
       const result = await this.blogPostsCollection.updateMany(
-        { userId: { $exists: false } },
+        { userId: { $exists: false } }, // Posts without userId
         { $set: { userId: userId } }
       );
       
       return { migratedCount: result.modifiedCount };
     } catch (error) {
       console.error("Migration error:", error);
-      throw error;
+      throw new Error("Failed to migrate posts");
     }
   }
 
@@ -496,7 +490,7 @@ export class MongoStorage implements IStorage {
       });
       return count;
     } catch (error) {
-      console.error("Count error:", error);
+      console.error("Error counting unassigned posts:", error);
       return 0;
     }
   }

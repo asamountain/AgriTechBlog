@@ -264,16 +264,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/blog-posts/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const postId = isNaN(parseInt(id)) ? parseInt(id) : parseInt(id);
+      const postId = isNaN(parseInt(id)) ? id : parseInt(id);
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
       
       // Validate the request body but make fields optional for updates
       const updateData = req.body;
       
-      const updatedPost = await activeStorage.updateBlogPost(postId, updateData);
+      const updatedPost = await activeStorage.updateBlogPost(postId, updateData, userId);
       res.json(updatedPost);
     } catch (error) {
       console.error("Update blog post error:", error);
-      res.status(400).json({ message: "Failed to update blog post" });
+      if (error.message === "Not authorized to update this post") {
+        res.status(403).json({ message: error.message });
+      } else if (error.message === "Blog post not found") {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(400).json({ message: "Failed to update blog post" });
+      }
     }
   });
 
