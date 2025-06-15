@@ -1,13 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, getStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize storage with MongoDB if available
+  let activeStorage = storage;
+  try {
+    activeStorage = await getStorage();
+  } catch (error) {
+    console.log("Using fallback storage:", error);
+  }
+
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getCategories();
+      const categories = await activeStorage.getCategories();
       res.json(categories);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch categories" });
@@ -17,7 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/categories", async (req, res) => {
     try {
       const categoryData = insertCategorySchema.parse(req.body);
-      const category = await storage.createCategory(categoryData);
+      const category = await activeStorage.createCategory(categoryData);
       res.status(201).json(category);
     } catch (error) {
       res.status(400).json({ message: "Invalid category data" });

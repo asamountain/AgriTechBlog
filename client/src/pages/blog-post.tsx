@@ -73,82 +73,104 @@ export default function BlogPost() {
   }
 
   return (
-    <div className="min-h-screen relative">
-      {/* Background Image */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url('${post.featuredImage}')` }}
-      />
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
       
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/30" />
-      
-      {/* Back Button - Fixed Position */}
-      <Link href="/">
-        <Button 
-          variant="ghost" 
-          className="fixed top-6 left-6 z-50 bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-black/30 hover:text-white rounded-full p-3"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-      </Link>
+      {/* Hero Section */}
+      <section className="relative pt-24 pb-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Back Button */}
+          <Link href="/">
+            <Button variant="ghost" className="mb-8 text-gray-600 hover:text-sage-green">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Articles
+            </Button>
+          </Link>
 
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full">
-          {/* Glassmorphism Card */}
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
-            {/* Category Badge */}
-            <div className="mb-6">
-              <span 
-                className="inline-block px-4 py-2 rounded-full text-sm font-medium text-white"
-                style={{ backgroundColor: post.category.color }}
-              >
-                {post.category.name}
-              </span>
-            </div>
-            
-            {/* Title */}
-            <h1 className="text-white font-bold text-3xl md:text-4xl mb-6 leading-tight font-serif">
-              {post.title}
-            </h1>
-            
-            {/* Divider */}
-            <div className="w-full h-px bg-white/30 mb-6" />
-            
-            {/* Author Info */}
-            <div className="text-white/90 text-sm font-light mb-6">
-              <span className="italic">By </span>
+          {/* Category Badge */}
+          <div className="mb-6">
+            <span 
+              className="inline-block px-4 py-2 text-sm font-medium text-white uppercase tracking-wide"
+              style={{ backgroundColor: post.category.color }}
+            >
+              {post.category.name}
+            </span>
+          </div>
+
+          {/* Title */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
+            {post.title}
+          </h1>
+
+          {/* Meta Info */}
+          <div className="flex items-center space-x-6 text-sm text-gray-500 mb-8">
+            <div className="flex items-center space-x-2">
+              <Avatar className="w-8 h-8">
+                <AvatarFallback className="bg-sage-green text-white text-xs">
+                  {post.author.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
               <span className="font-medium">{post.author.name}</span>
-              <span className="italic"> | {formatDate(post.createdAt)}</span>
             </div>
-            
-            {/* Excerpt */}
-            <p className="text-white/90 text-lg leading-relaxed font-light mb-8">
+            <span>{formatDate(post.createdAt)}</span>
+            <span>{post.readTime} min read</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Image Section */}
+      <section className="bg-white">
+        <div className="max-w-6xl mx-auto">
+          <img
+            src={post.featuredImage}
+            alt={post.title}
+            className="w-full h-96 md:h-[500px] object-cover"
+          />
+        </div>
+      </section>
+
+      {/* Content Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Excerpt */}
+          <div className="mb-12">
+            <div className="w-1 h-16 bg-sage-green mr-6 float-left"></div>
+            <p className="text-xl text-gray-700 leading-relaxed font-light italic">
               {post.excerpt}
             </p>
-            
-            {/* Main Content */}
-            <div className="text-white/80 text-base leading-relaxed font-light space-y-4">
-              {post.content.split('\n').slice(0, 3).map((paragraph, index) => (
-                <p key={index}>
+          </div>
+
+          {/* Main Content */}
+          <div className="prose prose-lg max-w-none">
+            <div className="text-gray-700 leading-relaxed space-y-6">
+              {post.content.split('\n').map((paragraph, index) => (
+                <p key={index} className="text-lg leading-relaxed">
                   {paragraph}
                 </p>
               ))}
             </div>
-            
-            {/* Bottom Divider */}
-            <div className="w-full h-px bg-white/30 mt-8 mb-6" />
-            
-            {/* Meta Info */}
-            <div className="flex justify-between items-center text-white/70 text-sm">
-              <span className="font-light">{post.readTime} min read</span>
-              <span className="italic font-light">AgroTech Insights</span>
-            </div>
           </div>
         </div>
-      </div>
+      </section>
 
+      {/* Call to Action Section */}
+      <section className="py-16 bg-sage-green">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Stay Updated with AgroTech Insights
+          </h2>
+          <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
+            Get the latest insights on agricultural innovation and sustainable farming practices delivered to your inbox.
+          </p>
+          <Link href="/">
+            <Button className="bg-white text-sage-green hover:bg-gray-100 font-medium py-3 px-8 text-lg">
+              Explore More Articles
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }

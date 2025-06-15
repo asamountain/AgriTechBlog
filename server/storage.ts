@@ -6,6 +6,7 @@ import {
   type BlogPost, type InsertBlogPost,
   type BlogPostWithDetails
 } from "@shared/schema";
+import { MongoStorage } from "./mongodb-storage";
 
 export interface IStorage {
   // Users
@@ -324,4 +325,40 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Storage instance
+let storageInstance: IStorage | null = null;
+
+// Create storage instance based on environment
+async function createStorage(): Promise<IStorage> {
+  const mongoUri = process.env.MONGODB_URI;
+  
+  if (mongoUri) {
+    try {
+      console.log('Connecting to MongoDB...');
+      const mongoStorage = new MongoStorage(mongoUri, 'agrotech_blog');
+      await mongoStorage.connect();
+      return mongoStorage;
+    } catch (error) {
+      console.error('Failed to connect to MongoDB, falling back to memory storage:', error);
+    }
+  }
+  
+  console.log('Using in-memory storage');
+  return new MemStorage();
+}
+
+// Initialize storage
+async function initStorage(): Promise<IStorage> {
+  if (!storageInstance) {
+    storageInstance = await createStorage();
+  }
+  return storageInstance;
+}
+
+// Export a function that returns the storage instance
+export async function getStorage(): Promise<IStorage> {
+  return await initStorage();
+}
+
+// For backward compatibility, create a default instance
 export const storage = new MemStorage();
