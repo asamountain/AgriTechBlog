@@ -15,6 +15,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import CommentSection from "@/components/comment-section";
 import TagDisplay from "@/components/tag-display";
+import { AgriculturalSkeleton } from "@/components/loading-animations";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();

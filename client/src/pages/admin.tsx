@@ -38,6 +38,7 @@ import AdminLogin from "@/components/admin-login";
 import MigrationPanel from "@/components/migration-panel";
 import CommentManagement from "@/components/comment-management";
 import { AITaggingPanel } from "@/components/ai-tagging-panel";
+import { AgriculturePageLoader, AgricultureLoader, AgriculturalSkeleton } from "@/components/loading-animations";
 
 
 interface BlogPost {
@@ -385,7 +386,11 @@ function PostsManagement() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">Loading posts...</div>;
+    return (
+      <div className="flex justify-center p-8">
+        <AgricultureLoader theme="harvest" size="lg" text="Harvesting your posts..." />
+      </div>
+    );
   }
 
   return (
@@ -478,9 +483,20 @@ interface AdminStats {
 }
 
 function Analytics() {
-  const { data: stats } = useQuery<AdminStats>({
+  const { data: stats, isLoading } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
   });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Analytics</h2>
+        <div className="flex justify-center p-8">
+          <AgricultureLoader theme="sunshine" size="lg" text="Analyzing your farm's growth..." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -564,14 +580,7 @@ export default function AdminDashboard() {
 
   // Show loading state
   if (finalIsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-green mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <AgriculturePageLoader message="Preparing your farm dashboard..." />;
   }
 
   // Show login if not authenticated
