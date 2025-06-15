@@ -47,4 +47,11 @@ All design components and spacing must follow the golden ratio for optimal visua
 - Cards: Follow golden ratio for padding and content proportions
 - Forms: Input heights and spacing based on golden ratio
 
-This document ensures visual consistency and mathematical harmony throughout the application.
+## Performance & Complexity Rules
+- **Avoid duplicating functionality** - One feature should serve one purpose
+- **Minimize Big O complexity** - Optimize for performance in all operations
+- **No redundant processing** - If tagging includes categorization, don't separate them
+- **Streamline user workflows** - Each action should have clear, direct purpose
+- **Single source of truth** - Data should only be stored and managed in one place
+
+This document ensures visual consistency, mathematical harmony, and optimal performance throughout the application.
