@@ -165,26 +165,15 @@ export class MongoStorage implements IStorage {
   // Blog post methods (working with your actual data)
   async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean } = {}): Promise<BlogPostWithDetails[]> {
     try {
-      // First, let's check what collections exist
-      const collections = await this.db.listCollections().toArray();
-      console.log('Available collections:', collections.map(c => c.name));
-      
-      // Try to find all documents without any filter first
-      const allDocs = await this.blogPostsCollection.find({}).limit(5).toArray();
-      console.log('Total documents in posts collection:', await this.blogPostsCollection.countDocuments());
-      
-      if (allDocs.length > 0) {
-        console.log('Sample document structure:', JSON.stringify(allDocs[0], null, 2));
-      }
-      
       const query: any = {};
       
-      // Only filter by draft if the featured flag is specifically requested
+      // Only show published posts (non-draft)
+      query.draft = { $ne: true };
+      
+      // Filter by featured status if specified
       if (options.featured !== undefined) {
         query.featured = options.featured;
       }
-      
-      console.log('MongoDB query:', query);
       
       let cursor = this.blogPostsCollection.find(query).sort({ date: -1 });
       
@@ -197,8 +186,6 @@ export class MongoStorage implements IStorage {
       }
       
       const docs = await cursor.toArray();
-      console.log('Found documents with query:', docs.length);
-      
       return docs.map(doc => this.mapPostDocument(doc));
     } catch (error) {
       console.error('Error fetching blog posts:', error);
@@ -212,7 +199,16 @@ export class MongoStorage implements IStorage {
       draft: { $ne: true }
     });
     
-    if (!doc) return undefined;
+    if (!doc) {
+      // Try finding by generated slug if not found by original slug
+      const allDocs = await this.blogPostsCollection.find({ draft: { $ne: true } }).toArray();
+      const matchingDoc = allDocs.find(d => this.generateSlug(d.title) === slug);
+      if (matchingDoc) {
+        return this.mapPostDocument(matchingDoc);
+      }
+      return undefined;
+    }
+    
     return this.mapPostDocument(doc);
   }
 

@@ -335,7 +335,7 @@ async function createStorage(): Promise<IStorage> {
   if (mongoUri && (mongoUri.startsWith('mongodb://') || mongoUri.startsWith('mongodb+srv://'))) {
     try {
       console.log('Connecting to MongoDB...');
-      const mongoStorage = new MongoStorage(mongoUri, 'agrotech_blog');
+      const mongoStorage = new MongoStorage(mongoUri, 'test');
       await mongoStorage.connect();
       console.log('Successfully connected to MongoDB');
       return mongoStorage;
