@@ -172,8 +172,12 @@ export class MongoStorage implements IStorage {
       const query: any = {};
       
       // Filter by user ID if specified (for user-specific content)
+      // If userId is provided, filter by it; otherwise show all posts (for backward compatibility)
       if (options.userId) {
-        query.userId = options.userId;
+        query.$or = [
+          { userId: options.userId },
+          { userId: { $exists: false } } // Include posts without userId (legacy posts)
+        ];
       }
       
       // Only show published posts (non-draft) unless includeDrafts is true
@@ -439,6 +443,34 @@ export class MongoStorage implements IStorage {
 
     if (targetComment) {
       await this.commentsCollection.deleteOne({ _id: targetComment._id });
+    }
+  }
+
+  // Migration methods
+  async migratePostsToUser(userId: string): Promise<{ migratedCount: number }> {
+    try {
+      // Update all posts that don't have a userId to belong to the specified user
+      const result = await this.blogPostsCollection.updateMany(
+        { userId: { $exists: false } }, // Posts without userId
+        { $set: { userId: userId } }
+      );
+      
+      return { migratedCount: result.modifiedCount };
+    } catch (error) {
+      console.error("Migration error:", error);
+      throw new Error("Failed to migrate posts");
+    }
+  }
+
+  async getUnassignedPostsCount(): Promise<number> {
+    try {
+      const count = await this.blogPostsCollection.countDocuments({
+        userId: { $exists: false }
+      });
+      return count;
+    } catch (error) {
+      console.error("Error counting unassigned posts:", error);
+      return 0;
     }
   }
 }

@@ -23,6 +23,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Migration endpoint to assign existing posts to current user
+  app.post("/api/admin/migrate-posts", async (req, res) => {
+    try {
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID not found" });
+      }
+
+      if (activeStorage instanceof (await import('./mongodb-storage-updated')).MongoStorage) {
+        const result = await (activeStorage as any).migratePostsToUser(userId);
+        res.json({ 
+          message: "Posts migration completed", 
+          userId: userId,
+          migratedCount: result.migratedCount 
+        });
+      } else {
+        res.status(400).json({ message: "Migration only available with MongoDB storage" });
+      }
+    } catch (error) {
+      console.error("Migration error:", error);
+      res.status(500).json({ message: "Failed to migrate posts" });
+    }
+  });
+
+  // Check unassigned posts count
+  app.get("/api/admin/unassigned-posts", async (req, res) => {
+    try {
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      if (activeStorage instanceof (await import('./mongodb-storage-updated')).MongoStorage) {
+        const count = await (activeStorage as any).getUnassignedPostsCount();
+        res.json({ unassignedCount: count });
+      } else {
+        res.json({ unassignedCount: 0 });
+      }
+    } catch (error) {
+      console.error("Error checking unassigned posts:", error);
+      res.status(500).json({ message: "Failed to check unassigned posts" });
+    }
+  });
+
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {
     req.logout((err) => {

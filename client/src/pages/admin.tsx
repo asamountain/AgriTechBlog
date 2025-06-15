@@ -33,6 +33,7 @@ import Footer from "@/components/footer";
 import { useAuth } from "@/hooks/useAuth";
 import { trackEvent } from "@/lib/analytics";
 import AdminLogin from "@/components/admin-login";
+import MigrationPanel from "@/components/migration-panel";
 
 interface BlogPost {
   id: number;
