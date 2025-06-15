@@ -14,7 +14,7 @@ import type { BlogPostWithDetails } from "@shared/schema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import CommentSection from "@/components/comment-section";
-import { TagDisplay } from "@/components/tag-display";
+import TagDisplay from "@/components/tag-display";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
