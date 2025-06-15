@@ -248,15 +248,19 @@ export class MongoStorage implements IStorage {
   }
 
   async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
-    // Find all documents and search for the one with matching converted ID
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    
+    // Reverse the ID conversion process: convert decimal back to hex ObjectId prefix
+    const hexPrefix = numericId.toString(16).padStart(8, '0');
+    
+    // Find the document by matching ObjectId prefix
     const allDocs = await this.blogPostsCollection.find({}).toArray();
     const targetDoc = allDocs.find(doc => {
-      const convertedDoc = this.convertMongoDoc(doc);
-      return convertedDoc.id == id.toString() || convertedDoc.id == id;
+      const objectIdStr = doc._id.toString();
+      return objectIdStr.startsWith(hexPrefix);
     });
     
     if (!targetDoc) {
-      console.log('Available document IDs:', allDocs.slice(0, 5).map(doc => this.convertMongoDoc(doc).id));
       throw new Error("Blog post not found");
     }
     
