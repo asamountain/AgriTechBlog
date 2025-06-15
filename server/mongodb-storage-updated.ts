@@ -101,6 +101,7 @@ export class MongoStorage implements IStorage {
       readTime: this.calculateReadTime(post.content || ''),
       categoryId: 1,
       authorId: 1,
+      userId: post.userId || 'shared',
       category: {
         id: 1,
         name: 'AgroTech',
@@ -166,9 +167,14 @@ export class MongoStorage implements IStorage {
   }
 
   // Blog post methods (working with your actual data)
-  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean } = {}): Promise<BlogPostWithDetails[]> {
+  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
     try {
       const query: any = {};
+      
+      // Filter by user ID if specified (for user-specific content)
+      if (options.userId) {
+        query.userId = options.userId;
+      }
       
       // Only show published posts (non-draft) unless includeDrafts is true
       if (!options.includeDrafts) {

@@ -176,8 +176,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin endpoints
   app.get("/api/admin/blog-posts", async (req, res) => {
     try {
-      // Get all posts including drafts for admin
-      const posts = await activeStorage.getBlogPosts({ limit: 100, includeDrafts: true });
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      // Get all posts including drafts for admin, filtered by user
+      const posts = await activeStorage.getBlogPosts({ 
+        limit: 100, 
+        includeDrafts: true,
+        userId: userId 
+      });
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch admin posts" });

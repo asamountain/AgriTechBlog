@@ -26,13 +26,13 @@ export interface IStorage {
   createAuthor(author: InsertAuthor): Promise<Author>;
   
   // Blog Posts
-  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean }): Promise<BlogPostWithDetails[]>;
-  getBlogPostBySlug(slug: string): Promise<BlogPostWithDetails | undefined>;
-  getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined>;
+  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string }): Promise<BlogPostWithDetails[]>;
+  getBlogPostBySlug(slug: string, userId?: string): Promise<BlogPostWithDetails | undefined>;
+  getBlogPost(id: number | string, userId?: string): Promise<BlogPostWithDetails | undefined>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
-  updateBlogPost(id: number | string, post: Partial<InsertBlogPost>): Promise<BlogPost>;
-  searchBlogPosts(query: string): Promise<BlogPostWithDetails[]>;
-  getRelatedPosts(postId: number | string, categoryId: number, limit?: number): Promise<BlogPostWithDetails[]>;
+  updateBlogPost(id: number | string, post: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost>;
+  searchBlogPosts(query: string, userId?: string): Promise<BlogPostWithDetails[]>;
+  getRelatedPosts(postId: number | string, categoryId: number, limit?: number, userId?: string): Promise<BlogPostWithDetails[]>;
   
   // Comments
   getCommentsByPostId(postId: number | string): Promise<Comment[]>;

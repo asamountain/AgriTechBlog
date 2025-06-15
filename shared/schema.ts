@@ -33,6 +33,7 @@ export const blogPosts = pgTable("blog_posts", {
   featuredImage: text("featured_image").notNull(),
   categoryId: integer("category_id").references(() => categories.id).notNull(),
   authorId: integer("author_id").references(() => authors.id).notNull(),
+  userId: text("user_id").notNull(), // Links posts to authenticated users
   readTime: integer("read_time").notNull().default(5),
   isFeatured: boolean("is_featured").notNull().default(false),
   isPublished: boolean("is_published").notNull().default(true),
