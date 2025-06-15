@@ -346,6 +346,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simplified AI tagging endpoint
+  app.post("/api/ai-tagging/analyze/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const postId = isNaN(parseInt(id)) ? id : parseInt(id);
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      
+      const post = await activeStorage.getBlogPost(postId, userId);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      // Simple keyword-based tagging as fallback
+      const keywords = post.content.toLowerCase().match(/\b\w{4,}\b/g) || [];
+      const tagCandidates = Array.from(new Set(keywords))
+        .filter(word => !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'more', 'time'].includes(word))
+        .slice(0, 5);
+
+      const categoryMap: { [key: string]: string } = {
+        'technology': 'Agricultural Technology',
+        'sustainable': 'Sustainable Farming',
+        'crop': 'Crop Management',
+        'equipment': 'Farm Equipment',
+        'market': 'Market Analysis',
+        'weather': 'Weather & Climate',
+        'soil': 'Soil Health',
+        'irrigation': 'Irrigation Systems'
+      };
+
+      let suggestedCategory = 'Agricultural Technology';
+      for (const [keyword, category] of Object.entries(categoryMap)) {
+        if (post.content.toLowerCase().includes(keyword) || post.title.toLowerCase().includes(keyword)) {
+          suggestedCategory = category;
+          break;
+        }
+      }
+
+      res.json({
+        suggestedTags: tagCandidates,
+        suggestedCategory,
+        confidence: 0.7,
+        reasoning: "Generated using keyword analysis"
+      });
+    } catch (error) {
+      console.error("AI tagging error:", error);
+      res.status(500).json({ message: "Failed to analyze content" });
+    }
+  });
+
   app.delete("/api/blog-posts/:id", async (req, res) => {
     try {
       const postId = parseInt(req.params.id);

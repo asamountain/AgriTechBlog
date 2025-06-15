@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import TagDisplay from "@/components/tag-display";
 import { Link } from "wouter";
-import { Folder, ArrowRight, TrendingUp } from "lucide-react";
+import { Folder, ArrowRight, TrendingUp, Search, X } from "lucide-react";
 
 interface Category {
   id: number;
@@ -25,6 +28,9 @@ interface BlogPost {
 }
 
 export default function CategoriesPage() {
+  const [selectedTag, setSelectedTag] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
   // Fetch categories
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ['/api/categories'],
@@ -55,6 +61,31 @@ export default function CategoriesPage() {
     .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 20)
     .map(([tag, count]) => ({ tag, count: count as number }));
+
+  // Filter posts based on selected tag and search term
+  const filteredPosts = (posts as BlogPost[]).filter((post: BlogPost) => {
+    const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
+    const matchesSearch = !searchTerm || 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+    return matchesTag && matchesSearch;
+  });
+
+  // Update category counts based on filtered posts
+  const filteredCategoriesWithCounts = categoriesWithCounts.map(category => ({
+    ...category,
+    postCount: filteredPosts.filter(post => post.category.id === category.id).length
+  }));
+
+  const handleTagClick = (tag: string) => {
+    setSelectedTag(selectedTag === tag ? "" : tag);
+  };
+
+  const clearFilters = () => {
+    setSelectedTag("");
+    setSearchTerm("");
+  };
 
   if (categoriesLoading || postsLoading) {
     return (
@@ -89,12 +120,49 @@ export default function CategoriesPage() {
           </p>
         </div>
 
+        {/* Search and Filter Controls */}
+        <div className="mb-golden-lg">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative mb-golden-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search categories, posts, or tags..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 rounded-golden-sm"
+              />
+              {(selectedTag || searchTerm) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {/* Popular Tags */}
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-golden-sm text-gray-900 dark:text-white">
+                Popular Tags {selectedTag && `(filtered by: ${selectedTag})`}
+              </h3>
+              <TagDisplay
+                tags={popularTags.map(t => t.tag)}
+                onTagClick={handleTagClick}
+                selectedTag={selectedTag}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Categories Grid */}
         <div className="mb-16">
           <div className="flex items-center gap-2 mb-8">
             <Folder className="h-6 w-6 text-green-600" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Categories</h2>
-            <Badge variant="secondary">{categoriesWithCounts.length} topics</Badge>
+            <Badge variant="secondary">{filteredCategoriesWithCounts.filter(c => c.postCount > 0).length} active topics</Badge>
           </div>
           
           {categoriesWithCounts.length > 0 ? (
