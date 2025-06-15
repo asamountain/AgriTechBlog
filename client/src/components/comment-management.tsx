@@ -18,6 +18,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 import { Link } from "wouter";
 
 interface CommentWithPost {
@@ -161,24 +162,19 @@ export default function CommentManagement() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex items-center gap-2 mb-6">
           <MessageCircle className="h-6 w-6 text-forest-green" />
           <h2 className="text-2xl font-bold text-gray-900">Comment Management</h2>
         </div>
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="flex justify-center mb-8">
+          <AgricultureLoader theme="forest" size="lg" text="Gathering community feedback..." />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <AgriculturalSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
