@@ -88,7 +88,7 @@ export class MongoStorage implements IStorage {
     }
     
     return {
-      id: parseInt(post.id.substring(0, 8), 16), // Convert ObjectId to number for compatibility
+      id: typeof post.id === 'number' ? post.id : (post._id ? parseInt(post._id.toString().substring(0, 8), 16) : Date.now()),
       title: post.title || 'Untitled',
       content: post.content || '',
       excerpt: this.extractExcerpt(post.content || ''),
@@ -218,8 +218,18 @@ export class MongoStorage implements IStorage {
   }
 
   async getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined> {
+    let query: any;
+    
+    // Check if id is a valid MongoDB ObjectId format
+    if (ObjectId.isValid(id.toString()) && id.toString().length === 24) {
+      query = { _id: new ObjectId(id.toString()) };
+    } else {
+      // Use numeric id field for integer IDs
+      query = { id: parseInt(id.toString()) };
+    }
+    
     const doc = await this.blogPostsCollection.findOne({ 
-      _id: new ObjectId(id.toString()),
+      ...query,
       draft: { $ne: true }
     });
     
@@ -322,9 +332,19 @@ export class MongoStorage implements IStorage {
   }
 
   async getRelatedPosts(postId: number | string, categoryId: number, limit: number = 3): Promise<BlogPostWithDetails[]> {
+    let excludeQuery: any;
+    
+    // Check if postId is a valid MongoDB ObjectId format
+    if (ObjectId.isValid(postId.toString()) && postId.toString().length === 24) {
+      excludeQuery = { _id: { $ne: new ObjectId(postId.toString()) } };
+    } else {
+      // Use numeric id field for integer IDs
+      excludeQuery = { id: { $ne: parseInt(postId.toString()) } };
+    }
+    
     const docs = await this.blogPostsCollection
       .find({ 
-        _id: { $ne: new ObjectId(postId.toString()) },
+        ...excludeQuery,
         draft: { $ne: true }
       })
       .limit(limit)
