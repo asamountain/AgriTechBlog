@@ -36,6 +36,7 @@ import { trackEvent } from "@/lib/analytics";
 import AdminLogin from "@/components/admin-login";
 import MigrationPanel from "@/components/migration-panel";
 import CommentManagement from "@/components/comment-management";
+import { AITaggingPanel } from "@/components/ai-tagging-panel";
 
 interface BlogPost {
   id: number;

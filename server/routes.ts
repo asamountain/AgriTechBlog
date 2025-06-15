@@ -4,6 +4,7 @@ import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
 import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics } from "./categorization";
+import { getAITaggingService } from "./ai-tagging";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -400,6 +401,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting trending topics:", error);
       res.status(500).json({ message: "Failed to get trending topics" });
+    }
+  });
+
+  // AI Tagging endpoints
+  app.post('/api/ai-tagging/analyze/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const post = await activeStorage.getBlogPost(id, userId);
+      if (!post) {
+        return res.status(404).json({ message: 'Blog post not found' });
+      }
+
+      const aiService = getAITaggingService();
+      const analysis = await aiService.analyzeContent(post);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      res.status(500).json({ message: 'Failed to analyze content' });
+    }
+  });
+
+  app.post('/api/ai-tagging/generate-tags', requireAuth, async (req: any, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content || typeof content !== 'string') {
+        return res.status(400).json({ message: 'Content is required' });
+      }
+
+      const aiService = getAITaggingService();
+      const tags = await aiService.generateTags(content);
+      
+      res.json({ tags });
+    } catch (error) {
+      console.error('Tag generation error:', error);
+      res.status(500).json({ message: 'Failed to generate tags' });
+    }
+  });
+
+  app.post('/api/ai-tagging/suggest-category', requireAuth, async (req: any, res) => {
+    try {
+      const { title, content } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({ message: 'Title and content are required' });
+      }
+
+      const aiService = getAITaggingService();
+      const category = await aiService.suggestCategory(title, content);
+      
+      res.json({ category });
+    } catch (error) {
+      console.error('Category suggestion error:', error);
+      res.status(500).json({ message: 'Failed to suggest category' });
+    }
+  });
+
+  app.post('/api/ai-tagging/bulk-analyze', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const posts = await activeStorage.getBlogPosts({ userId, limit: 50 });
+      const aiService = getAITaggingService();
+      
+      const results = [];
+      for (const post of posts) {
+        try {
+          const analysis = await aiService.analyzeContent(post);
+          results.push({
+            postId: post.id,
+            title: post.title,
+            analysis
+          });
+          
+          // Add delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`Failed to analyze post ${post.id}:`, error);
+          results.push({
+            postId: post.id,
+            title: post.title,
+            error: 'Analysis failed'
+          });
+        }
+      }
+      
+      res.json({ results });
+    } catch (error) {
+      console.error('Bulk analysis error:', error);
+      res.status(500).json({ message: 'Failed to perform bulk analysis' });
     }
   });
 
