@@ -274,8 +274,9 @@ export class MemStorage implements IStorage {
     return { ...post, category, author };
   }
 
-  async getBlogPost(id: number): Promise<BlogPostWithDetails | undefined> {
-    const post = this.blogPosts.get(id);
+  async getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const post = this.blogPosts.get(numericId);
     if (!post || !post.isPublished) return undefined;
     
     const category = this.categories.get(post.categoryId)!;
@@ -299,8 +300,9 @@ export class MemStorage implements IStorage {
     return post;
   }
 
-  async updateBlogPost(id: number, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
-    const existingPost = this.blogPosts.get(id);
+  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const existingPost = this.blogPosts.get(numericId);
     if (!existingPost) {
       throw new Error("Blog post not found");
     }
@@ -308,11 +310,11 @@ export class MemStorage implements IStorage {
     const updatedPost: BlogPost = {
       ...existingPost,
       ...updateData,
-      id,
+      id: numericId,
       updatedAt: new Date().toISOString()
     };
 
-    this.blogPosts.set(id, updatedPost);
+    this.blogPosts.set(numericId, updatedPost);
     return updatedPost;
   }
 

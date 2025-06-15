@@ -214,7 +214,7 @@ export class MongoStorage implements IStorage {
     return this.mapPostDocument(doc);
   }
 
-  async getBlogPost(id: number): Promise<BlogPostWithDetails | undefined> {
+  async getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined> {
     const doc = await this.blogPostsCollection.findOne({ 
       _id: new ObjectId(id.toString()),
       draft: { $ne: true }
@@ -247,8 +247,15 @@ export class MongoStorage implements IStorage {
     };
   }
 
-  async updateBlogPost(id: number, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
-    const objectId = new ObjectId(id.toString());
+  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
+    // Handle both numeric IDs and ObjectId strings
+    let query: any;
+    if (typeof id === 'string' && id.length === 24) {
+      query = { _id: new ObjectId(id) };
+    } else {
+      // For numeric IDs, use the _id field directly
+      query = { _id: id.toString() };
+    }
     
     // Prepare update data
     const updateDoc: any = {
@@ -301,7 +308,7 @@ export class MongoStorage implements IStorage {
     return docs.map(doc => this.mapPostDocument(doc));
   }
 
-  async getRelatedPosts(postId: number, categoryId: number, limit: number = 3): Promise<BlogPostWithDetails[]> {
+  async getRelatedPosts(postId: number | string, categoryId: number, limit: number = 3): Promise<BlogPostWithDetails[]> {
     const docs = await this.blogPostsCollection
       .find({ 
         _id: { $ne: new ObjectId(postId.toString()) },
