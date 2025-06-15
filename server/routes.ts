@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
+import { requireAuth } from "./auth";
+import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics } from "./categorization";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -250,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/comments/:id", async (req, res) => {
+  app.delete("/api/comments/:id", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
       await activeStorage.deleteComment(parseInt(id));
@@ -258,6 +260,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting comment:", error);
       res.status(400).json({ message: "Failed to delete comment" });
+    }
+  });
+
+  // AI-powered categorization endpoints
+  app.get("/api/analytics/categories", requireAuth, async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      const distribution = analyzeCategoryDistribution(posts);
+      res.json(distribution);
+    } catch (error) {
+      console.error("Error analyzing categories:", error);
+      res.status(500).json({ message: "Failed to analyze categories" });
+    }
+  });
+
+  app.get("/api/analytics/trending", async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: false });
+      const trending = getTrendingTopics(posts, 10);
+      res.json(trending);
+    } catch (error) {
+      console.error("Error getting trending topics:", error);
+      res.status(500).json({ message: "Failed to get trending topics" });
+    }
+  });
+
+  app.post("/api/posts/:id/categorize", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const post = await activeStorage.getBlogPost(id);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      const suggestedCategory = analyzeContentCategory(post);
+      res.json({ suggestedCategory, confidence: "high" });
+    } catch (error) {
+      console.error("Error categorizing post:", error);
+      res.status(500).json({ message: "Failed to categorize post" });
+    }
+  });
+
+  // Protect admin routes
+  app.get("/api/admin/blog-posts", requireAuth, async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching admin blog posts:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts" });
+    }
+  });
+
+  app.get("/api/admin/stats", requireAuth, async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      const totalPosts = posts.length;
+      const publishedPosts = posts.filter(p => p.isPublished).length;
+      const draftPosts = totalPosts - publishedPosts;
+      const featuredPosts = posts.filter(p => p.isFeatured).length;
+      
+      res.json({
+        totalPosts,
+        publishedPosts,
+        draftPosts,
+        featuredPosts
+      });
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch statistics" });
+    }
+  });
+
+  app.put("/api/comments/:id/approve", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const comment = await activeStorage.approveComment(parseInt(id));
+      res.json(comment);
+    } catch (error) {
+      console.error("Error approving comment:", error);
+      res.status(400).json({ message: "Failed to approve comment" });
     }
   });
 

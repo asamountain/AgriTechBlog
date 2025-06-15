@@ -23,10 +23,16 @@ import {
   Users, 
   Settings,
   Save,
-  X
+  X,
+  LogOut,
+  Sparkles,
+  TrendingUp
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import { useAuth } from "@/hooks/useAuth";
+import { trackEvent } from "@/lib/analytics";
+import AdminLogin from "@/components/admin-login";
 
 interface BlogPost {
   id: number;
