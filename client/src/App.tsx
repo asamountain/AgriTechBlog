@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import BlogPost from "@/pages/blog-post";
 import AdminDashboard from "@/pages/admin";
+import SearchPage from "@/pages/search";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import { initGA } from "./lib/analytics";
@@ -19,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/search" component={SearchPage} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route component={NotFound} />
     </Switch>
