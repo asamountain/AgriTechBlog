@@ -48,7 +48,7 @@ export default function MigrationPanel() {
     }
   });
 
-  const unassignedCount = unassignedData?.unassignedCount || 0;
+  const unassignedCount = (unassignedData as any)?.unassignedCount || 0;
 
   if (isCheckingCount) {
     return (

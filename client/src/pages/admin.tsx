@@ -475,7 +475,11 @@ export default function AdminDashboard() {
           </div>
 
           <Tabs defaultValue="posts" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="migration">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Migration
+              </TabsTrigger>
               <TabsTrigger value="posts">
                 <FileText className="w-4 h-4 mr-2" />
                 Posts
@@ -493,6 +497,10 @@ export default function AdminDashboard() {
                 Settings
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="migration">
+              <MigrationPanel />
+            </TabsContent>
 
             <TabsContent value="posts">
               <PostsManagement />
