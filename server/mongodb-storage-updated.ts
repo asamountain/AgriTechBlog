@@ -200,16 +200,6 @@ export class MongoStorage implements IStorage {
   }
 
   async updateAuthorByUserId(userId: string, updateData: Partial<InsertAuthor>): Promise<Author> {
-    console.log('Looking for author with userId:', userId);
-    
-    // First check if the author exists
-    const existingAuthor = await this.authorsCollection.findOne({ userId: userId });
-    console.log('Found existing author:', existingAuthor ? 'Yes' : 'No');
-    
-    if (!existingAuthor) {
-      throw new Error('Author not found for userId: ' + userId);
-    }
-    
     const result = await this.authorsCollection.findOneAndUpdate(
       { userId: userId },
       { $set: { ...updateData, updatedAt: new Date() } },
@@ -217,7 +207,7 @@ export class MongoStorage implements IStorage {
     );
     
     if (!result) {
-      throw new Error('Update operation failed for userId: ' + userId);
+      throw new Error('Author not found for userId: ' + userId);
     }
     
     return this.convertMongoDoc(result);

@@ -31,7 +31,7 @@ flowchart TD
     
     G --> I{Author Record Exists?}
     I -->|Yes| J[Return Existing Profile Data]
-    I -->|No| K[Return Empty Object {}]
+    I -->|No| K[Return Empty Object]
     
     J --> L[Display Profile Form with Data]
     K --> M[Display Empty Profile Form]
