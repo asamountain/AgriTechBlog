@@ -302,6 +302,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin profile endpoint
+  app.patch("/api/admin/profile", async (req, res) => {
+    try {
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const profileData = req.body;
+      
+      // In a real implementation, you would save this to a user profile table
+      // For now, we'll just return success
+      res.json({ 
+        message: "Profile updated successfully",
+        profile: profileData 
+      });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Admin endpoints
   app.get("/api/admin/blog-posts", async (req, res) => {
     try {

@@ -32,7 +32,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-1">
-            <h3 className="text-2xl font-playfair font-bold text-fresh-lime mb-4">
+            <h3 className="text-2xl font-playfair font-bold text-forest-green mb-4">
               AgroTech
             </h3>
             <p className="text-gray-300 mb-6 leading-relaxed">
@@ -65,7 +65,7 @@ export default function Footer() {
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}>
-                    <span className="text-gray-300 hover:text-fresh-lime transition-colors cursor-pointer">
+                    <span className="text-gray-300 hover:text-forest-green transition-colors cursor-pointer">
                       {link.label}
                     </span>
                   </Link>
@@ -74,15 +74,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Categories */}
+          {/* Popular Tags */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Categories</h4>
+            <h4 className="text-lg font-semibold mb-4">Popular Tags</h4>
             <ul className="space-y-2">
-              {categories.map((category) => (
-                <li key={category.href}>
-                  <Link href={category.href}>
-                    <span className="text-gray-300 hover:text-fresh-lime transition-colors cursor-pointer">
-                      {category.label}
+              {popularTags.map((tag) => (
+                <li key={tag.href}>
+                  <Link href={tag.href}>
+                    <span className="text-gray-300 hover:text-forest-green transition-colors cursor-pointer">
+                      {tag.label}
                     </span>
                   </Link>
                 </li>
@@ -95,15 +95,15 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
             <div className="space-y-3 text-gray-300">
               <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-fresh-lime" />
+                <Mail className="h-4 w-4 text-forest-green" />
                 <span>hello@agrotech.com</span>
               </div>
               <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-fresh-lime" />
+                <Phone className="h-4 w-4 text-forest-green" />
                 <span>+1 (555) 123-4567</span>
               </div>
               <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-fresh-lime" />
+                <MapPin className="h-4 w-4 text-forest-green" />
                 <span>Silicon Valley, CA</span>
               </div>
             </div>
