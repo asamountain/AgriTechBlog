@@ -327,8 +327,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let author = await activeStorage.getAuthorByUserId(userId);
       
       if (author) {
-        // Update existing author
-        const updatedAuthor = await activeStorage.updateAuthor(author.id, {
+        // Update existing author using userId
+        const updatedAuthor = await activeStorage.updateAuthorByUserId(userId, {
           name: profileData.name,
           email: profileData.email,
           bio: profileData.bio,

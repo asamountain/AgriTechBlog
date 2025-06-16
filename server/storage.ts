@@ -26,6 +26,7 @@ export interface IStorage {
   getAuthorByUserId(userId: string): Promise<Author | undefined>;
   createAuthor(author: InsertAuthor): Promise<Author>;
   updateAuthor(id: number, author: Partial<InsertAuthor>): Promise<Author>;
+  updateAuthorByUserId(userId: string, author: Partial<InsertAuthor>): Promise<Author>;
   
   // Blog Posts
   getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string }): Promise<BlogPostWithDetails[]>;

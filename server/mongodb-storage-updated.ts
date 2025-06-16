@@ -190,6 +190,20 @@ export class MongoStorage implements IStorage {
     return this.convertMongoDoc(result.value);
   }
 
+  async updateAuthorByUserId(userId: string, updateData: Partial<InsertAuthor>): Promise<Author> {
+    const result = await this.authorsCollection.findOneAndUpdate(
+      { userId: userId },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    
+    if (!result) {
+      throw new Error('Author not found for userId: ' + userId);
+    }
+    
+    return this.convertMongoDoc(result);
+  }
+
   // Blog Post methods
   async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
     const { categorySlug, limit = 10, offset = 0, featured, includeDrafts = false, userId } = options;
