@@ -379,14 +379,14 @@ export default function OpenGraphTester() {
               <div className="flex flex-wrap gap-3">
                 <Button
                   onClick={() => window.open('https://developers.facebook.com/tools/debug/', '_blank')}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-forest-green hover:bg-forest-green/90"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Test on Facebook
                 </Button>
                 <Button
                   onClick={() => window.open('https://www.linkedin.com/post-inspector/', '_blank')}
-                  className="bg-blue-700 hover:bg-blue-800"
+                  className="bg-forest-green hover:bg-forest-green/90"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Test on LinkedIn
