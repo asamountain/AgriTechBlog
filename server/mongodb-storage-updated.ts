@@ -192,25 +192,35 @@ export class MongoStorage implements IStorage {
       { returnDocument: 'after' }
     );
     
-    if (!result.value) {
+    if (!result) {
       throw new Error('Author not found');
     }
     
-    return this.convertMongoDoc(result.value);
+    return this.convertMongoDoc(result);
   }
 
   async updateAuthorByUserId(userId: string, updateData: Partial<InsertAuthor>): Promise<Author> {
+    console.log('Looking for author with userId:', userId);
+    
+    // First check if the author exists
+    const existingAuthor = await this.authorsCollection.findOne({ userId: userId });
+    console.log('Found existing author:', existingAuthor ? 'Yes' : 'No');
+    
+    if (!existingAuthor) {
+      throw new Error('Author not found for userId: ' + userId);
+    }
+    
     const result = await this.authorsCollection.findOneAndUpdate(
       { userId: userId },
       { $set: { ...updateData, updatedAt: new Date() } },
       { returnDocument: 'after' }
     );
     
-    if (!result || !result.value) {
-      throw new Error('Author not found for userId: ' + userId);
+    if (!result) {
+      throw new Error('Update operation failed for userId: ' + userId);
     }
     
-    return this.convertMongoDoc(result.value);
+    return this.convertMongoDoc(result);
   }
 
   // Blog Post methods
