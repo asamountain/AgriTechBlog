@@ -129,14 +129,14 @@ export default function AdminSEODashboard() {
   ];
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-green-600";
-    if (score >= 75) return "text-yellow-600";
+    if (score >= 90) return "text-forest-green";
+    if (score >= 75) return "text-forest-green/70";
     return "text-red-600";
   };
 
   const getScoreBadge = (score: number) => {
-    if (score >= 90) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
-    if (score >= 75) return <Badge className="bg-yellow-100 text-yellow-800">Good</Badge>;
+    if (score >= 90) return <Badge className="bg-forest-green/10 text-forest-green">Excellent</Badge>;
+    if (score >= 75) return <Badge className="bg-forest-green/20 text-forest-green/80">Good</Badge>;
     return <Badge className="bg-red-100 text-red-800">Needs Improvement</Badge>;
   };
 
@@ -180,7 +180,7 @@ export default function AdminSEODashboard() {
                 <Button 
                   onClick={handleRefresh} 
                   disabled={refreshing}
-                  className="bg-forest-green hover:bg-forest-green"
+                  className="bg-forest-green hover:bg-forest-green/90"
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                   Refresh
@@ -278,7 +278,7 @@ export default function AdminSEODashboard() {
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Line type="monotone" dataKey="seo" stroke="#2D5016" strokeWidth={2} />
-                      <Line type="monotone" dataKey="geo" stroke="#8884d8" strokeWidth={2} />
+                      <Line type="monotone" dataKey="geo" stroke="#1a3009" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
