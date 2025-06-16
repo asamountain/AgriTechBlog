@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title="AgriTech Innovation Hub - Advanced Agricultural Technology & IoT Solutions"
+        title="San's Agricultural Technology Blog - Innovation & Sustainable Farming"
         description="Discover cutting-edge agricultural technology, IoT solutions, and sustainable farming practices. Expert insights on precision agriculture, crop monitoring, and smart farming innovations for global agricultural transformation."
         keywords={keywords}
         image="/api/og-image?title=AgriTech Innovation Hub&category=Agricultural Technology"

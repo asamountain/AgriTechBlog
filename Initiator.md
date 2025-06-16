@@ -1,4 +1,4 @@
-# AgroTech Blog Design Standards
+# San Blog Design Standards
 
 ## Color Scheme
 - **Primary Color**: Forest Green (#2D5016) 

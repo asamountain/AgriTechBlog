@@ -11,7 +11,6 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { href: "/", label: "Home" },
     { href: "/contact", label: "Contact" },
   ];
 
@@ -24,7 +23,7 @@ export default function Navigation() {
             <div className="flex-shrink-0">
               <Link href="/">
                 <h1 className="text-2xl font-playfair font-bold text-forest-green cursor-pointer">
-                  AgroTech
+                  San
                 </h1>
               </Link>
             </div>

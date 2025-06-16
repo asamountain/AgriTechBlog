@@ -52,11 +52,10 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="mb-8">
             <h3 className="text-2xl font-playfair font-bold text-forest-green mb-4">
-              AgroTech
+              San
             </h3>
             <p className="text-gray-300 mb-6 leading-relaxed max-w-2xl">
-              Empowering farmers and agricultural professionals with cutting-edge 
-              technology insights and sustainable farming solutions.
+              Exploring agricultural technology and innovation for a sustainable future
             </p>
           </div>
 

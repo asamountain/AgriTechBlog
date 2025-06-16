@@ -1,4 +1,4 @@
-# AgroTech Blog - Systematic Development Process
+# San Blog - Systematic Development Process
 
 ## Pre-Implementation Checklist
 

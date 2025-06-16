@@ -1,6 +1,6 @@
-# AgroTech Blog Platform
+# San Blog Platform
 
-A modern agrotech blog platform leveraging advanced content management technologies to create an engaging and interactive reader experience.
+A modern agricultural technology blog platform leveraging advanced content management technologies to create an engaging and interactive reader experience.
 
 ## Key Technologies
 
