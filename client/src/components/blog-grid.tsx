@@ -18,6 +18,13 @@ export default function BlogGrid({}: BlogGridProps) {
     queryKey: ["/api/blog-posts", { limit: (page + 1) * limit, offset: 0 }],
   });
 
+  // Fetch updated profile data for author information
+  const { data: profile } = useQuery({
+    queryKey: ["/api/profile"],
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+  });
+
   const displayedPosts = blogPosts?.slice(0, (page + 1) * limit) || [];
   const hasMore = blogPosts && blogPosts.length > displayedPosts.length;
 
@@ -115,7 +122,9 @@ export default function BlogGrid({}: BlogGridProps) {
                           {/* Meta Info */}
                           <div className="flex items-center justify-between text-sm text-gray-500">
                             <div className="flex items-center space-x-4">
-                              <span className="font-medium text-gray-700">{post.author.name}</span>
+                              <span className="font-medium text-gray-700">
+                                {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
+                              </span>
                               <span>{formatDate(post.createdAt)}</span>
                             </div>
                             <span className="text-xs uppercase tracking-wide">{post.readTime} min read</span>

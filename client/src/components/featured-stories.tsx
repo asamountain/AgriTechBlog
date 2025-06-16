@@ -12,6 +12,13 @@ export default function FeaturedStories() {
     queryKey: ["/api/blog-posts/featured"],
   });
 
+  // Fetch updated profile data for author information
+  const { data: profile } = useQuery({
+    queryKey: ["/api/profile"],
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+  });
+
   if (isLoading) {
     return (
       <section id="featured-stories" className="py-16 bg-white">
@@ -103,11 +110,21 @@ export default function FeaturedStories() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-forest-green text-white text-xs font-medium">
-                              {story.author.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
+                            {(profile as any)?.avatar ? (
+                              <img
+                                src={(profile as any).avatar}
+                                alt={(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <AvatarFallback className="bg-forest-green text-white text-xs font-medium">
+                                {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name).split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            )}
                           </Avatar>
-                          <span className="text-sm font-medium text-gray-700">{story.author.name}</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name}
+                          </span>
                         </div>
                         <span className="text-xs text-gray-500 uppercase tracking-wide">{story.readTime} min read</span>
                       </div>
