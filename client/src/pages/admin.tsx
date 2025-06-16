@@ -717,10 +717,10 @@ function ProfileManagement() {
                 <Label htmlFor="linkedin">LinkedIn</Label>
                 <Input
                   id="linkedin"
-                  value={profileData.socialLinks.linkedin || ""}
+                  value={profileData.linkedinUrl || ""}
                   onChange={(e) => setProfileData(prev => ({
                     ...prev,
-                    socialLinks: { ...prev.socialLinks, linkedin: e.target.value }
+                    linkedinUrl: e.target.value
                   }))}
                   className="rounded-golden-sm"
                   placeholder="https://linkedin.com/in/username"
@@ -730,10 +730,10 @@ function ProfileManagement() {
                 <Label htmlFor="instagram">Instagram</Label>
                 <Input
                   id="instagram"
-                  value={profileData.socialLinks.instagram || ""}
+                  value={profileData.instagramUrl || ""}
                   onChange={(e) => setProfileData(prev => ({
                     ...prev,
-                    socialLinks: { ...prev.socialLinks, instagram: e.target.value }
+                    instagramUrl: e.target.value
                   }))}
                   className="rounded-golden-sm"
                   placeholder="https://instagram.com/username"
@@ -743,10 +743,10 @@ function ProfileManagement() {
                 <Label htmlFor="youtube">YouTube</Label>
                 <Input
                   id="youtube"
-                  value={profileData.socialLinks.youtube || ""}
+                  value={profileData.youtubeUrl || ""}
                   onChange={(e) => setProfileData(prev => ({
                     ...prev,
-                    socialLinks: { ...prev.socialLinks, youtube: e.target.value }
+                    youtubeUrl: e.target.value
                   }))}
                   className="rounded-golden-sm"
                   placeholder="https://youtube.com/channel/..."
@@ -756,10 +756,10 @@ function ProfileManagement() {
                 <Label htmlFor="github">GitHub</Label>
                 <Input
                   id="github"
-                  value={profileData.socialLinks.github || ""}
+                  value={profileData.githubUrl || ""}
                   onChange={(e) => setProfileData(prev => ({
                     ...prev,
-                    socialLinks: { ...prev.socialLinks, github: e.target.value }
+                    githubUrl: e.target.value
                   }))}
                   className="rounded-golden-sm"
                   placeholder="https://github.com/username"
@@ -769,10 +769,10 @@ function ProfileManagement() {
                 <Label htmlFor="portfolio">Photo Portfolio</Label>
                 <Input
                   id="portfolio"
-                  value={profileData.socialLinks.portfolio || ""}
+                  value={profileData.portfolioUrl || ""}
                   onChange={(e) => setProfileData(prev => ({
                     ...prev,
-                    socialLinks: { ...prev.socialLinks, portfolio: e.target.value }
+                    portfolioUrl: e.target.value
                   }))}
                   className="rounded-golden-sm"
                   placeholder="https://yourportfolio.com"
