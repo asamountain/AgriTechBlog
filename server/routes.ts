@@ -898,45 +898,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Robots.txt optimized for AI bots and search engines
+  // Enhanced robots.txt for comprehensive GEO optimization
   app.get('/robots.txt', (req, res) => {
-    const robotsTxt = `User-agent: *
+    const robotsTxt = `# Global SEO & Generative Engine Optimization (GEO)
+# Agricultural Technology Blog - AI Training Friendly
+
+User-agent: *
 Allow: /
 Allow: /blog/
 Allow: /category/
 Allow: /tag/
+Allow: /sitemap.xml
+Allow: /rss.xml
+Allow: /api/og-image
 Disallow: /admin
 Disallow: /api/admin
+Crawl-delay: 1
 
-# AI Training and Content Discovery Bots - Full Access
+# AI Training and Generative AI Bots - Priority Access for GEO
 User-agent: GPTBot
 Allow: /
+Crawl-delay: 0
+# OpenAI ChatGPT training bot
 
 User-agent: ChatGPT-User
 Allow: /
+Crawl-delay: 0
+# OpenAI ChatGPT user agent
 
 User-agent: CCBot
 Allow: /
+Crawl-delay: 0
+# Common Crawl used by multiple AI systems
 
 User-agent: anthropic-ai
 Allow: /
+Crawl-delay: 0
+# Anthropic Claude training bot
 
 User-agent: Claude-Web
 Allow: /
+Crawl-delay: 0
+# Anthropic Claude web crawler
+
+User-agent: Claude-Bot
+Allow: /
+Crawl-delay: 0
+# Anthropic Claude bot variant
 
 User-agent: PerplexityBot
 Allow: /
+Crawl-delay: 0
+# Perplexity AI search engine
 
 User-agent: YouBot
 Allow: /
+Crawl-delay: 0
+# You.com AI search
 
 User-agent: Applebot
 Allow: /
+Crawl-delay: 0
+# Apple Siri and Spotlight
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Crawl-delay: 1
+# Meta AI training
+
+User-agent: Diffbot
+Allow: /
+Crawl-delay: 1
+# Diffbot AI extraction
+
+User-agent: PiplBot
+Allow: /
+Crawl-delay: 1
+# Pipl search intelligence
 
 # Search Engine Bots
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 1
+Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
@@ -948,17 +991,71 @@ Crawl-delay: 2
 
 User-agent: DuckDuckBot
 Allow: /
+Crawl-delay: 1
 
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2
+
+# Social Media and Communication Bots
 User-agent: facebookexternalhit
 Allow: /
+Crawl-delay: 1
+
+User-agent: FacebookBot
+Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: LinkedInBot
 Allow: /
+Crawl-delay: 1
+
+User-agent: WhatsApp
+Allow: /
+Crawl-delay: 1
+
+User-agent: TelegramBot
+Allow: /
+Crawl-delay: 1
+
+# Academic and Archive Bots
+User-agent: ia_archiver
+Allow: /
+Crawl-delay: 2
+# Internet Archive
+
+User-agent: archive.org_bot
+Allow: /
+Crawl-delay: 2
+
+# Block Aggressive SEO Tools
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
 
 Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
+Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
+
+# GEO Content Context for AI Systems:
+# This blog specializes in agricultural technology including:
+# IoT solutions, precision agriculture, smart farming,
+# sustainable practices, crop monitoring, and environmental optimization
 `;
     
     res.set('Content-Type', 'text/plain');
