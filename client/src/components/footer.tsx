@@ -1,7 +1,15 @@
 import { Link } from "wouter";
 import { Mail, Phone, MapPin, Linkedin, Instagram, Youtube, Github, Camera } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Author } from "@shared/schema";
 
 export default function Footer() {
+  // Fetch profile data for social media links
+  const { data: profile } = useQuery<Author>({
+    queryKey: ["/api/admin/profile"],
+    retry: false,
+  });
+
   const quickLinks = [
     { href: "/about", label: "About Us" },
     { href: "/team", label: "Editorial Team" },
@@ -18,13 +26,39 @@ export default function Footer() {
     { href: "/tags/Sustainability", label: "Sustainability" },
   ];
 
+  // Create social links array from profile data, with fallbacks
   const socialLinks = [
-    { href: "https://linkedin.com/in/hopeinvest", icon: Linkedin, label: "LinkedIn" },
-    { href: "https://instagram.com/hopeinvest", icon: Instagram, label: "Instagram" },
-    { href: "https://youtube.com/@hopeinvest", icon: Youtube, label: "YouTube" },
-    { href: "https://github.com/hopeinvest", icon: Github, label: "GitHub" },
-    { href: "https://portfolio.hopeinvest.com", icon: Camera, label: "Photo Portfolio" },
-  ];
+    { 
+      href: profile?.linkedinUrl || "https://linkedin.com/in/hopeinvest", 
+      icon: Linkedin, 
+      label: "LinkedIn",
+      enabled: !!profile?.linkedinUrl
+    },
+    { 
+      href: profile?.instagramUrl || "https://instagram.com/hopeinvest", 
+      icon: Instagram, 
+      label: "Instagram",
+      enabled: !!profile?.instagramUrl
+    },
+    { 
+      href: profile?.youtubeUrl || "https://youtube.com/@hopeinvest", 
+      icon: Youtube, 
+      label: "YouTube",
+      enabled: !!profile?.youtubeUrl
+    },
+    { 
+      href: profile?.githubUrl || "https://github.com/hopeinvest", 
+      icon: Github, 
+      label: "GitHub",
+      enabled: !!profile?.githubUrl
+    },
+    { 
+      href: profile?.portfolioUrl || "https://portfolio.hopeinvest.com", 
+      icon: Camera, 
+      label: "Photo Portfolio",
+      enabled: !!profile?.portfolioUrl
+    },
+  ].filter(link => link.enabled || !profile); // Show all links if no profile data, only enabled ones if profile exists
 
   return (
     <footer className="bg-gray-900 text-white py-16">

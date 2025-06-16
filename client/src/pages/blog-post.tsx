@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/utils";
 import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import type { BlogPostWithDetails } from "@shared/schema";
+import type { BlogPostWithDetails, Author } from "@shared/schema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import CommentSection from "@/components/comment-section";
@@ -19,16 +19,26 @@ import { AgriculturalSkeleton } from "@/components/loading-animations";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  
-  const { data: post, isLoading, error } = useQuery<BlogPostWithDetails>({
+
+  const {
+    data: post,
+    isLoading,
+    error,
+  } = useQuery<BlogPostWithDetails>({
     queryKey: [`/api/blog-posts/${slug}`],
     enabled: !!slug,
+  });
+
+  // Fetch profile data for author information
+  const { data: profile } = useQuery<Author>({
+    queryKey: ["/api/admin/profile"],
+    retry: false,
   });
 
   // Track blog post view when post loads
   useEffect(() => {
     if (post) {
-      trackEvent('page_view', 'blog_post', post.title, post.readTime);
+      trackEvent("page_view", "blog_post", post.title, post.readTime);
     }
   }, [post]);
 
@@ -69,7 +79,6 @@ export default function BlogPost() {
             <Link href="/">
               <Button className="bg-forest-green hover:bg-forest-green text-white">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
               </Button>
             </Link>
           </div>
@@ -82,21 +91,23 @@ export default function BlogPost() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
+
       {/* Hero Section */}
       <section className="relative pt-24 pb-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <Link href="/">
-            <Button variant="ghost" className="mb-8 text-gray-600 hover:text-forest-green">
+            <Button
+              variant="ghost"
+              className="mb-8 text-gray-600 hover:text-forest-green"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Articles
             </Button>
           </Link>
 
           {/* Category Badge */}
           <div className="mb-6">
-            <span 
+            <span
               className="inline-block px-4 py-2 text-sm font-medium text-white uppercase tracking-wide"
               style={{ backgroundColor: post.category.color }}
             >
@@ -114,16 +125,27 @@ export default function BlogPost() {
             <div className="flex items-center space-x-6 text-sm text-gray-500">
               <div className="flex items-center space-x-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-forest-green text-white text-xs">
-                    {post.author.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
+                  {profile?.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt={profile.name || post.author.name}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-forest-green text-white text-xs">
+                      {(profile?.name || post.author.name)
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
-                <span className="font-medium">{post.author.name}</span>
+                <span className="font-medium">{profile?.name || post.author.name}</span>
               </div>
               <span>{formatDate(post.createdAt)}</span>
               <span>{post.readTime} min read</span>
             </div>
-            <SocialShare 
+            <SocialShare
               title={post.title}
               url={`${window.location.origin}/blog/${post.slug}`}
               excerpt={post.excerpt}
@@ -156,7 +178,7 @@ export default function BlogPost() {
 
           {/* Main Content */}
           <div className="prose prose-lg max-w-none">
-            <div 
+            <div
               className="text-gray-700 leading-relaxed blog-content"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
@@ -166,9 +188,11 @@ export default function BlogPost() {
           {(post.tags?.length || post.category) && (
             <div className="mt-12 pt-8 border-t border-gray-200">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Topics & Tags</h3>
-                <TagDisplay 
-                  tags={post.tags || []} 
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Topics & Tags
+                </h3>
+                <TagDisplay
+                  tags={post.tags || []}
                   category={post.category}
                   size="md"
                 />
@@ -192,7 +216,8 @@ export default function BlogPost() {
             Stay Updated with AgroTech Insights
           </h2>
           <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Get the latest insights on agricultural innovation and sustainable farming practices delivered to your inbox.
+            Get the latest insights on agricultural innovation and sustainable
+            farming practices delivered to your inbox.
           </p>
           <Link href="/">
             <Button className="bg-white text-forest-green hover:bg-gray-100 font-medium py-3 px-8 text-lg">
