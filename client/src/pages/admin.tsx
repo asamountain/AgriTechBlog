@@ -404,8 +404,8 @@ function PostsManagement() {
       </div>
 
       <div className="grid gap-4">
-        {posts.map((post: BlogPost) => (
-          <Card key={post.id}>
+        {posts.map((post: BlogPost, index: number) => (
+          <Card key={`${post.id}-${index}`}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -523,13 +523,66 @@ function ProfileManagement() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, you'd upload to a service like Cloudinary
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select a valid image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (event) => {
-        setProfileData(prev => ({
-          ...prev,
-          avatar: event.target?.result as string
-        }));
+        const result = event.target?.result as string;
+        // Compress the image by resizing it
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Set max dimensions
+          const maxWidth = 400;
+          const maxHeight = 400;
+          let { width, height } = img;
+          
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw and compress
+          ctx?.drawImage(img, 0, 0, width, height);
+          const compressedData = canvas.toDataURL('image/jpeg', 0.8);
+          
+          setProfileData(prev => ({
+            ...prev,
+            avatar: compressedData
+          }));
+        };
+        img.src = result;
       };
       reader.readAsDataURL(file);
     }

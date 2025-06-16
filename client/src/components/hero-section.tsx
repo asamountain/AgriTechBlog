@@ -55,9 +55,7 @@ export default function HeroSection() {
       <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-6 pb-32">
         {/* Top indicator */}
         <div className="mb-8">
-          <span className="text-xs uppercase tracking-widest text-white/80 font-light">
-            03 / 01 / 2025
-          </span>
+          <span className="text-xs uppercase tracking-widest text-white/80 font-light"></span>
         </div>
 
         {/* Back to link */}
