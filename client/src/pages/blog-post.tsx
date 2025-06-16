@@ -135,7 +135,7 @@ export default function BlogPost() {
                     <AvatarFallback className="bg-forest-green text-white text-xs">
                       {(profile?.name || post.author.name)
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   )}
