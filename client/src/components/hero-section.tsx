@@ -64,9 +64,7 @@ export default function HeroSection() {
         </div>
 
         {/* Main heading */}
-        <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-normal mb-8 leading-none tracking-tight">
-          San
-        </h1>
+        <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-normal mb-8 leading-none tracking-tight"></h1>
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl mb-12 text-white/90 max-w-lg mx-auto leading-relaxed font-light">
@@ -74,26 +72,14 @@ export default function HeroSection() {
         </p>
 
         {/* Photography Portfolio Link */}
-        <div className="mb-8">
-          <Button
-            onClick={openPortfolio}
-            variant="outline"
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            View His journey
-            <ExternalLink className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
+        <div className="mb-8"></div>
       </div>
 
       {/* Scroll Indicator */}
       <div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/80 animate-bounce cursor-pointer"
         onClick={scrollToContent}
-      >
-        <ChevronDown className="h-6 w-6" />
-      </div>
+      ></div>
     </section>
   );
 }

@@ -4,6 +4,8 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SocialShare from "@/components/social-share";
 import SEOHead from "@/components/seo-head";
+import TableOfContents from "@/components/table-of-contents";
+import ReadingProgress from "@/components/reading-progress";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +33,11 @@ export default function BlogPost() {
   });
 
   // Fetch profile data for author information
-  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useQuery({
     queryKey: ["/api/profile"],
     retry: false,
     staleTime: 0, // Always refetch to get latest profile data
@@ -40,9 +46,9 @@ export default function BlogPost() {
 
   // Debug profile data
   useEffect(() => {
-    console.log('Profile data:', profile);
-    console.log('Profile loading:', profileLoading);
-    console.log('Profile error:', profileError);
+    console.log("Profile data:", profile);
+    console.log("Profile loading:", profileLoading);
+    console.log("Profile error:", profileError);
   }, [profile, profileLoading, profileError]);
 
   // Track blog post view when post loads
@@ -99,27 +105,34 @@ export default function BlogPost() {
   }
 
   // Generate SEO data for maximum AI chatbot and search engine visibility
-  const authorName = (profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name;
+  const authorName =
+    (profile as any)?.name && (profile as any).name.trim() !== ""
+      ? (profile as any).name
+      : post.author.name;
   const currentUrl = `${window.location.origin}/blog/${post.slug}`;
   const keywords = [
     ...(post.tags || []),
-    'agricultural technology',
-    'precision agriculture', 
-    'IoT farming',
-    'smart agriculture',
-    'crop monitoring',
-    'sustainable farming',
-    'AgriTech innovation',
-    post.category.name.toLowerCase()
+    "agricultural technology",
+    "precision agriculture",
+    "IoT farming",
+    "smart agriculture",
+    "crop monitoring",
+    "sustainable farming",
+    "AgriTech innovation",
+    post.category.name.toLowerCase(),
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ReadingProgress />
       <SEOHead
-        title={`${post.title} | AgriTech Innovation Hub`}
+        title={`${post.title} | San's Agricultural Technology Blog`}
         description={post.excerpt}
         keywords={keywords}
-        image={post.featuredImage || `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.category.name)}`}
+        image={
+          post.featuredImage ||
+          `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.category.name)}`
+        }
         url={currentUrl}
         type="article"
         author={authorName}
@@ -166,12 +179,21 @@ export default function BlogPost() {
                   {(profile as any)?.avatar ? (
                     <img
                       src={(profile as any).avatar}
-                      alt={(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
+                      alt={
+                        (profile as any)?.name &&
+                        (profile as any).name.trim() !== ""
+                          ? (profile as any).name
+                          : post.author.name
+                      }
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
                     <AvatarFallback className="bg-forest-green text-white text-xs">
-                      {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name)
+                      {((profile as any)?.name &&
+                      (profile as any).name.trim() !== ""
+                        ? (profile as any).name
+                        : post.author.name
+                      )
                         .split(" ")
                         .map((n: string) => n[0])
                         .join("")}
@@ -179,7 +201,9 @@ export default function BlogPost() {
                   )}
                 </Avatar>
                 <span className="font-medium">
-                  {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
+                  {(profile as any)?.name && (profile as any).name.trim() !== ""
+                    ? (profile as any).name
+                    : post.author.name}
                 </span>
               </div>
               <span>{formatDate(post.createdAt)}</span>
@@ -207,21 +231,36 @@ export default function BlogPost() {
 
       {/* Content Section */}
       <section className="py-16 bg-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Excerpt */}
-          <div className="mb-12">
-            <div className="w-1 h-16 bg-forest-green mr-6 float-left"></div>
-            <p className="text-xl text-gray-700 leading-relaxed font-light italic">
-              {post.excerpt}
-            </p>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Table of Contents - Desktop */}
+            <div className="hidden lg:block lg:col-span-1">
+              <TableOfContents content={post.content} />
+            </div>
 
-          {/* Main Content */}
-          <div className="prose prose-lg max-w-none">
-            <div
-              className="text-gray-700 leading-relaxed blog-content"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              {/* Excerpt */}
+              <div className="mb-12">
+                <div className="w-1 h-16 bg-forest-green mr-6 float-left"></div>
+                <p className="text-xl text-gray-700 leading-relaxed font-light italic">
+                  {post.excerpt}
+                </p>
+              </div>
+
+              {/* Table of Contents - Mobile */}
+              <div className="lg:hidden mb-8">
+                <TableOfContents content={post.content} />
+              </div>
+
+              {/* Article Content */}
+              <div className="prose prose-lg max-w-none">
+                <div
+                  className="text-gray-700 leading-relaxed blog-content"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Tags and Categories */}
@@ -250,22 +289,6 @@ export default function BlogPost() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 bg-forest-green">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Stay Updated with San's Insights
-          </h2>
-          <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
-            Get the latest insights on agricultural innovation and sustainable
-            farming practices delivered to your inbox.
-          </p>
-          <Link href="/">
-            <Button className="bg-white text-forest-green hover:bg-gray-100 font-medium py-3 px-8 text-lg">
-              Explore More Articles
-            </Button>
-          </Link>
-        </div>
-      </section>
 
       <Footer />
     </div>
