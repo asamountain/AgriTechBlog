@@ -79,52 +79,45 @@ The profile management system was experiencing data loss after page refresh due 
 ### Authentication Flow
 
 ```mermaid
+---
+config:
+  layout: fixed
+---
 flowchart TD
-A[User Login] --> B[Session Created with User ID]
-B --> C[Admin Dashboard Access]
-C --> D[Profile Management Tab]
-
-D --> E[GET /api/admin/profile]
-E --> F[Check Authentication]
-F -->|Authenticated| G[Query Authors Collection by userId]
-F -->|Not Authenticated| H[Return 401 Unauthorized]
-
-G --> I{Author Record Exists?}
-I -->|Yes| J[Return Existing Profile Data]
-I -->|No| K[Return Empty Object]
-
-J --> L[Display Profile Form with Data]
-K --> M[Display Empty Profile Form]
-
-L --> N[User Edits Profile]
-M --> N
-N --> O[Submit Profile Changes]
-
-O --> P[PATCH /api/admin/profile]
-P --> Q[Validate Authentication]
-Q -->|Valid| R[Find Existing Author by userId]
-Q -->|Invalid| S[Return 401]
-
-R --> T{Author Exists?}
-T -->|Yes| U[Update Existing Author Record]
-T -->|No| V[Create New Author with userId Link]
-
-U --> W[Save to MongoDB Authors Collection]
-V --> W
-W --> X[Return Success Response]
-X --> Y[Invalidate React Query Cache]
-Y --> Z[Refetch Profile Data]
-Z --> AA[Display Updated Profile]
-
-subgraph MongoDB
-    BB[(Authors Collection)]
-    CC[(Blog Posts Collection)]
-    DD[(Users Collection)]
-end
-
-W --> BB
-BB -.-> CC
-BB -.-> DD
+ subgraph MongoDB["MongoDB"]
+        BB[("Authors Collection")]
+        CC[("Blog Posts Collection")]
+        DD[("Users Collection")]
+  end
+    A["User Login"] --> B["Session Created with User ID"]
+    B --> C["Admin Dashboard Access"]
+    C --> D["Profile Management Tab"]
+    D --> E["GET /api/admin/profile"]
+    E --> F["Check Authentication"]
+    F -- Authenticated --> G["Query Authors Collection by userId"]
+    F -- Not Authenticated --> H["Return 401 Unauthorized"]
+    G --> I{"Author Record Exists?"}
+    I -- Yes --> J["Return Existing Profile Data"]
+    I -- No --> K["Return Empty Object"]
+    J --> L["Display Profile Form with Data"]
+    K --> M["Display Empty Profile Form"]
+    L --> N["User Edits Profile"]
+    M --> N
+    N --> O["Submit Profile Changes"]
+    O --> P["PATCH /api/admin/profile"]
+    P --> Q["Validate Authentication"]
+    Q -- Valid --> R["Find Existing Author by userId"]
+    Q -- Invalid --> S["Return 401"]
+    R --> T{"Author Exists?"}
+    T -- Yes --> U["Update Existing Author Record"]
+    T -- No --> V["Create New Author with userId Link"]
+    U --> W["Save to MongoDB Authors Collection"]
+    V --> W
+    W --> X["Return Success Response"] & BB
+    X --> Y["Invalidate React Query Cache"]
+    Y --> Z["Refetch Profile Data"]
+    Z --> AA["Display Updated Profile"]
+    BB -.-> CC & DD
 
 ```
 
