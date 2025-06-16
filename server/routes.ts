@@ -857,6 +857,318 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SEO Routes for maximum search engine and AI bot visibility
+  
+  // XML Sitemap for search engines
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: false });
+      const categories = await activeStorage.getCategories();
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  ${categories.map(category => `
+  <url>
+    <loc>${baseUrl}/category/${category.slug}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`).join('')}
+  ${posts.map(post => `
+  <url>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <lastmod>${new Date(post.updatedAt).toISOString()}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>`).join('')}
+</urlset>`;
+      
+      res.set('Content-Type', 'application/xml');
+      res.send(sitemap);
+    } catch (error) {
+      console.error('Error generating sitemap:', error);
+      res.status(500).send('Error generating sitemap');
+    }
+  });
+
+  // Robots.txt optimized for AI bots and search engines
+  app.get('/robots.txt', (req, res) => {
+    const robotsTxt = `User-agent: *
+Allow: /
+Allow: /blog/
+Allow: /category/
+Allow: /tag/
+Disallow: /admin
+Disallow: /api/admin
+
+# AI Training and Content Discovery Bots - Full Access
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# Search Engine Bots
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
+`;
+    
+    res.set('Content-Type', 'text/plain');
+    res.send(robotsTxt);
+  });
+
+  // RSS Feed for content syndication
+  app.get('/rss.xml', async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ limit: 50, includeDrafts: false });
+      const profile = await activeStorage.getAuthor(1);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>AgriTech Innovation Hub - Advanced Agricultural Technology Insights</title>
+  <link>${baseUrl}</link>
+  <description>Discover cutting-edge agricultural technology, IoT solutions, and sustainable farming practices. Expert insights on precision agriculture, crop monitoring, and smart farming innovations for global impact.</description>
+  <language>en-us</language>
+  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+  <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml"/>
+  <managingEditor>${profile?.email || 'contact@agritech.com'} (${profile?.name || 'AgriTech Team'})</managingEditor>
+  <webMaster>${profile?.email || 'contact@agritech.com'} (${profile?.name || 'AgriTech Team'})</webMaster>
+  <category>Agricultural Technology</category>
+  <category>IoT Solutions</category>
+  <category>Precision Agriculture</category>
+  <category>Sustainable Farming</category>
+  <category>Smart Agriculture</category>
+  ${posts.map(post => `
+  <item>
+    <title><![CDATA[${post.title}]]></title>
+    <link>${baseUrl}/blog/${post.slug}</link>
+    <guid isPermaLink="true">${baseUrl}/blog/${post.slug}</guid>
+    <description><![CDATA[${post.excerpt}]]></description>
+    <content:encoded><![CDATA[${post.content}]]></content:encoded>
+    <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>
+    <author>${post.author.email} (${post.author.name})</author>
+    <category><![CDATA[${post.category.name}]]></category>
+    ${post.tags?.map(tag => `<category><![CDATA[${tag}]]></category>`).join('') || ''}
+    ${post.featuredImage ? `<enclosure url="${post.featuredImage}" type="image/jpeg"/>` : ''}
+  </item>`).join('')}
+</channel>
+</rss>`;
+      
+      res.set('Content-Type', 'application/rss+xml');
+      res.send(rss);
+    } catch (error) {
+      console.error('Error generating RSS feed:', error);
+      res.status(500).send('Error generating RSS feed');
+    }
+  });
+
+  // Open Graph image generator for social sharing
+  app.get('/api/og-image', async (req, res) => {
+    const { title, category } = req.query as { title?: string; category?: string };
+    
+    const ogTitle = title || 'AgriTech Innovation Hub';
+    const ogCategory = category || 'Agricultural Technology';
+    
+    const svg = `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#2D5016;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#1a3009;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="1200" height="630" fill="url(#bg)"/>
+      <text x="60" y="120" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff" opacity="0.8">${ogCategory}</text>
+      <text x="60" y="220" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#ffffff" text-anchor="start">
+        <tspan x="60" dy="0">${ogTitle.length > 40 ? ogTitle.substring(0, 40) + '...' : ogTitle}</tspan>
+      </text>
+      <text x="60" y="520" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" opacity="0.9">AgriTech Innovation Hub</text>
+      <text x="60" y="560" font-family="Arial, sans-serif" font-size="24" fill="#ffffff" opacity="0.7">Advancing Agricultural Technology Worldwide</text>
+      <circle cx="1050" cy="150" r="80" fill="#ffffff" opacity="0.1"/>
+      <circle cx="1100" cy="400" r="60" fill="#ffffff" opacity="0.08"/>
+      <circle cx="950" cy="500" r="40" fill="#ffffff" opacity="0.06"/>
+    </svg>`;
+    
+    res.set('Content-Type', 'image/svg+xml');
+    res.send(svg);
+  });
+
+  // JSON-LD structured data for enhanced AI understanding
+  app.get('/api/structured-data', async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ limit: 10, includeDrafts: false });
+      const profile = await activeStorage.getAuthor(1);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": `${baseUrl}/#website`,
+            "url": baseUrl,
+            "name": "AgriTech Innovation Hub",
+            "description": "Leading platform for agricultural technology insights, IoT solutions, and sustainable farming practices worldwide",
+            "keywords": "agricultural technology, precision agriculture, IoT farming, smart agriculture, crop monitoring, sustainable farming, AgriTech innovation",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": `${baseUrl}/search?q={search_term_string}`
+              },
+              "query-input": "required name=search_term_string"
+            },
+            "inLanguage": "en-US"
+          },
+          {
+            "@type": "Organization",
+            "@id": `${baseUrl}/#organization`,
+            "name": "AgriTech Innovation Hub",
+            "url": baseUrl,
+            "description": "Global leader in agricultural technology innovation and smart farming solutions",
+            "foundingDate": "2024",
+            "logo": {
+              "@type": "ImageObject",
+              "url": `${baseUrl}/logo.png`,
+              "width": 512,
+              "height": 512
+            },
+            "sameAs": [
+              profile?.linkedinUrl,
+              profile?.githubUrl,
+              profile?.youtubeUrl,
+              profile?.instagramUrl,
+              profile?.portfolioUrl
+            ].filter(Boolean),
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": profile?.email || "contact@agritech.com",
+              "contactType": "customer service"
+            },
+            "areaServed": "Worldwide",
+            "knowsAbout": [
+              "Agricultural Technology",
+              "Precision Agriculture", 
+              "IoT Solutions",
+              "Smart Farming",
+              "Crop Monitoring",
+              "Sustainable Agriculture",
+              "Farm Automation",
+              "Agricultural Innovation"
+            ]
+          },
+          {
+            "@type": "Person",
+            "@id": `${baseUrl}/#author`,
+            "name": profile?.name || "AgriTech Expert",
+            "email": profile?.email,
+            "description": profile?.bio || "Agricultural technology expert and innovation leader specializing in IoT solutions and sustainable farming practices",
+            "url": baseUrl,
+            "jobTitle": "Agricultural Technology Expert",
+            "knowsAbout": [
+              "Agricultural Technology",
+              "IoT Engineering", 
+              "Precision Agriculture",
+              "Smart Farming Solutions",
+              "Sustainable Agriculture",
+              "Crop Data Analytics"
+            ],
+            "sameAs": [
+              profile?.linkedinUrl,
+              profile?.githubUrl,
+              profile?.portfolioUrl,
+              profile?.youtubeUrl
+            ].filter(Boolean)
+          },
+          ...posts.slice(0, 5).map(post => ({
+            "@type": "BlogPosting",
+            "@id": `${baseUrl}/blog/${post.slug}#article`,
+            "headline": post.title,
+            "description": post.excerpt,
+            "url": `${baseUrl}/blog/${post.slug}`,
+            "datePublished": new Date(post.createdAt).toISOString(),
+            "dateModified": new Date(post.updatedAt).toISOString(),
+            "author": {
+              "@id": `${baseUrl}/#author`
+            },
+            "publisher": {
+              "@id": `${baseUrl}/#organization`
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": `${baseUrl}/blog/${post.slug}`
+            },
+            "image": post.featuredImage,
+            "articleSection": post.category.name,
+            "keywords": post.tags?.join(', ') || '',
+            "wordCount": Math.ceil(post.content.length / 5),
+            "timeRequired": `PT${post.readTime}M`,
+            "inLanguage": "en-US",
+            "about": {
+              "@type": "Thing",
+              "name": "Agricultural Technology",
+              "description": "Innovative solutions for modern farming and agricultural practices"
+            }
+          }))
+        ]
+      };
+      
+      res.json(structuredData);
+    } catch (error) {
+      console.error('Error generating structured data:', error);
+      res.status(500).json({ error: 'Error generating structured data' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

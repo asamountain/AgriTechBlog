@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SocialShare from "@/components/social-share";
+import SEOHead from "@/components/seo-head";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
