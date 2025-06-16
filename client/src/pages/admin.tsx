@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -497,18 +497,19 @@ function ProfileManagement() {
 
   // Update profile data when existing profile loads
   React.useEffect(() => {
-    if (existingProfile && existingProfile.name) {
+    if (existingProfile && (existingProfile as any).name) {
+      const profile = existingProfile as any;
       setProfileData({
-        name: existingProfile.name || "",
-        email: existingProfile.email || "",
-        bio: existingProfile.bio || "",
-        avatar: existingProfile.avatar || "",
+        name: profile.name || "",
+        email: profile.email || "",
+        bio: profile.bio || "",
+        avatar: profile.avatar || "",
         socialLinks: {
-          linkedin: existingProfile.socialLinks?.linkedin || "",
-          instagram: existingProfile.socialLinks?.instagram || "",
-          youtube: existingProfile.socialLinks?.youtube || "",
-          portfolio: existingProfile.socialLinks?.portfolio || "",
-          github: existingProfile.socialLinks?.github || ""
+          linkedin: profile.socialLinks?.linkedin || "",
+          instagram: profile.socialLinks?.instagram || "",
+          youtube: profile.socialLinks?.youtube || "",
+          portfolio: profile.socialLinks?.portfolio || "",
+          github: profile.socialLinks?.github || ""
         }
       });
     }
@@ -524,11 +525,13 @@ function ProfileManagement() {
       if (!response.ok) throw new Error('Failed to update profile');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
+      // Invalidate and refetch profile data to show changes
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/profile"] });
     },
     onError: () => {
       toast({
@@ -611,6 +614,14 @@ function ProfileManagement() {
       reader.readAsDataURL(file);
     }
   };
+
+  if (isLoadingProfile) {
+    return (
+      <div className="flex justify-center p-8">
+        <AgricultureLoader theme="harvest" size="lg" text="Loading your profile..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
