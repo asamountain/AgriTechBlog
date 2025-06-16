@@ -302,7 +302,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin profile endpoint
+  // Admin profile endpoints
+  app.get("/api/admin/profile", async (req, res) => {
+    try {
+      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const author = await activeStorage.getAuthorByUserId(userId);
+      res.json(author || {});
+    } catch (error) {
+      console.error("Profile fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
   app.patch("/api/admin/profile", async (req, res) => {
     try {
       const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
@@ -312,12 +327,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const profileData = req.body;
       
-      // In a real implementation, you would save this to a user profile table
-      // For now, we'll just return success
-      res.json({ 
-        message: "Profile updated successfully",
-        profile: profileData 
-      });
+      // Find existing author by userId or create one
+      let author = await activeStorage.getAuthorByUserId(userId);
+      
+      if (author) {
+        // Update existing author
+        const updatedAuthor = await activeStorage.updateAuthor(author.id, {
+          name: profileData.name,
+          email: profileData.email,
+          bio: profileData.bio,
+          avatar: profileData.avatar
+        });
+        res.json({ 
+          message: "Profile updated successfully",
+          profile: updatedAuthor 
+        });
+      } else {
+        // Create new author
+        const newAuthor = await activeStorage.createAuthor({
+          name: profileData.name || 'Author',
+          email: profileData.email || 'author@example.com',
+          bio: profileData.bio,
+          avatar: profileData.avatar
+        });
+        res.json({ 
+          message: "Profile created successfully",
+          profile: newAuthor 
+        });
+      }
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ message: "Failed to update profile" });

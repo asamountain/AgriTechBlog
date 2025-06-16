@@ -158,6 +158,11 @@ export class MongoStorage implements IStorage {
     return this.convertMongoDoc(doc);
   }
 
+  async getAuthorByUserId(userId: string): Promise<Author | undefined> {
+    const doc = await this.authorsCollection.findOne({ userId: userId });
+    return this.convertMongoDoc(doc);
+  }
+
   async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
     const result = await this.authorsCollection.insertOne(insertAuthor);
     return { 
@@ -166,6 +171,20 @@ export class MongoStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date()
     };
+  }
+
+  async updateAuthor(id: number, updateData: Partial<InsertAuthor>): Promise<Author> {
+    const result = await this.authorsCollection.findOneAndUpdate(
+      { _id: new ObjectId(id.toString()) },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    
+    if (!result.value) {
+      throw new Error('Author not found');
+    }
+    
+    return this.convertMongoDoc(result.value);
   }
 
   // Blog Post methods

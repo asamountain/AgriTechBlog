@@ -477,9 +477,9 @@ interface ProfileData {
 function ProfileManagement() {
   const { toast } = useToast();
   const [profileData, setProfileData] = useState<ProfileData>({
-    name: "Hope Invest",
-    email: "admin@hopeinvest.com",
-    bio: "Agricultural technology enthusiast",
+    name: "",
+    email: "",
+    bio: "",
     avatar: "",
     socialLinks: {
       linkedin: "",
@@ -489,6 +489,30 @@ function ProfileManagement() {
       github: ""
     }
   });
+
+  // Fetch existing profile data
+  const { data: existingProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["/api/admin/profile"],
+  });
+
+  // Update profile data when existing profile loads
+  React.useEffect(() => {
+    if (existingProfile && existingProfile.name) {
+      setProfileData({
+        name: existingProfile.name || "",
+        email: existingProfile.email || "",
+        bio: existingProfile.bio || "",
+        avatar: existingProfile.avatar || "",
+        socialLinks: {
+          linkedin: existingProfile.socialLinks?.linkedin || "",
+          instagram: existingProfile.socialLinks?.instagram || "",
+          youtube: existingProfile.socialLinks?.youtube || "",
+          portfolio: existingProfile.socialLinks?.portfolio || "",
+          github: existingProfile.socialLinks?.github || ""
+        }
+      });
+    }
+  }, [existingProfile]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileData) => {
