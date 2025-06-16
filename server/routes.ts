@@ -332,7 +332,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: profileData.name,
           email: profileData.email,
           bio: profileData.bio,
-          avatar: profileData.avatar
+          avatar: profileData.avatar,
+          linkedinUrl: profileData.linkedinUrl,
+          instagramUrl: profileData.instagramUrl,
+          youtubeUrl: profileData.youtubeUrl,
+          githubUrl: profileData.githubUrl,
+          portfolioUrl: profileData.portfolioUrl
         });
         res.json({ 
           message: "Profile updated successfully",
@@ -345,7 +350,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: profileData.email || 'author@example.com',
           bio: profileData.bio,
           avatar: profileData.avatar,
-          userId: userId
+          userId: userId,
+          linkedinUrl: profileData.linkedinUrl,
+          instagramUrl: profileData.instagramUrl,
+          youtubeUrl: profileData.youtubeUrl,
+          githubUrl: profileData.githubUrl,
+          portfolioUrl: profileData.portfolioUrl
         });
         res.json({ 
           message: "Profile created successfully",

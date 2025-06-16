@@ -1,0 +1,66 @@
+Architecture Overview
+Profile Management System
+The profile management system connects user authentication with author records for blog posts. Here's the complete data flow:
+
+Unable to render rich display
+
+Parse error on line 13:
+...Return Empty Object {}] J --> L
+-----------------------^
+Expecting 'SQE', 'DOUBLECIRCLEEND', 'PE', '-)', 'STADIUMEND', 'SUBROUTINEEND', 'PIPE', 'CYLINDEREND', 'DIAMOND_STOP', 'TAGEND', 'TRAPEND', 'INVTRAPEND', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got 'DIAMOND_START'
+
+For more information, see https://docs.github.com/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams#creating-mermaid-diagrams
+
+flowchart TD
+    A[User Login] --> B[Session Created with User ID]
+    B --> C[Admin Dashboard Access]
+    C --> D[Profile Management Tab]
+    
+    D --> E[GET /api/admin/profile]
+    E --> F[Check Authentication]
+    F -->|Authenticated| G[Query Authors Collection by userId]
+    F -->|Not Authenticated| H[Return 401 Unauthorized]
+    
+    G --> I{Author Record Exists?}
+    I -->|Yes| J[Return Existing Profile Data]
+    I -->|No| K[Return Empty Object {}]
+    
+    J --> L[Display Profile Form with Data]
+    K --> M[Display Empty Profile Form]
+    
+    L --> N[User Edits Profile]
+    M --> N
+    N --> O[Submit Profile Changes]
+    
+    O --> P[PATCH /api/admin/profile]
+    P --> Q[Validate Authentication]
+    Q -->|Valid| R[Find Existing Author by userId]
+    Q -->|Invalid| S[Return 401]
+    
+    R --> T{Author Exists?}
+    T -->|Yes| U[Update Existing Author Record]
+    T -->|No| V[Create New Author with userId Link]
+    
+    U --> W[Save to MongoDB Authors Collection]
+    V --> W
+    W --> X[Return Success Response]
+    X --> Y[Invalidate React Query Cache]
+    Y --> Z[Refetch Profile Data]
+    Z --> AA[Display Updated Profile]
+    
+    subgraph MongoDB
+        BB[(Authors Collection)]
+        CC[(Blog Posts Collection)]
+        DD[(Users Collection)]
+    end
+    
+    W --> BB
+    BB -.-> CC
+    BB -.-> DD
+Data Persistence Issue Resolution
+The profile management system was experiencing data loss after page refresh due to improper userId linking. The solution involved:
+
+Schema Update: Added userId field to authors table
+Database Relationship: Linked author records to user sessions via userId
+Query Optimization: Modified getAuthorByUserId() to properly retrieve linked records
+Cache Management: Implemented proper React Query cache invalidation

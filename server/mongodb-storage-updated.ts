@@ -40,7 +40,16 @@ export class MongoStorage implements IStorage {
   private convertMongoDoc(doc: any): any {
     if (!doc) return undefined;
     const { _id, ...rest } = doc;
-    return { id: _id.toString(), ...rest };
+    return { 
+      id: _id.toString(), 
+      ...rest,
+      // Ensure social media fields are included
+      linkedinUrl: doc.linkedinUrl || null,
+      instagramUrl: doc.instagramUrl || null,
+      youtubeUrl: doc.youtubeUrl || null,
+      githubUrl: doc.githubUrl || null,
+      portfolioUrl: doc.portfolioUrl || null
+    };
   }
 
   private extractExcerpt(content: string): string {

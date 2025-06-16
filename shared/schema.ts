@@ -23,6 +23,11 @@ export const authors = pgTable("authors", {
   bio: text("bio"),
   avatar: text("avatar"),
   userId: text("user_id"), // Links author to authenticated user
+  linkedinUrl: text("linkedin_url"),
+  instagramUrl: text("instagram_url"),
+  youtubeUrl: text("youtube_url"),
+  githubUrl: text("github_url"),
+  portfolioUrl: text("portfolio_url"),
 });
 
 export const blogPosts = pgTable("blog_posts", {
