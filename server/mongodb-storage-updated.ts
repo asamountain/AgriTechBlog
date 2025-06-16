@@ -206,11 +206,11 @@ export class MongoStorage implements IStorage {
       { returnDocument: 'after' }
     );
     
-    if (!result) {
+    if (!result || !result.value) {
       throw new Error('Author not found for userId: ' + userId);
     }
     
-    return this.convertMongoDoc(result);
+    return this.convertMongoDoc(result.value);
   }
 
   // Blog Post methods

@@ -465,13 +465,11 @@ interface ProfileData {
   email: string;
   bio: string;
   avatar: string;
-  socialLinks: {
-    linkedin?: string;
-    instagram?: string;
-    youtube?: string;
-    portfolio?: string;
-    github?: string;
-  };
+  linkedinUrl?: string;
+  instagramUrl?: string;
+  youtubeUrl?: string;
+  portfolioUrl?: string;
+  githubUrl?: string;
 }
 
 function ProfileManagement() {
@@ -481,13 +479,11 @@ function ProfileManagement() {
     email: "",
     bio: "",
     avatar: "",
-    socialLinks: {
-      linkedin: "",
-      instagram: "",
-      youtube: "",
-      portfolio: "",
-      github: ""
-    }
+    linkedinUrl: "",
+    instagramUrl: "",
+    youtubeUrl: "",
+    portfolioUrl: "",
+    githubUrl: ""
   });
 
   // Fetch existing profile data
@@ -504,13 +500,11 @@ function ProfileManagement() {
         email: profile.email || "",
         bio: profile.bio || "",
         avatar: profile.avatar || "",
-        socialLinks: {
-          linkedin: profile.socialLinks?.linkedin || "",
-          instagram: profile.socialLinks?.instagram || "",
-          youtube: profile.socialLinks?.youtube || "",
-          portfolio: profile.socialLinks?.portfolio || "",
-          github: profile.socialLinks?.github || ""
-        }
+        linkedinUrl: profile.linkedinUrl || "",
+        instagramUrl: profile.instagramUrl || "",
+        youtubeUrl: profile.youtubeUrl || "",
+        portfolioUrl: profile.portfolioUrl || "",
+        githubUrl: profile.githubUrl || ""
       });
     }
   }, [existingProfile]);
