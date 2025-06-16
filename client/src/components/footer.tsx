@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Linkedin, Instagram, Youtube, Github, Camera } from "lucide-react";
 
 export default function Footer() {
   const quickLinks = [
@@ -10,19 +10,20 @@ export default function Footer() {
     { href: "/privacy", label: "Privacy Policy" },
   ];
 
-  const categories = [
-    { href: "/category/precision-farming", label: "Precision Farming" },
-    { href: "/category/hydroponics", label: "Hydroponics" },
-    { href: "/category/sustainability", label: "Sustainability" },
-    { href: "/category/biotechnology", label: "Biotechnology" },
-    { href: "/category/automation", label: "Automation" },
+  const popularTags = [
+    { href: "/tags/IoT", label: "IoT" },
+    { href: "/tags/Agriculture", label: "Agriculture" },
+    { href: "/tags/Technology", label: "Technology" },
+    { href: "/tags/Smart%20Farming", label: "Smart Farming" },
+    { href: "/tags/Sustainability", label: "Sustainability" },
   ];
 
   const socialLinks = [
-    { href: "https://twitter.com", icon: "fab fa-twitter", label: "Twitter" },
-    { href: "https://linkedin.com", icon: "fab fa-linkedin", label: "LinkedIn" },
-    { href: "https://youtube.com", icon: "fab fa-youtube", label: "YouTube" },
-    { href: "https://instagram.com", icon: "fab fa-instagram", label: "Instagram" },
+    { href: "https://linkedin.com/in/hopeinvest", icon: Linkedin, label: "LinkedIn" },
+    { href: "https://instagram.com/hopeinvest", icon: Instagram, label: "Instagram" },
+    { href: "https://youtube.com/@hopeinvest", icon: Youtube, label: "YouTube" },
+    { href: "https://github.com/hopeinvest", icon: Github, label: "GitHub" },
+    { href: "https://portfolio.hopeinvest.com", icon: Camera, label: "Photo Portfolio" },
   ];
 
   return (
@@ -39,18 +40,21 @@ export default function Footer() {
               technology insights and sustainable farming solutions.
             </p>
             <div className="flex space-x-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.href}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-fresh-lime transition-colors"
-                  aria-label={social.label}
-                >
-                  <i className={`${social.icon} text-xl`}></i>
-                </a>
-              ))}
+              {socialLinks.map((social) => {
+                const IconComponent = social.icon;
+                return (
+                  <a
+                    key={social.href}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-forest-green transition-colors p-2 rounded-lg hover:bg-gray-800"
+                    aria-label={social.label}
+                  >
+                    <IconComponent className="h-5 w-5" />
+                  </a>
+                );
+              })}
             </div>
           </div>
 

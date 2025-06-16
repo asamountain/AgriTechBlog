@@ -27,7 +27,10 @@ import {
   LogOut,
   Sparkles,
   TrendingUp,
-  MessageCircle
+  MessageCircle,
+  User,
+  Upload,
+  Camera
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -457,6 +460,250 @@ function PostsManagement() {
   );
 }
 
+interface ProfileData {
+  name: string;
+  email: string;
+  bio: string;
+  avatar: string;
+  socialLinks: {
+    linkedin?: string;
+    instagram?: string;
+    youtube?: string;
+    portfolio?: string;
+    github?: string;
+  };
+}
+
+function ProfileManagement() {
+  const { toast } = useToast();
+  const [profileData, setProfileData] = useState<ProfileData>({
+    name: "Hope Invest",
+    email: "admin@hopeinvest.com",
+    bio: "Agricultural technology enthusiast",
+    avatar: "",
+    socialLinks: {
+      linkedin: "",
+      instagram: "",
+      youtube: "",
+      portfolio: "",
+      github: ""
+    }
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: ProfileData) => {
+      const response = await fetch('/api/admin/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update profile');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate(profileData);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // In a real app, you'd upload to a service like Cloudinary
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setProfileData(prev => ({
+          ...prev,
+          avatar: event.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Profile Management</h2>
+        <Button
+          onClick={handleSubmit}
+          disabled={updateProfileMutation.isPending}
+          className="bg-forest-green text-white hover:opacity-80"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Author Information</CardTitle>
+          <CardDescription>
+            This information will appear on all blog posts and throughout the site
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Profile Photo */}
+          <div className="flex items-center space-x-6">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-forest-green flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                {profileData.avatar ? (
+                  <img 
+                    src={profileData.avatar} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profileData.name.charAt(0)
+                )}
+              </div>
+              <label className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-lg cursor-pointer hover:bg-gray-50">
+                <Camera className="w-4 h-4 text-gray-600" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <div>
+              <h3 className="font-medium">Profile Photo</h3>
+              <p className="text-sm text-gray-500">
+                Upload a professional photo that will appear next to your posts
+              </p>
+            </div>
+          </div>
+
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Display Name</Label>
+              <Input
+                id="name"
+                value={profileData.name}
+                onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                className="rounded-golden-sm"
+                placeholder="Your display name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={profileData.email}
+                onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                className="rounded-golden-sm"
+                placeholder="your@email.com"
+              />
+            </div>
+          </div>
+
+          {/* Bio */}
+          <div className="space-y-2">
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              value={profileData.bio}
+              onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+              className="rounded-golden-sm"
+              rows={3}
+              placeholder="Tell readers about yourself..."
+            />
+          </div>
+
+          {/* Social Links */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Social Media Links</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="linkedin">LinkedIn</Label>
+                <Input
+                  id="linkedin"
+                  value={profileData.socialLinks.linkedin || ""}
+                  onChange={(e) => setProfileData(prev => ({
+                    ...prev,
+                    socialLinks: { ...prev.socialLinks, linkedin: e.target.value }
+                  }))}
+                  className="rounded-golden-sm"
+                  placeholder="https://linkedin.com/in/username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instagram">Instagram</Label>
+                <Input
+                  id="instagram"
+                  value={profileData.socialLinks.instagram || ""}
+                  onChange={(e) => setProfileData(prev => ({
+                    ...prev,
+                    socialLinks: { ...prev.socialLinks, instagram: e.target.value }
+                  }))}
+                  className="rounded-golden-sm"
+                  placeholder="https://instagram.com/username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="youtube">YouTube</Label>
+                <Input
+                  id="youtube"
+                  value={profileData.socialLinks.youtube || ""}
+                  onChange={(e) => setProfileData(prev => ({
+                    ...prev,
+                    socialLinks: { ...prev.socialLinks, youtube: e.target.value }
+                  }))}
+                  className="rounded-golden-sm"
+                  placeholder="https://youtube.com/channel/..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="github">GitHub</Label>
+                <Input
+                  id="github"
+                  value={profileData.socialLinks.github || ""}
+                  onChange={(e) => setProfileData(prev => ({
+                    ...prev,
+                    socialLinks: { ...prev.socialLinks, github: e.target.value }
+                  }))}
+                  className="rounded-golden-sm"
+                  placeholder="https://github.com/username"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="portfolio">Photo Portfolio</Label>
+                <Input
+                  id="portfolio"
+                  value={profileData.socialLinks.portfolio || ""}
+                  onChange={(e) => setProfileData(prev => ({
+                    ...prev,
+                    socialLinks: { ...prev.socialLinks, portfolio: e.target.value }
+                  }))}
+                  className="rounded-golden-sm"
+                  placeholder="https://yourportfolio.com"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 interface AdminStats {
   totalPosts: number;
   publishedPosts: number;
@@ -613,6 +860,10 @@ export default function AdminDashboard() {
                 <Users className="w-4 h-4 mr-2" />
                 Users
               </TabsTrigger>
+              <TabsTrigger value="profile">
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </TabsTrigger>
               <TabsTrigger value="settings">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
@@ -645,6 +896,10 @@ export default function AdminDashboard() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">User Management</h3>
                 <p className="text-gray-600">User management features coming soon.</p>
               </div>
+            </TabsContent>
+
+            <TabsContent value="profile">
+              <ProfileManagement />
             </TabsContent>
 
             <TabsContent value="settings">
