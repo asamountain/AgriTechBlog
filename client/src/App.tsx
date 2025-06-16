@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import BlogPost from "@/pages/blog-post";
 import AdminDashboard from "@/pages/admin";
+import AdminSEODashboard from "@/pages/admin-seo-dashboard";
 import TaggedPosts from "@/pages/tagged-posts";
 import AuthCallback from "@/pages/auth-callback";
 import NotFound from "@/pages/not-found";
@@ -21,6 +22,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/seo" component={AdminSEODashboard} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/tags/:tag" component={TaggedPosts} />
       <Route path="/blog/:slug" component={BlogPost} />

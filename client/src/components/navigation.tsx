@@ -12,6 +12,8 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/", label: "Home" },
+    { href: "/admin", label: "Admin" },
+    { href: "/admin/seo", label: "SEO Dashboard" },
     { href: "/contact", label: "Contact" },
   ];
 
