@@ -969,7 +969,6 @@ Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
   app.get('/rss.xml', async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ limit: 50, includeDrafts: false });
-      const profile = await activeStorage.getAuthor(1);
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       
       const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -981,8 +980,8 @@ Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
   <language>en-us</language>
   <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml"/>
-  <managingEditor>${profile?.email || 'contact@agritech.com'} (${profile?.name || 'AgriTech Team'})</managingEditor>
-  <webMaster>${profile?.email || 'contact@agritech.com'} (${profile?.name || 'AgriTech Team'})</webMaster>
+  <managingEditor>contact@agritech.com (AgriTech Innovation Hub)</managingEditor>
+  <webMaster>contact@agritech.com (AgriTech Innovation Hub)</webMaster>
   <category>Agricultural Technology</category>
   <category>IoT Solutions</category>
   <category>Precision Agriculture</category>

@@ -98,8 +98,36 @@ export default function BlogPost() {
     );
   }
 
+  // Generate SEO data for maximum AI chatbot and search engine visibility
+  const authorName = (profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name;
+  const currentUrl = `${window.location.origin}/blog/${post.slug}`;
+  const keywords = [
+    ...(post.tags || []),
+    'agricultural technology',
+    'precision agriculture', 
+    'IoT farming',
+    'smart agriculture',
+    'crop monitoring',
+    'sustainable farming',
+    'AgriTech innovation',
+    post.category.name.toLowerCase()
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title={`${post.title} | AgriTech Innovation Hub`}
+        description={post.excerpt}
+        keywords={keywords}
+        image={post.featuredImage || `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.category.name)}`}
+        url={currentUrl}
+        type="article"
+        author={authorName}
+        publishedTime={new Date(post.createdAt).toISOString()}
+        modifiedTime={new Date(post.updatedAt).toISOString()}
+        tags={post.tags || []}
+        category={post.category.name}
+      />
       <Navigation />
 
       {/* Hero Section */}
