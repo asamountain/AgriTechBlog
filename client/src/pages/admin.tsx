@@ -524,8 +524,9 @@ function ProfileManagement() {
         title: "Success",
         description: "Profile updated successfully",
       });
-      // Invalidate and refetch profile data to show changes
+      // Invalidate and refetch profile data to show changes everywhere
       queryClient.invalidateQueries({ queryKey: ["/api/admin/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
     },
     onError: () => {
       toast({
