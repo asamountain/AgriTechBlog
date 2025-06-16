@@ -157,6 +157,104 @@
     color: var(--forest-green);
   }
   
+  /* Blog Content Styling for TOC */
+  .blog-content h1,
+  .blog-content h2,
+  .blog-content h3,
+  .blog-content h4,
+  .blog-content h5,
+  .blog-content h6 {
+    scroll-margin-top: 120px;
+    color: var(--forest-green);
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+
+  .blog-content h1 {
+    font-size: 2.25rem;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .blog-content h2 {
+    font-size: 1.875rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .blog-content h3 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .blog-content h4 {
+    font-size: 1.25rem;
+    margin-top: 1.75rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .blog-content h5 {
+    font-size: 1.125rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .blog-content h6 {
+    font-size: 1rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .blog-content p {
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+  }
+
+  .blog-content ul,
+  .blog-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+  }
+
+  .blog-content li {
+    margin-bottom: 0.5rem;
+  }
+
+  .blog-content blockquote {
+    border-left: 4px solid var(--forest-green);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: #6b7280;
+  }
+
+  .blog-content code {
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--forest-green);
+  }
+
+  .blog-content pre {
+    background-color: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 2rem 0;
+    border: 1px solid #e5e7eb;
+  }
+
+  .blog-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 2rem 0;
+  }
+
   .hover\:text-fresh-lime:hover {
     color: var(--fresh-lime);
   }
