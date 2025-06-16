@@ -30,12 +30,19 @@ export default function BlogPost() {
   });
 
   // Fetch profile data for author information
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ["/api/profile"],
     retry: false,
     staleTime: 0, // Always refetch to get latest profile data
     gcTime: 5 * 60 * 1000, // Cache for 5 minutes (gcTime instead of cacheTime in v5)
   });
+
+  // Debug profile data
+  useEffect(() => {
+    console.log('Profile data:', profile);
+    console.log('Profile loading:', profileLoading);
+    console.log('Profile error:', profileError);
+  }, [profile, profileLoading, profileError]);
 
   // Track blog post view when post loads
   useEffect(() => {
@@ -127,22 +134,24 @@ export default function BlogPost() {
             <div className="flex items-center space-x-6 text-sm text-gray-500">
               <div className="flex items-center space-x-2">
                 <Avatar className="w-8 h-8">
-                  {profile?.avatar ? (
+                  {(profile as any)?.avatar ? (
                     <img
-                      src={profile.avatar}
-                      alt={profile.name || post.author.name}
+                      src={(profile as any).avatar}
+                      alt={(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
                     <AvatarFallback className="bg-forest-green text-white text-xs">
-                      {(profile?.name || post.author.name)
+                      {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name)
                         .split(" ")
                         .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <span className="font-medium">{profile?.name || post.author.name}</span>
+                <span className="font-medium">
+                  {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
+                </span>
               </div>
               <span>{formatDate(post.createdAt)}</span>
               <span>{post.readTime} min read</span>
