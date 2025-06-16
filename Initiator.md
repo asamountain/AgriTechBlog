@@ -72,6 +72,7 @@ All design components and spacing must follow the golden ratio for optimal visua
 - **No redundant processing** - If tagging includes categorization, don't separate them
 - **Streamline user workflows** - Each action should have clear, direct purpose
 - **Single source of truth** - Data should only be stored and managed in one place
+- **No redundant navigation** - Don't add menu items that duplicate existing functionality (e.g., Home menu when logo serves same purpose)
 
 ## Documentation Rule for Complex Functions
 **MANDATORY: All complex functions require flowchart documentation**
