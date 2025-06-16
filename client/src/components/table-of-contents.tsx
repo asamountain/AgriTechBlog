@@ -20,7 +20,11 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   useEffect(() => {
     // Parse headings from content after it's rendered
     const timer = setTimeout(() => {
-      const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      // Only select headings within the blog-content area to exclude navigation, logo, etc.
+      const contentContainer = document.querySelector('.blog-content');
+      if (!contentContainer) return;
+      
+      const headings = contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
       const items: TocItem[] = [];
 
       headings.forEach((heading, index) => {
@@ -28,10 +32,13 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
         const level = parseInt(element.tagName.charAt(1));
         const text = element.textContent || '';
         
+        // Skip empty headings
+        if (!text.trim()) return;
+        
         // Create unique ID if it doesn't exist
         let id = element.id;
         if (!id) {
-          id = `heading-${index}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+          id = `content-heading-${index}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
           element.id = id;
         }
 

@@ -6,6 +6,7 @@ import SocialShare from "@/components/social-share";
 import SEOHead from "@/components/seo-head";
 import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
+import ScrollToTop from "@/components/scroll-to-top";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -291,6 +292,7 @@ export default function BlogPost() {
       {/* Call to Action Section */}
 
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }
