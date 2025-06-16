@@ -22,6 +22,7 @@ export const authors = pgTable("authors", {
   email: text("email").notNull().unique(),
   bio: text("bio"),
   avatar: text("avatar"),
+  userId: text("user_id"), // Links author to authenticated user
 });
 
 export const blogPosts = pgTable("blog_posts", {

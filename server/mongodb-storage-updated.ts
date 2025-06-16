@@ -164,12 +164,15 @@ export class MongoStorage implements IStorage {
   }
 
   async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
-    const result = await this.authorsCollection.insertOne(insertAuthor);
-    return { 
-      id: result.insertedId.toString(), 
+    const authorData = {
       ...insertAuthor,
       createdAt: new Date(),
       updatedAt: new Date()
+    };
+    const result = await this.authorsCollection.insertOne(authorData);
+    return { 
+      id: result.insertedId.toString(), 
+      ...authorData
     };
   }
 

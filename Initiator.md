@@ -73,4 +73,13 @@ All design components and spacing must follow the golden ratio for optimal visua
 - **Streamline user workflows** - Each action should have clear, direct purpose
 - **Single source of truth** - Data should only be stored and managed in one place
 
+## Documentation Rule for Complex Functions
+**MANDATORY: All complex functions require flowchart documentation**
+- When creating or modifying complex functions (authentication, database relationships, data persistence), must create Mermaid flowcharts in README.md
+- Flowcharts must show complete data flow from user action to database storage
+- Include error handling paths and edge cases in diagrams
+- Document relationships between user sessions, database records, and frontend state
+- This helps other developers understand system architecture and troubleshoot issues
+- Update flowcharts whenever modifying existing complex functions
+
 This document ensures visual consistency, mathematical harmony, and optimal performance throughout the application.
