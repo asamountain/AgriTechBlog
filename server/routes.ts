@@ -1045,7 +1045,6 @@ Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
   app.get('/api/structured-data', async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ limit: 10, includeDrafts: false });
-      const profile = await activeStorage.getAuthor(1);
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       
       const structuredData = {
@@ -1081,16 +1080,9 @@ Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
               "width": 512,
               "height": 512
             },
-            "sameAs": [
-              profile?.linkedinUrl,
-              profile?.githubUrl,
-              profile?.youtubeUrl,
-              profile?.instagramUrl,
-              profile?.portfolioUrl
-            ].filter(Boolean),
             "contactPoint": {
               "@type": "ContactPoint",
-              "email": profile?.email || "contact@agritech.com",
+              "email": "contact@agritech.com",
               "contactType": "customer service"
             },
             "areaServed": "Worldwide",
@@ -1108,9 +1100,9 @@ Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
           {
             "@type": "Person",
             "@id": `${baseUrl}/#author`,
-            "name": profile?.name || "AgriTech Expert",
-            "email": profile?.email,
-            "description": profile?.bio || "Agricultural technology expert and innovation leader specializing in IoT solutions and sustainable farming practices",
+            "name": "AgriTech Expert",
+            "email": "contact@agritech.com",
+            "description": "Agricultural technology expert and innovation leader specializing in IoT solutions and sustainable farming practices",
             "url": baseUrl,
             "jobTitle": "Agricultural Technology Expert",
             "knowsAbout": [
@@ -1120,13 +1112,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/sitemap.xml
               "Smart Farming Solutions",
               "Sustainable Agriculture",
               "Crop Data Analytics"
-            ],
-            "sameAs": [
-              profile?.linkedinUrl,
-              profile?.githubUrl,
-              profile?.portfolioUrl,
-              profile?.youtubeUrl
-            ].filter(Boolean)
+            ]
           },
           ...posts.slice(0, 5).map(post => ({
             "@type": "BlogPosting",
