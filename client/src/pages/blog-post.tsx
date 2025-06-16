@@ -30,9 +30,11 @@ export default function BlogPost() {
   });
 
   // Fetch profile data for author information
-  const { data: profile } = useQuery<Author>({
+  const { data: profile, isLoading: profileLoading } = useQuery<Author>({
     queryKey: ["/api/admin/profile"],
     retry: false,
+    staleTime: 0, // Always refetch to get latest profile data
+    cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Track blog post view when post loads

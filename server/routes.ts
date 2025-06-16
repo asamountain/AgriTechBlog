@@ -91,6 +91,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public profile endpoint for blog post author information (no auth required)
+  app.get("/api/profile", async (req, res) => {
+    try {
+      // Use the same demo user ID for consistency
+      const userId = "demo-user-001";
+      
+      const author = await activeStorage.getAuthorByUserId(userId);
+      if (author) {
+        // Return only public information needed for blog posts
+        res.json({
+          id: author.id,
+          name: author.name,
+          bio: author.bio,
+          avatar: author.avatar,
+          linkedinUrl: author.linkedinUrl,
+          instagramUrl: author.instagramUrl,
+          youtubeUrl: author.youtubeUrl,
+          githubUrl: author.githubUrl,
+          portfolioUrl: author.portfolioUrl
+        });
+      } else {
+        res.json({});
+      }
+    } catch (error) {
+      console.error("Public profile fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
   // Logout endpoint
   app.post("/api/auth/logout", (req, res) => {
     req.logout((err) => {
