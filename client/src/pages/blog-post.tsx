@@ -71,9 +71,9 @@ export default function BlogPost() {
         <Navigation />
         <div className="pt-24 pb-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <AgriculturalSkeleton />
+            <ContentSkeleton />
             <div className="mt-8">
-              <AgriculturalSkeleton />
+              <ContentSkeleton />
             </div>
           </div>
         </div>

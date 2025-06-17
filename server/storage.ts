@@ -10,38 +10,30 @@ import {
 import { MongoStorage } from "./mongodb-storage-updated";
 
 export interface IStorage {
-  // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  // User methods
   createUser(user: InsertUser): Promise<User>;
-  
-  // Categories
-  getCategories(): Promise<Category[]>;
-  getCategoryBySlug(slug: string): Promise<Category | undefined>;
-  createCategory(category: InsertCategory): Promise<Category>;
-  
-  // Authors
+  getUserByUsername(username: string): Promise<User | undefined>;
+
+  // Author methods
   getAuthors(): Promise<Author[]>;
-  getAuthor(id: number): Promise<Author | undefined>;
+  createAuthor(insertAuthor: InsertAuthor): Promise<Author>;
   getAuthorByUserId(userId: string): Promise<Author | undefined>;
-  createAuthor(author: InsertAuthor): Promise<Author>;
-  updateAuthor(id: number, author: Partial<InsertAuthor>): Promise<Author>;
-  updateAuthorByUserId(userId: string, author: Partial<InsertAuthor>): Promise<Author>;
-  
-  // Blog Posts
-  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string }): Promise<BlogPostWithDetails[]>;
-  getBlogPostBySlug(slug: string, userId?: string): Promise<BlogPostWithDetails | undefined>;
-  getBlogPost(id: number | string, userId?: string): Promise<BlogPostWithDetails | undefined>;
-  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
-  updateBlogPost(id: number | string, post: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost>;
-  searchBlogPosts(query: string, userId?: string): Promise<BlogPostWithDetails[]>;
-  getRelatedPosts(postId: number | string, categoryId: number, limit?: number, userId?: string): Promise<BlogPostWithDetails[]>;
-  
-  // Comments
-  getCommentsByPostId(postId: number | string): Promise<Comment[]>;
-  createComment(comment: InsertComment): Promise<Comment>;
-  approveComment(commentId: number): Promise<Comment>;
-  deleteComment(commentId: number): Promise<void>;
+  updateAuthor(id: number, updates: Partial<Author>): Promise<Author>;
+  updateAuthorByUserId(userId: string, updates: Partial<Author>): Promise<Author>;
+
+  // Blog post methods
+  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; userId?: string; includeDrafts?: boolean }): Promise<BlogPostWithDetails[]>;
+  getBlogPost(id: string | number): Promise<BlogPostWithDetails | undefined>;
+  createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: string | number, updates: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost>;
+  searchBlogPosts(query: string): Promise<BlogPostWithDetails[]>;
+  getRelatedPosts(postId: string | number): Promise<BlogPostWithDetails[]>;
+  getBlogPostsByTag(tag: string): Promise<BlogPostWithDetails[]>;
+
+  // Comment methods
+  getCommentsByPostId(postId: number): Promise<Comment[]>;
+  createComment(insertComment: InsertComment): Promise<Comment>;
+  approveComment(id: number): Promise<Comment>;
 }
 
 export class MemStorage implements IStorage {
@@ -195,27 +187,6 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  // Category methods
-  async getCategories(): Promise<Category[]> {
-    return Array.from(this.categories.values());
-  }
-
-  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    return Array.from(this.categories.values()).find(category => category.slug === slug);
-  }
-
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.currentCategoryId++;
-    const category: Category = { 
-      ...insertCategory, 
-      id,
-      color: insertCategory.color || "#52B788",
-      description: insertCategory.description || null
-    };
-    this.categories.set(id, category);
-    return category;
-  }
-
   // Author methods
   async getAuthors(): Promise<Author[]> {
     return Array.from(this.authors.values());
@@ -310,7 +281,7 @@ export class MemStorage implements IStorage {
     return post;
   }
 
-  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
+  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost> {
     const numericId = typeof id === 'string' ? parseInt(id) : id;
     const existingPost = this.blogPosts.get(numericId);
     if (!existingPost) {
@@ -345,12 +316,20 @@ export class MemStorage implements IStorage {
     }));
   }
 
-  async getRelatedPosts(postId: number, categoryId: number, limit: number = 3): Promise<BlogPostWithDetails[]> {
+  async getRelatedPosts(postId: number | string): Promise<BlogPostWithDetails[]> {
+    const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
+    const post = this.blogPosts.get(numericId);
+    if (!post || !post.isPublished) return [];
+    
+    const category = this.categories.get(post.categoryId)!;
+    const author = this.authors.get(post.authorId)!;
+    return [{ ...post, category, author }];
+  }
+
+  async getBlogPostsByTag(tag: string): Promise<BlogPostWithDetails[]> {
     const posts = Array.from(this.blogPosts.values()).filter(post => 
-      post.id !== postId && 
-      post.categoryId === categoryId && 
-      post.isPublished
-    ).slice(0, limit);
+      post.isPublished && post.tags.includes(tag)
+    );
     
     return Promise.all(posts.map(async post => {
       const category = this.categories.get(post.categoryId)!;
