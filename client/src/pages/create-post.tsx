@@ -172,14 +172,11 @@ export default function CreatePost() {
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
       <Navigation />
       <div className="pt-20">
-        <MarkdownEditor
+        <SimpleMarkdownEditor
           initialContent={(post as any)?.content || ''}
           initialTitle={(post as any)?.title || ''}
           initialTags={(post as any)?.tags || []}
           initialExcerpt={(post as any)?.excerpt || ''}
-          initialFeaturedImage={(post as any)?.featuredImage || ''}
-          isPublished={(post as any)?.isPublished || false}
-          isFeatured={(post as any)?.isFeatured || false}
           onAutoSave={handleAutoSave}
           onSave={handleSave}
         />

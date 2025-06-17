@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Posts from "@/pages/posts";
 import BlogPost from "@/pages/blog-post";
-import AdminDashboard from "@/pages/admin";
+import AdminDashboard from "@/pages/admin-working";
 import AdminSEODashboard from "@/pages/admin-seo-dashboard";
 import CreatePost from "@/pages/create-post";
 import OpenGraphTester from "@/pages/og-tester";
