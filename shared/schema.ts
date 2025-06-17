@@ -3,9 +3,13 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  id: text("id").primaryKey(), // OAuth provider user ID
+  email: text("email").notNull(),
+  name: text("name").notNull(),
+  avatar: text("avatar"),
+  provider: text("provider").notNull(), // 'google', 'github'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const categories = pgTable("categories", {
@@ -48,6 +52,31 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Highlights table for text selections
+export const highlights = pgTable("highlights", {
+  id: serial("id").primaryKey(),
+  blogPostId: integer("blog_post_id").references(() => blogPosts.id).notNull(),
+  userId: text("user_id"), // Optional - for authenticated users
+  text: text("text").notNull(), // Selected text
+  startOffset: integer("start_offset").notNull(), // Selection start position
+  endOffset: integer("end_offset").notNull(), // Selection end position
+  elementPath: text("element_path").notNull(), // CSS selector path to element
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Comments on highlights
+export const highlightComments = pgTable("highlight_comments", {
+  id: serial("id").primaryKey(),
+  highlightId: integer("highlight_id").references(() => highlights.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  parentId: integer("parent_id"), // For threaded replies
+  content: text("content").notNull(),
+  isPrivate: boolean("is_private").notNull().default(false), // Private to author and blog owner
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Legacy comments table for backward compatibility
 export const comments = pgTable("comments", {
   id: serial("id").primaryKey(),
   blogPostId: integer("blog_post_id").notNull(),
@@ -60,7 +89,8 @@ export const comments = pgTable("comments", {
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({
@@ -82,6 +112,17 @@ export const insertCommentSchema = createInsertSchema(comments).omit({
   createdAt: true,
 });
 
+export const insertHighlightSchema = createInsertSchema(highlights).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertHighlightCommentSchema = createInsertSchema(highlightComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -97,7 +138,23 @@ export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Comment = typeof comments.$inferSelect;
 
+export type InsertHighlight = z.infer<typeof insertHighlightSchema>;
+export type Highlight = typeof highlights.$inferSelect;
+
+export type InsertHighlightComment = z.infer<typeof insertHighlightCommentSchema>;
+export type HighlightComment = typeof highlightComments.$inferSelect;
+
 export type BlogPostWithDetails = BlogPost & {
   category: Category;
   author: Author;
+};
+
+export type HighlightWithDetails = Highlight & {
+  user?: User;
+  comments: HighlightCommentWithDetails[];
+};
+
+export type HighlightCommentWithDetails = HighlightComment & {
+  user: User;
+  replies?: HighlightCommentWithDetails[];
 };
