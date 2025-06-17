@@ -8,7 +8,7 @@ import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
 import ScrollToTop from "@/components/scroll-to-top";
 import RelatedPostsByTags from "@/components/related-posts-by-tags";
-import TextHighlighter from "@/components/text-highlighter";
+import SimpleTextHighlighter from "@/components/simple-text-highlighter";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

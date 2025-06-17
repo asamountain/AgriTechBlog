@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useWebSocket } from "@/hooks/use-websocket";
 import { apiRequest } from "@/lib/queryClient";
 import type { HighlightWithDetails, HighlightCommentWithDetails, User } from "@shared/schema";
 
@@ -291,8 +290,7 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // WebSocket for real-time updates
-  const { isConnected } = useWebSocket(postId);
+  // Remove WebSocket dependency for now to fix text selection
 
   // Fetch highlights for this post
   const { data: highlightsData } = useQuery<HighlightWithDetails[]>({
@@ -443,37 +441,41 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
   };
 
   // Handle text selection for highlighting menu
-  const handleMouseUp = useCallback((event: MouseEvent) => {
+  const handleMouseUp = useCallback(() => {
     // Small delay to ensure selection is complete
     setTimeout(() => {
-      const selection = window.getSelection();
-      console.log('Selection:', selection);
-      if (!selection || selection.isCollapsed) {
-        console.log('No selection or collapsed');
-        setShowHighlightMenu(false);
-        return;
-      }
+      try {
+        const selection = window.getSelection();
+        console.log('Selection:', selection);
+        if (!selection || selection.isCollapsed) {
+          console.log('No selection or collapsed');
+          setShowHighlightMenu(false);
+          return;
+        }
 
-      const selectedText = selection.toString().trim();
-      console.log('Selected text:', selectedText);
-      if (selectedText.length === 0) {
-        setShowHighlightMenu(false);
-        return;
-      }
+        const selectedText = selection.toString().trim();
+        console.log('Selected text:', selectedText);
+        if (selectedText.length === 0) {
+          setShowHighlightMenu(false);
+          return;
+        }
 
-      // Get selection position for menu
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      console.log('Selection rect:', rect);
-      
-      setSelectedText(selectedText);
-      setSelectedRange(range.cloneRange());
-      setMenuPosition({ 
-        x: Math.max(10, rect.left + rect.width / 2), 
-        y: rect.bottom + window.scrollY + 10 
-      });
-      console.log('Showing highlight menu');
-      setShowHighlightMenu(true);
+        // Get selection position for menu
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        console.log('Selection rect:', rect);
+        
+        setSelectedText(selectedText);
+        setSelectedRange(range.cloneRange());
+        setMenuPosition({ 
+          x: Math.max(10, rect.left + rect.width / 2), 
+          y: rect.bottom + window.scrollY + 10 
+        });
+        console.log('Showing highlight menu');
+        setShowHighlightMenu(true);
+      } catch (error) {
+        console.error('Error in handleMouseUp:', error);
+      }
     }, 50);
   }, []);
 
