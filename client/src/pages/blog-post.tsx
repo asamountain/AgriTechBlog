@@ -139,9 +139,16 @@ export default function BlogPost() {
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
         <Navigation />
         
-        <main className="container mx-auto px-6 py-8">
+        <main className="container mx-auto px-6 pt-2">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Table of Contents Sidebar - Left */}
+              <aside className="lg:col-span-1">
+                <div className="sticky top-24">
+                  <TableOfContents content={post.content} />
+                </div>
+              </aside>
+
               {/* Main Content */}
               <article className="lg:col-span-3">
                 <header className="mb-8">
@@ -255,19 +262,12 @@ export default function BlogPost() {
               currentPostTags={post.tags || []}
             />
 
-            {/* Comments Section */}
-            <CommentSection postId={post.id} postTitle={post.title} />
-          </article>
-
-          {/* Table of Contents Sidebar */}
-          <aside className="lg:col-span-1">
-            <div className="sticky top-24">
-              <TableOfContents content={post.content} />
+                {/* Comments Section */}
+                <CommentSection postId={post.id} postTitle={post.title} />
+              </article>
             </div>
-          </aside>
-        </div>
-      </div>
-    </main>
+          </div>
+        </main>
 
         <Footer />
       </div>

@@ -25,6 +25,8 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
     const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
     
     const items: TOCItem[] = [];
+    const usedIds = new Set<string>();
+    
     headings.forEach((heading, index) => {
       const level = parseInt(heading.tagName.charAt(1));
       const text = heading.textContent || '';
@@ -36,45 +38,70 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
           .replace(/[^\w\s-]/g, '')
           .replace(/\s+/g, '-')
           .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '')
           .trim();
         
         // Ensure uniqueness
-        if (items.some(item => item.id === id)) {
-          id = `${id}-${index}`;
+        let uniqueId = id;
+        let counter = 1;
+        while (usedIds.has(uniqueId)) {
+          uniqueId = `${id}-${counter}`;
+          counter++;
         }
-        heading.id = id;
+        id = uniqueId;
       }
       
+      usedIds.add(id);
       items.push({ id, text, level });
     });
     
     setTocItems(items);
+    
+    // Apply IDs to actual DOM elements after a brief delay to ensure content is rendered
+    setTimeout(() => {
+      const actualHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      actualHeadings.forEach((heading, index) => {
+        if (items[index] && !heading.id) {
+          heading.id = items[index].id;
+        }
+      });
+    }, 100);
   }, [content]);
 
   useEffect(() => {
     // Intersection Observer for active section tracking
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
+        // Find the entry that's most visible
+        const visibleEntries = entries.filter(entry => entry.isIntersecting);
+        if (visibleEntries.length > 0) {
+          // Sort by intersection ratio and position to get the most prominent heading
+          const mostVisible = visibleEntries.reduce((prev, current) => {
+            return current.intersectionRatio > prev.intersectionRatio ? current : prev;
+          });
+          setActiveId(mostVisible.target.id);
+        }
       },
       {
-        rootMargin: '-100px 0px -80% 0px',
-        threshold: 0.1
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: [0, 0.25, 0.5, 0.75, 1]
       }
     );
 
-    tocItems.forEach(({ id }) => {
-      const element = document.getElementById(id);
-      if (element) {
-        observer.observe(element);
-      }
-    });
+    // Add a small delay to ensure DOM elements are ready
+    const timeoutId = setTimeout(() => {
+      tocItems.forEach(({ id }) => {
+        const element = document.getElementById(id);
+        if (element) {
+          observer.observe(element);
+        }
+      });
+    }, 200);
 
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
   }, [tocItems]);
 
   const scrollToHeading = (id: string) => {
