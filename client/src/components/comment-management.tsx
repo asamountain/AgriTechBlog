@@ -18,7 +18,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
+import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
 import { Link } from "wouter";
 
 interface CommentWithPost {

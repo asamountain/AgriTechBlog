@@ -41,7 +41,7 @@ import AdminLogin from "@/components/admin-login";
 import MigrationPanel from "@/components/migration-panel";
 import CommentManagement from "@/components/comment-management";
 import { AITaggingPanel } from "@/components/ai-tagging-panel";
-import { AgriculturePageLoader, AgricultureLoader, AgriculturalSkeleton } from "@/components/loading-animations";
+import { PageLoader, LoadingSpinner, ContentSkeleton } from "@/components/loading-animations";
 
 
 interface BlogPost {
@@ -373,7 +373,7 @@ function PostsManagement() {
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
-        <AgricultureLoader theme="harvest" size="lg" text="Harvesting your posts..." />
+        <LoadingSpinner size="lg" text="Loading posts..." />
       </div>
     );
   }
@@ -613,7 +613,7 @@ function ProfileManagement() {
   if (isLoadingProfile) {
     return (
       <div className="flex justify-center p-8">
-        <AgricultureLoader theme="harvest" size="lg" text="Loading your profile..." />
+        <LoadingSpinner size="lg" text="Loading profile..." />
       </div>
     );
   }
@@ -804,7 +804,7 @@ function Analytics() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">Analytics</h2>
         <div className="flex justify-center p-8">
-          <AgricultureLoader theme="sunshine" size="lg" text="Analyzing your farm's growth..." />
+          <LoadingSpinner size="lg" text="Loading analytics..." />
         </div>
       </div>
     );
@@ -892,7 +892,7 @@ export default function AdminDashboard() {
 
   // Show loading state
   if (finalIsLoading) {
-    return <AgriculturePageLoader message="Preparing your farm dashboard..." />;
+    return <PageLoader message="Loading dashboard..." />;
   }
 
   // Show login if not authenticated

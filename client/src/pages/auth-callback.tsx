@@ -42,8 +42,8 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-forest-green/10 flex items-center justify-center">
       <div className="text-center">
-        <AgricultureLoader theme="growth" size="lg" text="Planting your session..." />
-        <p className="text-gray-600 mt-4">Completing authentication...</p>
+        <LoadingSpinner size="lg" text="Completing authentication..." />
+        <p className="text-gray-600 mt-4">Please wait...</p>
       </div>
     </div>
   );
