@@ -139,7 +139,7 @@ export default function BlogPost() {
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
         <Navigation />
         
-        <main className="container mx-auto px-6 pt-2">
+        <main className="container mx-auto px-6 pt-24">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Table of Contents Sidebar - Left */}
