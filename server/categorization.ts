@@ -80,18 +80,33 @@ export function analyzeContentCategory(post: BlogPostWithDetails): string {
 
 // Generate category description based on content analysis
 export function generateCategoryDescription(categoryName: string): string {
-  const descriptions = {
-    'Agricultural Technology': 'Advanced technological solutions for modern farming including sensors, drones, AI, and digital farming innovations.',
-    'Sustainable Farming': 'Environmentally conscious farming practices focused on sustainability, conservation, and eco-friendly approaches.',
-    'Crop Management': 'Comprehensive strategies for crop cultivation, health monitoring, pest control, and yield optimization.',
-    'Farm Equipment': 'Agricultural machinery, tools, and equipment for efficient farming operations and maintenance.',
-    'Market Analysis': 'Economic insights, market trends, pricing analysis, and business strategies for agricultural markets.',
-    'Weather & Climate': 'Weather patterns, climate adaptation, forecasting, and environmental factors affecting agriculture.',
-    'Soil Health': 'Soil fertility, nutrient management, testing, and restoration techniques for optimal growing conditions.',
-    'Irrigation Systems': 'Water management systems, irrigation technologies, and efficient watering solutions for crops.'
+  const descriptions: { [key: string]: string } = {
+    'Technology & Engineering': 'Innovations in technology, engineering solutions, and technical development',
+    'Career & Professional': 'Professional development, career guidance, and workplace insights',
+    'Life & Philosophy': 'Personal reflections on life, philosophy, and meaningful living',
+    'Education & Learning': 'Educational experiences, learning insights, and academic journey',
+    'Relationships & Personal': 'Personal relationships, emotional insights, and social connections',
+    'Reviews & Comparisons': 'Product reviews, service comparisons, and analytical evaluations',
+    'Challenges & Problem Solving': 'Overcoming obstacles, problem-solving strategies, and resilience',
+    'Agricultural Technology': 'Advanced technological solutions for modern farming including sensors, drones, AI, and digital farming innovations.'
   };
   
-  return descriptions[categoryName] || 'Agricultural insights and farming innovations.';
+  return descriptions[categoryName] || 'General insights and perspectives';
+}
+
+export function getCategoryColor(categoryName: string): string {
+  const colors: { [key: string]: string } = {
+    'Technology & Engineering': '#2D5016', // Forest green
+    'Career & Professional': '#1E40AF', // Blue
+    'Life & Philosophy': '#7C2D12', // Brown
+    'Education & Learning': '#065F46', // Emerald
+    'Relationships & Personal': '#BE185D', // Pink
+    'Reviews & Comparisons': '#7C3AED', // Violet
+    'Challenges & Problem Solving': '#DC2626', // Red
+    'Agricultural Technology': '#059669' // Green
+  };
+  
+  return colors[categoryName] || '#6B7280'; // Gray fallback
 }
 
 // Analyze all posts and generate category statistics

@@ -4,7 +4,7 @@ import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
-import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics } from "./categorization";
+import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics, generateCategoryDescription, getCategoryColor } from "./categorization";
 import { getAITaggingService } from "./ai-tagging";
 
 export async function registerRoutes(app: Express): Promise<Server> {
