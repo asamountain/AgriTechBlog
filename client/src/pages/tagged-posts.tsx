@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Hash, Clock, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { trackEvent } from "@/lib/analytics";
-import { AgriculturalSkeleton } from "@/components/loading-animations";
+import { ContentSkeleton } from "@/components/loading-animations";
 
 interface BlogPostWithDetails {
   id: number;
@@ -180,10 +180,10 @@ export default function TaggedPosts() {
         <Navigation />
         <div className="pt-24 pb-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <AgriculturalSkeleton />
+            <ContentSkeleton />
             <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <AgriculturalSkeleton key={i} />
+                <ContentSkeleton key={i} />
               ))}
             </div>
           </div>

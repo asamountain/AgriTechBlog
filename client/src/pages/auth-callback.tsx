@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { usePersistentAuth } from '@/hooks/usePersistentAuth';
-import { AgricultureLoader } from '@/components/loading-animations';
+import { LoadingSpinner } from '@/components/loading-animations';
 
 export default function AuthCallback() {
   const { saveAuthState } = usePersistentAuth();

@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
+import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
 
 interface BlogGridProps {}
 
@@ -38,12 +38,12 @@ export default function BlogGrid({}: BlogGridProps) {
             </h2>
             <div className="flex items-center space-x-3">
               <div className="w-16 h-1 bg-forest-green"></div>
-              <AgricultureLoader theme="water" size="md" text="Watering fresh content..." />
+              <LoadingSpinner size="md" text="Loading content..." />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <AgriculturalSkeleton key={i} />
+              <ContentSkeleton key={i} />
             ))}
           </div>
         </div>
