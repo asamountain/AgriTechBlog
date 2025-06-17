@@ -40,23 +40,16 @@ export function setupAuth(app: Express) {
       callbackURL: `${baseUrl}/auth/google/callback`
     }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       try {
-        // Check if user exists
-        const [existingUser] = await db.select().from(users).where(eq(users.id, profile.id));
-        
-        if (existingUser) {
-          return done(null, existingUser);
-        }
-
-        // Create new user
-        const [newUser] = await db.insert(users).values({
+        // Simplified user handling for MongoDB
+        const userData = {
           id: profile.id,
           email: profile.emails?.[0]?.value || '',
           name: profile.displayName || '',
           provider: 'google',
           avatar: profile.photos?.[0]?.value
-        }).returning();
+        };
         
-        return done(null, newUser);
+        return done(null, userData);
       } catch (error) {
         return done(error, null);
       }
@@ -75,23 +68,16 @@ export function setupAuth(app: Express) {
       callbackURL: `${baseUrl}/auth/github/callback`
     }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       try {
-        // Check if user exists
-        const [existingUser] = await db.select().from(users).where(eq(users.id, profile.id));
-        
-        if (existingUser) {
-          return done(null, existingUser);
-        }
-
-        // Create new user
-        const [newUser] = await db.insert(users).values({
+        // Simplified user handling for MongoDB
+        const userData = {
           id: profile.id,
           email: profile.emails?.[0]?.value || '',
           name: profile.displayName || profile.username || '',
           provider: 'github',
           avatar: profile.photos?.[0]?.value
-        }).returning();
+        };
         
-        return done(null, newUser);
+        return done(null, userData);
       } catch (error) {
         return done(error, null);
       }
