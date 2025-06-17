@@ -27,18 +27,23 @@ interface HighlightMenuProps {
 }
 
 function HighlightMenu({ position, selectedText, onHighlight, onShare, onClose }: HighlightMenuProps) {
+  console.log('Rendering HighlightMenu at position:', position);
   return (
     <div 
-      className="fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 flex gap-2"
-      style={{ left: position.x, top: position.y - 50 }}
+      className="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-3 flex gap-2 min-w-[200px]"
+      style={{ 
+        left: `${position.x - 100}px`, 
+        top: `${position.y}px`,
+        transform: 'translateX(-50%)'
+      }}
     >
-      <Button size="sm" onClick={onHighlight} className="bg-forest-green hover:bg-forest-green/90 text-white">
+      <Button size="sm" onClick={onHighlight} className="bg-[#2D5016] hover:bg-[#2D5016]/90 text-white flex-1">
         Highlight
       </Button>
-      <Button size="sm" variant="outline" onClick={onShare}>
+      <Button size="sm" variant="outline" onClick={onShare} className="flex-1">
         Share
       </Button>
-      <Button size="sm" variant="ghost" onClick={onClose} className="px-2">
+      <Button size="sm" variant="ghost" onClick={onClose} className="px-2 ml-1">
         ×
       </Button>
     </div>
@@ -438,30 +443,38 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
   };
 
   // Handle text selection for highlighting menu
-  const handleMouseUp = useCallback(() => {
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
-      setShowHighlightMenu(false);
-      return;
-    }
+  const handleMouseUp = useCallback((event: MouseEvent) => {
+    // Small delay to ensure selection is complete
+    setTimeout(() => {
+      const selection = window.getSelection();
+      console.log('Selection:', selection);
+      if (!selection || selection.isCollapsed) {
+        console.log('No selection or collapsed');
+        setShowHighlightMenu(false);
+        return;
+      }
 
-    const selectedText = selection.toString().trim();
-    if (selectedText.length === 0) {
-      setShowHighlightMenu(false);
-      return;
-    }
+      const selectedText = selection.toString().trim();
+      console.log('Selected text:', selectedText);
+      if (selectedText.length === 0) {
+        setShowHighlightMenu(false);
+        return;
+      }
 
-    // Get selection position for menu
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    
-    setSelectedText(selectedText);
-    setSelectedRange(range.cloneRange());
-    setMenuPosition({ 
-      x: rect.left + rect.width / 2, 
-      y: rect.top + window.scrollY 
-    });
-    setShowHighlightMenu(true);
+      // Get selection position for menu
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      console.log('Selection rect:', rect);
+      
+      setSelectedText(selectedText);
+      setSelectedRange(range.cloneRange());
+      setMenuPosition({ 
+        x: Math.max(10, rect.left + rect.width / 2), 
+        y: rect.bottom + window.scrollY + 10 
+      });
+      console.log('Showing highlight menu');
+      setShowHighlightMenu(true);
+    }, 50);
   }, []);
 
   const handleHighlightAction = useCallback(() => {
