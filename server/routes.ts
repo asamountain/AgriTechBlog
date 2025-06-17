@@ -1,11 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer } from "ws";
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
 import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics } from "./categorization";
 import { getAITaggingService } from "./ai-tagging";
+import { setupHighlightRoutes } from "./highlight-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -27,6 +29,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+  
+  app.get('/auth/github/callback',
+    passport.authenticate('github', { failureRedirect: '/admin' }),
+    (req, res) => {
+      res.redirect('/auth/callback');
+    }
+  );
+
+  // Get authenticated user
+  app.get('/api/auth/user', (req, res) => {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      res.json(req.user);
+    } else {
+      res.status(401).json({ error: 'Not authenticated' });
+    }
+  });
+
+  // Logout route
+  app.post('/api/auth/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Logout failed' });
+      }
+      res.json({ success: true });
+    });
+  });
   
   app.get('/auth/github/callback',
     passport.authenticate('github', { failureRedirect: '/admin' }),
@@ -1252,5 +1280,30 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
   });
 
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server for real-time highlighting comments
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('Client connected to highlighting WebSocket');
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        // Handle WebSocket messages if needed
+        console.log('Received WebSocket message:', data);
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log('Client disconnected from highlighting WebSocket');
+    });
+  });
+  
+  // Setup highlight API routes
+  setupHighlightRoutes(app, wss);
+
   return httpServer;
 }
