@@ -140,14 +140,16 @@ export default function BlogPost() {
         <Navigation />
         
         <main className="container mx-auto px-6 py-8">
-          {/* Article Header */}
-          <article className="max-w-4xl mx-auto">
-            <header className="mb-8">
-              <div className="mb-4">
-                <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair leading-tight">
-                  {post.title}
-                </h1>
-              </div>
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Main Content */}
+              <article className="lg:col-span-3">
+                <header className="mb-8">
+                  <div className="mb-4">
+                    <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair leading-tight">
+                      {post.title}
+                    </h1>
+                  </div>
 
               {/* Post Meta */}
               <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
@@ -256,7 +258,16 @@ export default function BlogPost() {
             {/* Comments Section */}
             <CommentSection postId={post.id} postTitle={post.title} />
           </article>
-        </main>
+
+          {/* Table of Contents Sidebar */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24">
+              <TableOfContents content={post.content} />
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
 
         <Footer />
       </div>

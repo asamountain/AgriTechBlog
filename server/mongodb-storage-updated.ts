@@ -379,13 +379,21 @@ export class MongoStorage implements IStorage {
     // Find the post to get its tags
     const post = await this.getBlogPost(postId);
     if (!post || !post.tags || post.tags.length === 0) return [];
+    
     // Find other posts with at least one matching tag
+    // Since we use numeric IDs, we need to exclude by finding all posts except the current one
     const docs = await this.blogPostsCollection.find({
-      _id: { $ne: new ObjectId(postId.toString()) },
       draft: { $ne: true },
       tags: { $in: post.tags }
-    }).limit(3).toArray();
-    return docs.map(doc => this.mapPostDocument(doc));
+    }).toArray();
+    
+    // Filter out the current post by comparing the generated numeric IDs
+    const relatedPosts = docs
+      .map(doc => this.mapPostDocument(doc))
+      .filter(relatedPost => relatedPost.id !== post.id)
+      .slice(0, 3);
+    
+    return relatedPosts;
   }
 
   async getBlogPostsByTag(tag: string): Promise<BlogPostWithDetails[]> {
