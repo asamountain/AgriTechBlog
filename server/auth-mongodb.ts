@@ -97,20 +97,41 @@ export function setupAuth(app: Express) {
     }));
   }
 
+  // Middleware to save return URL
+  app.use('/auth/google', (req, res, next) => {
+    if (req.query.returnTo) {
+      (req.session as any).returnTo = req.query.returnTo;
+    }
+    next();
+  });
+
+  app.use('/auth/github', (req, res, next) => {
+    if (req.query.returnTo) {
+      (req.session as any).returnTo = req.query.returnTo;
+    }
+    next();
+  });
+
   // Auth routes
   app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
   app.get('/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/login' }),
+    passport.authenticate('google', { failureRedirect: '/' }),
     (req, res) => {
-      res.redirect('/');
+      // Get the return URL from session or default to home
+      const returnTo = (req.session as any)?.returnTo || '/';
+      delete (req.session as any)?.returnTo;
+      res.redirect(returnTo);
     }
   );
 
   app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
   app.get('/auth/github/callback',
-    passport.authenticate('github', { failureRedirect: '/login' }),
+    passport.authenticate('github', { failureRedirect: '/' }),
     (req, res) => {
-      res.redirect('/');
+      // Get the return URL from session or default to home
+      const returnTo = req.session?.returnTo || '/';
+      delete req.session?.returnTo;
+      res.redirect(returnTo);
     }
   );
 
