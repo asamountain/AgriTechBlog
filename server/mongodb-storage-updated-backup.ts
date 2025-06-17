@@ -99,16 +99,8 @@ export class MongoStorage implements IStorage {
       isFeatured: post.featured || false,
       isPublished: !post.draft,
       readTime: this.calculateReadTime(post.content || ''),
-      categoryId: 1,
       authorId: 1,
       userId: post.userId || 'shared',
-      category: {
-        id: 1,
-        name: 'AgroTech',
-        slug: 'agrotech',
-        description: 'Agricultural Technology',
-        color: '#10B981'
-      },
       author: {
         id: 1,
         name: 'Admin',

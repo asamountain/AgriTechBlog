@@ -1,116 +1,98 @@
-import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Calendar, Clock, Tag, Search, Filter } from "lucide-react";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
-import SEOHead from "@/components/seo-head";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatDate } from "@/lib/utils";
-import type { BlogPostWithDetails } from "@shared/schema";
+import { Search, Calendar, Clock, User, X } from "lucide-react";
+import { useState, useMemo } from "react";
+import Navigation from "@/components/navigation";
+import Footer from "@/components/footer";
+import SEOHead from "@/components/seo-head";
 
-export default function Posts() {
+export default function PostsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const { data: posts, isLoading } = useQuery<BlogPostWithDetails[]>({
+  const { data: posts, isLoading } = useQuery({
     queryKey: ["/api/blog-posts"],
+    queryFn: async () => {
+      const response = await fetch("/api/blog-posts?limit=50");
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      return response.json();
+    },
   });
 
-  // Extract all unique tags and categories
-  const { allTags, allCategories } = useMemo(() => {
-    if (!posts) return { allTags: [], allCategories: [] };
-
+  // Extract all unique tags
+  const allTags = useMemo(() => {
+    if (!posts) return [];
     const tagsSet = new Set<string>();
-    const categoriesSet = new Set<string>();
-
-    posts.forEach(post => {
+    
+    posts.forEach((post: any) => {
       if (post.tags) {
-        post.tags.forEach(tag => tagsSet.add(tag));
+        post.tags.forEach((tag: string) => tagsSet.add(tag));
       }
-      categoriesSet.add(post.category.name);
     });
-
-    return {
-      allTags: Array.from(tagsSet).sort(),
-      allCategories: Array.from(categoriesSet).sort()
-    };
+    
+    return Array.from(tagsSet).sort();
   }, [posts]);
 
-  // Filter posts based on search term, selected tag, and category
+  // Filter posts based on search term and selected tag
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
-
-    return posts.filter(post => {
-      const matchesSearch = searchTerm === "" || 
+    
+    return posts.filter((post: any) => {
+      const matchesSearch = searchTerm === "" ||
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase());
+        (post.tags && post.tags.some((tag: string) => 
+          tag.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
 
-      const matchesTag = selectedTag === null || 
+      const matchesTag = selectedTag === null ||
         (post.tags && post.tags.includes(selectedTag));
 
-      const matchesCategory = selectedCategory === null || 
-        post.category.name === selectedCategory;
-
-      return matchesSearch && matchesTag && matchesCategory;
+      return matchesSearch && matchesTag;
     });
-  }, [posts, searchTerm, selectedTag, selectedCategory]);
+  }, [posts, searchTerm, selectedTag]);
 
-  // Group posts by tags for display
-  const postsByTag = useMemo(() => {
-    if (!filteredPosts.length || selectedTag || selectedCategory || searchTerm) {
+  // Group posts by month for better organization
+  const groupedPosts = useMemo(() => {
+    if (!filteredPosts.length || selectedTag || searchTerm) {
       return { "All Posts": filteredPosts };
     }
 
-    const grouped: Record<string, BlogPostWithDetails[]> = {};
-    
-    filteredPosts.forEach(post => {
-      if (post.tags && post.tags.length > 0) {
-        post.tags.forEach(tag => {
-          if (!grouped[tag]) {
-            grouped[tag] = [];
-          }
-          grouped[tag].push(post);
-        });
-      } else {
-        if (!grouped["Uncategorized"]) {
-          grouped["Uncategorized"] = [];
-        }
-        grouped["Uncategorized"].push(post);
+    const grouped = filteredPosts.reduce((acc: any, post: any) => {
+      const month = new Date(post.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long'
+      });
+      
+      if (!acc[month]) {
+        acc[month] = [];
       }
-    });
+      acc[month].push(post);
+      return acc;
+    }, {});
 
     return grouped;
-  }, [filteredPosts, selectedTag, selectedCategory, searchTerm]);
+  }, [filteredPosts, selectedTag, searchTerm]);
 
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedTag(null);
-    setSelectedCategory(null);
   };
 
-  const hasActiveFilters = searchTerm !== "" || selectedTag !== null || selectedCategory !== null;
+  const hasActiveFilters = searchTerm !== "" || selectedTag !== null;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
         <Navigation />
-        <div className="pt-24 pb-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
-                ))}
-              </div>
-            </div>
+        <div className="container mx-auto px-6 py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-green mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading posts...</p>
           </div>
         </div>
         <Footer />
@@ -119,56 +101,44 @@ export default function Posts() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
       <SEOHead
-        title="All Posts - San's Agricultural Technology Blog"
-        description="Browse all articles on agricultural technology, IoT solutions, and sustainable farming practices. Organized by topics for easy discovery."
-        keywords={["agricultural technology", "blog posts", "farming innovation", "IoT agriculture", ...allTags]}
-        image="/api/og-image?title=All Posts&category=Blog Archive"
-        url={`${window.location.origin}/posts`}
-        type="website"
+        title="All Posts | Agricultural Technology Blog"
+        description="Explore our comprehensive collection of articles on agricultural technology, precision farming, and sustainable agriculture practices."
+        keywords={["agricultural technology", "precision farming", "sustainable agriculture", "blog posts", "farming innovation"]}
+        image="/api/og-image?title=All Posts"
       />
-      <Navigation />
 
-      {/* Header Section */}
-      <section className="pt-24 pb-12 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 mb-4">
-              All Posts
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+        <Navigation />
+        
+        <main className="container mx-auto px-6 py-12">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair mb-4">
+              All Blog Posts
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Explore insights on agricultural technology, sustainable farming, and innovation.
-              {posts && ` ${posts.length} articles available.`}
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover insights on agricultural technology, sustainable farming practices, and innovative solutions for modern agriculture.
             </p>
           </div>
 
-          {/* Search and Filter Controls */}
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search posts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-gray-300 focus:border-forest-green focus:ring-forest-green"
-                />
-              </div>
-              <Button
-                onClick={clearFilters}
-                variant="outline"
-                className={`${hasActiveFilters ? 'border-forest-green text-forest-green' : ''}`}
-                disabled={!hasActiveFilters}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                Clear Filters
-              </Button>
+          {/* Search and Filters */}
+          <div className="mb-8 space-y-4">
+            {/* Search */}
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-sage-300 focus:border-forest-green focus:ring-forest-green"
+              />
             </div>
 
             {/* Filter Tags */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap justify-center gap-2">
               <span className="text-sm font-medium text-gray-700 mr-2">Filter by tag:</span>
               {allTags.map(tag => (
                 <Button
@@ -178,135 +148,112 @@ export default function Posts() {
                   size="sm"
                   className={selectedTag === tag ? "bg-forest-green hover:bg-forest-green/90" : "border-gray-300 hover:border-forest-green"}
                 >
-                  <Tag className="h-3 w-3 mr-1" />
                   {tag}
                 </Button>
               ))}
             </div>
 
-            {/* Filter Categories */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-gray-700 mr-2">Filter by category:</span>
-              {allCategories.map(category => (
-                <Button
-                  key={category}
-                  onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  className={selectedCategory === category ? "bg-forest-green hover:bg-forest-green/90" : "border-gray-300 hover:border-forest-green"}
-                >
-                  {category}
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <div className="text-center">
+                <Button onClick={clearFilters} variant="ghost" size="sm">
+                  <X className="h-4 w-4 mr-2" />
+                  Clear filters
                 </Button>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
 
-      {/* Posts Content */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredPosts.length === 0 ? (
+          {/* Posts Grid */}
+          {Object.entries(groupedPosts).map(([period, posts]) => (
+            <div key={period} className="mb-12">
+              <h2 className="text-2xl font-bold text-forest-green mb-6 font-playfair">
+                {period}
+              </h2>
+              
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {(posts as any[]).map((post) => (
+                  <Card key={post.id} className="group hover:shadow-lg transition-shadow bg-white border-sage-200">
+                    <div className="aspect-video overflow-hidden rounded-t-lg">
+                      <img
+                        src={post.featuredImage}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    
+                    <CardContent className="p-6">
+                      <div className="space-y-3">
+                        {/* Tags */}
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {post.tags.slice(0, 2).map((tag: string, index: number) => (
+                              <Badge 
+                                key={index} 
+                                variant="outline" 
+                                className="text-xs border-forest-green text-forest-green"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                            {post.tags.length > 2 && (
+                              <Badge variant="outline" className="text-xs text-gray-500">
+                                +{post.tags.length - 2} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Title and Excerpt */}
+                        <div>
+                          <h3 className="text-xl font-bold text-forest-green group-hover:text-sage-600 transition-colors mb-2 font-playfair">
+                            <Link href={`/blog/${post.slug}`}>
+                              {post.title}
+                            </Link>
+                          </h3>
+                          <p className="text-gray-600 text-sm line-clamp-3">
+                            {post.excerpt}
+                          </p>
+                        </div>
+
+                        {/* Meta */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              <span>{post.author.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{post.readTime} min</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* No Results */}
+          {filteredPosts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-lg text-gray-600 mb-4">
-                No posts found matching your criteria.
-              </p>
-              <Button onClick={clearFilters} className="bg-forest-green hover:bg-forest-green/90">
-                Clear Filters
+              <p className="text-gray-600 text-lg mb-4">No posts found matching your criteria.</p>
+              <Button onClick={clearFilters} variant="outline">
+                Clear filters to see all posts
               </Button>
             </div>
-          ) : (
-            Object.entries(postsByTag).map(([tagName, tagPosts]) => (
-              <div key={tagName} className="mb-12">
-                {!hasActiveFilters && (
-                  <div className="flex items-center gap-3 mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900">{tagName}</h2>
-                    <Badge variant="outline" className="border-forest-green/30 text-forest-green">
-                      {tagPosts.length} {tagPosts.length === 1 ? 'post' : 'posts'}
-                    </Badge>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tagPosts.map(post => (
-                    <Card key={post.id} className="group hover:shadow-lg transition-all duration-300 border-gray-200 hover:border-forest-green/20">
-                      <Link href={`/blog/${post.slug}`}>
-                        <div className="cursor-pointer">
-                          {post.featuredImage && (
-                            <div className="aspect-video overflow-hidden rounded-t-lg">
-                              <img
-                                src={post.featuredImage}
-                                alt={post.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            </div>
-                          )}
-                          
-                          <CardContent className="p-6">
-                            <div className="mb-3">
-                              <Badge 
-                                className="text-xs font-medium text-white"
-                                style={{ backgroundColor: post.category.color }}
-                              >
-                                {post.category.name}
-                              </Badge>
-                            </div>
-
-                            <h3 className="font-semibold text-lg text-gray-900 mb-3 group-hover:text-forest-green transition-colors line-clamp-2">
-                              {post.title}
-                            </h3>
-
-                            <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                              {post.excerpt}
-                            </p>
-
-                            {/* Tags */}
-                            {post.tags && post.tags.length > 0 && (
-                              <div className="mb-4">
-                                <div className="flex flex-wrap gap-2">
-                                  {post.tags.slice(0, 3).map((tag) => (
-                                    <Badge 
-                                      key={tag} 
-                                      variant="outline" 
-                                      className="text-xs border-forest-green/30 text-forest-green"
-                                    >
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                  {post.tags.length > 3 && (
-                                    <Badge variant="outline" className="text-xs">
-                                      +{post.tags.length - 3} more
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                              <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>{formatDate(post.createdAt)}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  <span>{post.readTime} min read</span>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </div>
-                      </Link>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ))
           )}
-        </div>
-      </section>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 }

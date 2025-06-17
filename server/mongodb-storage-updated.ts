@@ -1,7 +1,6 @@
 import { MongoClient, Db, Collection, ObjectId } from "mongodb";
 import { 
   type User, type InsertUser,
-  type Category, type InsertCategory,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
   type BlogPostWithDetails,
@@ -13,7 +12,6 @@ export class MongoStorage implements IStorage {
   private client: MongoClient;
   private db: Db;
   private usersCollection: Collection;
-  private categoriesCollection: Collection;
   private authorsCollection: Collection;
   private blogPostsCollection: Collection;
   private commentsCollection: Collection;
@@ -22,7 +20,6 @@ export class MongoStorage implements IStorage {
     this.client = new MongoClient(connectionString);
     this.db = this.client.db(databaseName);
     this.usersCollection = this.db.collection("users");
-    this.categoriesCollection = this.db.collection("categories");
     this.authorsCollection = this.db.collection("authors");
     this.blogPostsCollection = this.db.collection("posts");
     this.commentsCollection = this.db.collection("comments");
@@ -73,43 +70,33 @@ export class MongoStorage implements IStorage {
 
   private mapPostDocument(doc: any): BlogPostWithDetails {
     if (!doc) throw new Error("Document is null or undefined");
-
-    // Convert ObjectId prefix to numeric ID for consistency
-    const objectIdStr = doc._id.toString();
-    const numericId = parseInt(objectIdStr.substring(0, 8), 16);
-
     return {
-      id: doc.id || numericId,
-      slug: doc.slug || this.generateSlug(doc.title || 'untitled'),
-      title: doc.title || 'Untitled',
-      excerpt: doc.excerpt || this.extractExcerpt(doc.content || ''),
+      id: typeof doc._id === 'string' ? parseInt(doc._id, 16) : (doc._id ? parseInt(doc._id.toString().substring(0, 8), 16) : 1),
+      title: doc.title || '',
       content: doc.content || '',
-      featuredImage: doc.coverImage || doc.featuredImage || '',
-      categoryId: doc.categoryId || 1,
-      authorId: doc.authorId || 1,
+      slug: doc.slug || '',
+      excerpt: doc.excerpt || this.extractExcerpt(doc.content || ''),
+      featuredImage: doc.coverImage || '',
+      createdAt: doc.date || new Date(),
+      updatedAt: doc.lastModified || new Date(),
       userId: doc.userId || '',
-      readTime: doc.readTime || this.calculateReadTime(doc.content || ''),
-      isFeatured: doc.featured || doc.isFeatured || false,
+      tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? [doc.tags] : null),
+      isFeatured: !!doc.featured,
       isPublished: !doc.draft,
-      tags: doc.tags || [],
-      createdAt: doc.date || doc.createdAt || new Date(),
-      updatedAt: doc.lastModified || doc.updatedAt || new Date(),
-      category: {
-        id: doc.categoryId || 1,
-        name: doc.categoryName || 'Agricultural Technology',
-        slug: doc.categorySlug || 'agricultural-technology',
-        description: doc.categoryDescription || 'Latest in agricultural technology and innovation',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
+      readTime: this.calculateReadTime(doc.content || ''),
+      authorId: 1,
       author: {
-        id: doc.authorId || 1,
-        name: doc.authorName || 'Hope Invest',
-        email: doc.authorEmail || 'admin@hopeinvest.com',
-        bio: doc.authorBio || 'Agricultural technology enthusiast',
-        avatar: doc.authorAvatar || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        id: 1,
+        name: 'Default Author',
+        email: '',
+        bio: null,
+        avatar: null,
+        userId: null,
+        linkedinUrl: null,
+        instagramUrl: null,
+        youtubeUrl: null,
+        githubUrl: null,
+        portfolioUrl: null
       }
     };
   }
@@ -130,27 +117,6 @@ export class MongoStorage implements IStorage {
     return { 
       id: result.insertedId.toString(), 
       ...insertUser,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-  }
-
-  // Category methods
-  async getCategories(): Promise<Category[]> {
-    const docs = await this.categoriesCollection.find({}).toArray();
-    return docs.map(doc => this.convertMongoDoc(doc));
-  }
-
-  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    const doc = await this.categoriesCollection.findOne({ slug });
-    return this.convertMongoDoc(doc);
-  }
-
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const result = await this.categoriesCollection.insertOne(insertCategory);
-    return { 
-      id: result.insertedId.toString(), 
-      ...insertCategory,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -214,33 +180,21 @@ export class MongoStorage implements IStorage {
   }
 
   // Blog Post methods
-  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
-    const { categorySlug, limit = 10, offset = 0, featured, includeDrafts = false, userId } = options;
-    
+  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean } = {}): Promise<BlogPostWithDetails[]> {
+    const { limit = 100, offset = 0, featured, includeDrafts = true } = options;
     let query: any = {};
-    
     if (!includeDrafts) {
       query.draft = { $ne: true };
     }
-    
     if (featured !== undefined) {
       query.featured = featured;
     }
-
-    if (userId) {
-      query.$or = [
-        { userId: userId },
-        { userId: { $exists: false } }
-      ];
-    }
-
     const docs = await this.blogPostsCollection
       .find(query)
       .sort({ date: -1 })
       .skip(offset)
       .limit(limit)
       .toArray();
-
     return docs.map(doc => this.mapPostDocument(doc));
   }
 
@@ -406,105 +360,46 @@ export class MongoStorage implements IStorage {
     return docs.map(doc => this.mapPostDocument(doc));
   }
 
-  async getRelatedPosts(postId: number | string, categoryId: number, limit: number = 3, userId?: string): Promise<BlogPostWithDetails[]> {
-    let excludeQuery: any;
-    
-    // Check if postId is a valid MongoDB ObjectId format
-    if (ObjectId.isValid(postId.toString()) && postId.toString().length === 24) {
-      excludeQuery = { _id: { $ne: new ObjectId(postId.toString()) } };
-    } else {
-      // For numeric IDs, exclude by the hex prefix method
-      const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
-      const hexPrefix = numericId.toString(16).padStart(8, '0');
-      excludeQuery = { _id: { $not: { $regex: `^${hexPrefix}` } } };
-    }
+  async getRelatedPosts(postId: string | number): Promise<BlogPostWithDetails[]> {
+    // Find the post to get its tags
+    const post = await this.getBlogPost(postId);
+    if (!post || !post.tags || post.tags.length === 0) return [];
+    // Find other posts with at least one matching tag
+    const docs = await this.blogPostsCollection.find({
+      _id: { $ne: new ObjectId(postId.toString()) },
+      draft: { $ne: true },
+      tags: { $in: post.tags }
+    }).limit(3).toArray();
+    return docs.map(doc => this.mapPostDocument(doc));
+  }
 
-    let query: any = {
-      ...excludeQuery,
-      draft: { $ne: true }
-    };
-
-    if (userId) {
-      query.$or = [
-        { userId: userId },
-        { userId: { $exists: false } }
-      ];
-    }
-
-    const docs = await this.blogPostsCollection
-      .find(query)
-      .limit(limit)
-      .toArray();
-
+  async getBlogPostsByTag(tag: string): Promise<BlogPostWithDetails[]> {
+    const docs = await this.blogPostsCollection.find({
+      draft: { $ne: true },
+      tags: { $in: [tag] }
+    }).toArray();
     return docs.map(doc => this.mapPostDocument(doc));
   }
 
   // Comment methods
   async getCommentsByPostId(postId: number | string): Promise<Comment[]> {
-    const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
-    
-    const comments = await this.commentsCollection.find({
-      blogPostId: numericId
-    }).sort({ createdAt: -1 }).toArray();
-    
-    return comments.map(comment => ({
-      id: parseInt(comment._id.toString().substring(0, 8), 16),
-      content: comment.content,
-      createdAt: comment.createdAt,
-      blogPostId: numericId,
-      parentId: comment.parentId || null,
-      authorName: comment.authorName,
-      authorEmail: comment.authorEmail,
-      isApproved: comment.isApproved || false
-    }));
+    const docs = await this.commentsCollection.find({ postId: postId.toString() }).toArray();
+    return docs.map(doc => this.convertMongoDoc(doc));
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {
-    const commentDoc = {
-      ...insertComment,
-      createdAt: new Date(),
-      isApproved: false
-    };
-    
-    const result = await this.commentsCollection.insertOne(commentDoc);
-    
-    return {
-      id: parseInt(result.insertedId.toString().substring(0, 8), 16),
-      ...commentDoc
-    };
+    const result = await this.commentsCollection.insertOne(insertComment);
+    return { id: result.insertedId.toString(), ...insertComment };
   }
 
   async approveComment(commentId: number): Promise<Comment> {
-    const hexPrefix = commentId.toString(16).padStart(8, '0');
-    const allComments = await this.commentsCollection.find({}).toArray();
-    const targetComment = allComments.find(comment => {
-      const objectIdStr = comment._id.toString();
-      return objectIdStr.startsWith(hexPrefix);
-    });
-    
-    if (!targetComment) {
-      throw new Error("Comment not found");
-    }
-    
-    const result = await this.commentsCollection.updateOne(
-      { _id: targetComment._id },
-      { $set: { isApproved: true } }
+    const result = await this.commentsCollection.findOneAndUpdate(
+      { _id: new ObjectId(commentId.toString()) },
+      { $set: { approved: true } },
+      { returnDocument: 'after' }
     );
-    
-    if (result.matchedCount === 0) {
-      throw new Error("Comment not found");
-    }
-    
-    return {
-      id: commentId,
-      blogPostId: targetComment.blogPostId,
-      parentId: targetComment.parentId,
-      authorName: targetComment.authorName,
-      authorEmail: targetComment.authorEmail,
-      content: targetComment.content,
-      createdAt: new Date(targetComment.createdAt),
-      isApproved: targetComment.isApproved
-    };
+    if (!result) throw new Error('Comment not found');
+    return this.convertMongoDoc(result);
   }
 
   async deleteComment(commentId: number): Promise<void> {

@@ -44,65 +44,59 @@ import { AITaggingPanel } from "@/components/ai-tagging-panel";
 import { PageLoader, LoadingSpinner, ContentSkeleton } from "@/components/loading-animations";
 
 
-interface BlogPost {
+interface Post {
   id: number;
   title: string;
-  content: string;
-  excerpt: string;
   slug: string;
+  excerpt: string;
+  content: string;
   featuredImage: string;
-  createdAt: string;
-  updatedAt: string;
+  authorId: number;
+  userId: string;
+  tags: string[];
+  readTime: number;
   isFeatured: boolean;
   isPublished: boolean;
-  readTime: number;
-  tags: string[];
+  createdAt: string;
+  updatedAt: string;
   author: {
     id: number;
     name: string;
     email: string;
   };
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-  };
 }
 
-interface PostFormData {
+interface FormData {
   title: string;
-  content: string;
-  excerpt: string;
   slug: string;
+  excerpt: string;
+  content: string;
   featuredImage: string;
+  authorId?: number;
+  tags: string[];
+  readTime: number;
   isFeatured: boolean;
   isPublished: boolean;
-  categoryId?: number;
-  tags?: string[];
 }
 
-function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => void }) {
+function PostEditorForm({ post, onClose }: { post?: Post; onClose: () => void }) {
   const { toast } = useToast();
-  const [formData, setFormData] = useState<PostFormData>({
+  const [formData, setFormData] = useState<FormData>({
     title: post?.title || "",
-    content: post?.content || "",
-    excerpt: post?.excerpt || "",
     slug: post?.slug || "",
+    excerpt: post?.excerpt || "",
+    content: post?.content || "",
     featuredImage: post?.featuredImage || "",
-    isFeatured: post?.isFeatured || false,
-    isPublished: post?.isPublished || false,
-    categoryId: post?.category?.id || undefined,
+    authorId: post?.author?.id || undefined,
     tags: post?.tags || [],
+    readTime: post?.readTime || 5,
+    isFeatured: post?.isFeatured || false,
+    isPublished: post?.isPublished || true,
   });
   const [newTag, setNewTag] = useState("");
 
-  // Fetch categories for the dropdown
-  const { data: categories = [] } = useQuery<any[]>({
-    queryKey: ['/api/categories'],
-  });
-
   const updatePostMutation = useMutation({
-    mutationFn: async (data: PostFormData) => {
+    mutationFn: async (data: FormData) => {
       const response = await fetch(`/api/blog-posts/${post?.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -124,34 +118,6 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
         title: "Error",
         description: "Failed to update post",
         variant: "destructive",
-      });
-    },
-  });
-
-  const generateTagsMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/ai-tagging/analyze/${post?.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('Failed to generate tags');
-      return response.json();
-    },
-    onSuccess: (data: any) => {
-      if (data.suggestedTags) {
-        setFormData(prev => ({ ...prev, tags: data.suggestedTags }));
-      }
-      if (data.suggestedCategory) {
-        const matchingCategory = (categories as any[]).find((cat: any) => 
-          cat.name.toLowerCase() === data.suggestedCategory.toLowerCase()
-        );
-        if (matchingCategory) {
-          setFormData(prev => ({ ...prev, categoryId: matchingCategory.id }));
-        }
-      }
-      toast({
-        title: "AI Analysis Complete",
-        description: `Generated ${data.suggestedTags?.length || 0} tags`,
       });
     },
   });
@@ -194,21 +160,10 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
         />
       </div>
 
-
-
       {/* Tags */}
       <div className="space-y-golden-sm">
         <div className="flex items-center justify-between">
           <Label>Tags</Label>
-          <Button
-            type="button"
-            onClick={() => generateTagsMutation.mutate()}
-            disabled={generateTagsMutation.isPending}
-            size="sm"
-            className="bg-forest-green text-white hover:opacity-80"
-          >
-            {generateTagsMutation.isPending ? "Generating..." : "AI Generate"}
-          </Button>
         </div>
         
         {/* Current Tags */}
@@ -326,11 +281,11 @@ function PostEditorForm({ post, onClose }: { post?: BlogPost; onClose: () => voi
 
 
 function PostsManagement() {
-  const [selectedPost, setSelectedPost] = useState<BlogPost | undefined>(undefined);
+  const [selectedPost, setSelectedPost] = useState<Post | undefined>(undefined);
   const [showEditor, setShowEditor] = useState(false);
   const { toast } = useToast();
 
-  const { data: posts = [], isLoading } = useQuery<BlogPost[]>({
+  const { data: posts = [], isLoading } = useQuery<Post[]>({
     queryKey: ["/api/admin/blog-posts"],
   });
 
@@ -354,7 +309,7 @@ function PostsManagement() {
     },
   });
 
-  const handleEdit = (post: BlogPost) => {
+  const handleEdit = (post: Post) => {
     setSelectedPost(post);
     setShowEditor(true);
   };
@@ -404,7 +359,7 @@ function PostsManagement() {
       </div>
 
       <div className="grid gap-4">
-        {posts.map((post: BlogPost, index: number) => (
+        {posts.map((post: Post, index: number) => (
           <Card key={`${post.id}-${index}`}>
             <CardHeader>
               <div className="flex justify-between items-start">

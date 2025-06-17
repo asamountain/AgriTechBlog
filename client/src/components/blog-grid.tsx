@@ -92,16 +92,6 @@ export default function BlogGrid({}: BlogGridProps) {
                               isLarge ? 'h-80 md:h-96' : 'h-64'
                             }`}
                           />
-                          
-                          {/* Category Badge */}
-                          <div className="absolute top-4 left-4">
-                            <span 
-                              className="inline-block px-3 py-1 text-xs font-medium text-white uppercase tracking-wide"
-                              style={{ backgroundColor: post.category.color }}
-                            >
-                              {post.category.name}
-                            </span>
-                          </div>
                         </div>
                         
                         <div className={`p-6 ${isLarge ? 'md:p-8' : ''}`}>

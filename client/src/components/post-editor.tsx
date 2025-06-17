@@ -29,11 +29,6 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
   const [newTag, setNewTag] = useState("");
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
 
-  // Fetch categories
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ['/api/categories'],
-  });
-
   // Update post mutation
   const updatePostMutation = useMutation({
     mutationFn: async (updateData: any) => {
@@ -148,23 +143,6 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
               onChange={(e) => setTitle(e.target.value)}
               className="rounded-golden-sm"
             />
-          </div>
-
-          {/* Category */}
-          <div className="space-y-golden-xs">
-            <Label htmlFor="category">Category</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger className="rounded-golden-sm">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Tags Section */}

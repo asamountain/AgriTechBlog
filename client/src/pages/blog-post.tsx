@@ -114,187 +114,152 @@ export default function BlogPost() {
   const currentUrl = `${window.location.origin}/blog/${post.slug}`;
   const keywords = [
     ...(post.tags || []),
-    post.category.name.toLowerCase(),
-    "technology",
-    "innovation",
-    "blog",
-    "insights",
+    post.title.toLowerCase(),
   ];
 
+  // Generate OG image URL
+  const ogImageUrl = post ? 
+    `/api/og-image?title=${encodeURIComponent(post.title)}` :
+    '/api/og-image?title=Blog Post';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ReadingProgress />
+    <>
       <SEOHead
-        title={`${post.title} | San's Blog`}
-        description={post.excerpt}
-        keywords={keywords}
-        image={
-          post.featuredImage ||
-          `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.category.name)}`
-        }
-        url={currentUrl}
-        type="article"
-        author={authorName}
-        publishedTime={new Date(post.createdAt).toISOString()}
-        modifiedTime={new Date(post.updatedAt).toISOString()}
-        tags={post.tags || []}
-        category={post.category.name}
+        title={post?.title || "Blog Post"}
+        description={post?.excerpt || "Read this blog post"}
+        keywords={[
+          ...(post?.tags || []),
+          post.title.toLowerCase(),
+        ]}
+        author={post?.author?.name || "Author"}
+        publishedTime={post?.createdAt}
+        ogImage={ogImageUrl}
       />
-      <Navigation />
 
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back Button */}
-          <Link href="/">
-            <Button
-              variant="ghost"
-              className="mb-8 text-gray-600 hover:text-forest-green"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-            </Button>
-          </Link>
-
-          {/* Category Badge */}
-          <div className="mb-6">
-            <span
-              className="inline-block px-4 py-2 text-sm font-medium text-white uppercase tracking-wide"
-              style={{ backgroundColor: post.category.color }}
-            >
-              {post.category.name}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
-            {post.title}
-          </h1>
-
-          {/* Meta Info */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-6 text-sm text-gray-500">
-              <div className="flex items-center space-x-2">
-                <Avatar className="w-8 h-8">
-                  {(profile as any)?.avatar ? (
-                    <img
-                      src={(profile as any).avatar}
-                      alt={
-                        (profile as any)?.name &&
-                        (profile as any).name.trim() !== ""
-                          ? (profile as any).name
-                          : post.author.name
-                      }
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <AvatarFallback className="bg-forest-green text-white text-xs">
-                      {((profile as any)?.name &&
-                      (profile as any).name.trim() !== ""
-                        ? (profile as any).name
-                        : post.author.name
-                      )
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <span className="font-medium">
-                  {(profile as any)?.name && (profile as any).name.trim() !== ""
-                    ? (profile as any).name
-                    : post.author.name}
-                </span>
-              </div>
-              <span>{formatDate(post.createdAt)}</span>
-              <span>{post.readTime} min read</span>
-            </div>
-            <SocialShare
-              title={post.title}
-              url={`${window.location.origin}/blog/${post.slug}`}
-              excerpt={post.excerpt}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Image Section */}
-      <section className="bg-white">
-        <div className="max-w-6xl mx-auto">
-          <img
-            src={post.featuredImage}
-            alt={post.title}
-            className="w-full h-96 md:h-[500px] object-cover"
-          />
-        </div>
-      </section>
-
-      {/* Content Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Table of Contents - Desktop */}
-            <div className="hidden lg:block lg:col-span-1">
-              <TableOfContents content={post.content} />
-            </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {/* Excerpt */}
-              <div className="mb-12">
-                <div className="w-1 h-16 bg-forest-green mr-6 float-left"></div>
-                <p className="text-xl text-gray-700 leading-relaxed font-light italic">
-                  {post.excerpt}
-                </p>
-              </div>
-
-              {/* Table of Contents - Mobile */}
-              <div className="lg:hidden mb-8">
-                <TableOfContents content={post.content} />
-              </div>
-
-              {/* Article Content */}
-              <div className="prose prose-lg max-w-none">
-                <div
-                  className="text-gray-700 leading-relaxed blog-content"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Tags and Categories */}
-          {(post.tags?.length || post.category) && (
-            <div className="mt-12 pt-8 border-t border-gray-200">
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+        <Navigation />
+        
+        <main className="container mx-auto px-6 py-8">
+          {/* Article Header */}
+          <article className="max-w-4xl mx-auto">
+            <header className="mb-8">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Topics & Tags
-                </h3>
-                <TagDisplay
-                  tags={post.tags || []}
-                  category={post.category}
-                  size="md"
+                <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair leading-tight">
+                  {post.title}
+                </h1>
+              </div>
+
+              {/* Post Meta */}
+              <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
+                {/* Author */}
+                {post.author && (
+                  <div className="flex items-center gap-2">
+                    {post.author.avatar && (
+                      <img 
+                        src={post.author.avatar} 
+                        alt={post.author.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
+                    <span className="font-medium">{post.author.name}</span>
+                  </div>
+                )}
+
+                {/* Date */}
+                <span>•</span>
+                <time dateTime={post.createdAt}>
+                  {new Date(post.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </time>
+
+                {/* Read Time */}
+                <span>•</span>
+                <span>{post.readTime} min read</span>
+              </div>
+
+              {/* Excerpt */}
+              <p className="text-xl text-gray-700 leading-relaxed mb-8">
+                {post.excerpt}
+              </p>
+            </header>
+
+            {/* Featured Image */}
+            {post.featuredImage && (
+              <div className="mb-8">
+                <img 
+                  src={post.featuredImage} 
+                  alt={post.title}
+                  className="w-full h-96 object-cover rounded-xl shadow-lg"
                 />
               </div>
-            </div>
-          )}
-        </div>
-      </section>
+            )}
 
-      {/* Related Posts Section */}
-      <RelatedPostsByTags 
-        currentPostId={post.id} 
-        currentPostTags={post.tags || []} 
-      />
+            {/* Article Content */}
+            <div 
+              className="prose prose-lg max-w-none mb-8
+                prose-headings:text-forest-green prose-headings:font-playfair
+                prose-p:text-gray-700 prose-p:leading-relaxed
+                prose-a:text-sage-600 hover:prose-a:text-sage-700
+                prose-strong:text-forest-green
+                prose-blockquote:border-l-sage-500 prose-blockquote:text-gray-600
+                prose-code:bg-sage-100 prose-code:text-sage-800 prose-code:px-1 prose-code:rounded
+              "
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
 
-      {/* Comments Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <CommentSection postId={post.id} postTitle={post.title} />
-        </div>
-      </section>
+            {/* Tags */}
+            {post.tags?.length > 0 && (
+              <div className="border-t border-gray-200 pt-6 mb-8">
+                <TagDisplay
+                  tags={post.tags}
+                />
+              </div>
+            )}
 
-      <Footer />
-      <ScrollToTop />
-    </div>
+            {/* Author Bio */}
+            {post.author && (
+              <div className="bg-sage-50 rounded-xl p-6 mb-8">
+                <div className="flex items-start gap-4">
+                  {post.author.avatar && (
+                    <img 
+                      src={post.author.avatar} 
+                      alt={post.author.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-forest-green mb-2">
+                      About {post.author.name}
+                    </h3>
+                    {post.author.bio && (
+                      <p className="text-gray-700 mb-3">{post.author.bio}</p>
+                    )}
+                    <SocialShare 
+                      url={`${window.location.origin}/blog/${post.slug}`}
+                      title={post.title}
+                      author={post.author}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Related Posts */}
+            <RelatedPostsByTags 
+              currentPostId={post.id} 
+              tags={post.tags || []}
+            />
+
+            {/* Comments Section */}
+            <CommentSection postId={post.id} />
+          </article>
+        </main>
+
+        <Footer />
+      </div>
+    </>
   );
 }

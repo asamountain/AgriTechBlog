@@ -1,7 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { 
-  users, categories, authors, blogPosts, comments,
+  users, authors, blogPosts, comments,
   type User, type InsertUser,
-  type Category, type InsertCategory,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
   type Comment, type InsertComment,
@@ -22,8 +24,9 @@ export interface IStorage {
   updateAuthorByUserId(userId: string, updates: Partial<Author>): Promise<Author>;
 
   // Blog post methods
-  getBlogPosts(options?: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; userId?: string; includeDrafts?: boolean }): Promise<BlogPostWithDetails[]>;
+  getBlogPosts(options?: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string }): Promise<BlogPostWithDetails[]>;
   getBlogPost(id: string | number): Promise<BlogPostWithDetails | undefined>;
+  getBlogPostBySlug(slug: string, userId?: string): Promise<BlogPostWithDetails | undefined>;
   createBlogPost(insertBlogPost: InsertBlogPost): Promise<BlogPost>;
   updateBlogPost(id: string | number, updates: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost>;
   searchBlogPosts(query: string): Promise<BlogPostWithDetails[]>;
@@ -38,43 +41,28 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
-  private categories: Map<number, Category>;
   private authors: Map<number, Author>;
   private blogPosts: Map<number, BlogPost>;
+  private comments: Map<number, Comment>;
   private currentUserId: number;
-  private currentCategoryId: number;
   private currentAuthorId: number;
   private currentBlogPostId: number;
+  private currentCommentId: number;
 
   constructor() {
     this.users = new Map();
-    this.categories = new Map();
     this.authors = new Map();
     this.blogPosts = new Map();
+    this.comments = new Map();
     this.currentUserId = 1;
-    this.currentCategoryId = 1;
     this.currentAuthorId = 1;
     this.currentBlogPostId = 1;
+    this.currentCommentId = 1;
     
     this.seedData();
   }
 
   private seedData() {
-    // Seed categories
-    const sampleCategories: InsertCategory[] = [
-      { name: "Precision Farming", slug: "precision-farming", description: "Advanced technology in farming", color: "#52B788" },
-      { name: "Hydroponics", slug: "hydroponics", description: "Soilless farming techniques", color: "#95D5B2" },
-      { name: "Sustainability", slug: "sustainability", description: "Sustainable agriculture practices", color: "#95D5B2" },
-      { name: "Biotechnology", slug: "biotechnology", description: "Agricultural biotechnology advances", color: "#FFD60A" },
-      { name: "Automation", slug: "automation", description: "Farm automation and robotics", color: "#8B4513" },
-      { name: "Smart Irrigation", slug: "smart-irrigation", description: "Water-smart farming solutions", color: "#52B788" },
-      { name: "Vertical Farming", slug: "vertical-farming", description: "Indoor and vertical farming", color: "#FFD60A" },
-    ];
-
-    sampleCategories.forEach(category => {
-      this.createCategory(category);
-    });
-
     // Seed authors
     const sampleAuthors: InsertAuthor[] = [
       { name: "Dr. Sarah Chen", email: "sarah@agrotech.com", bio: "Agricultural technology researcher", avatar: "" },
@@ -98,11 +86,12 @@ export class MemStorage implements IStorage {
         excerpt: "Exploring how soilless farming techniques are transforming agricultural productivity and resource efficiency in modern farming operations.",
         content: "Hydroponic systems represent a paradigm shift in agricultural production...",
         featuredImage: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600",
-        categoryId: 2,
         authorId: 1,
+        userId: "demo-user-001",
         readTime: 5,
         isFeatured: true,
         isPublished: true,
+        tags: ["hydroponics", "farming", "technology"]
       },
       {
         title: "AI-Powered Crop Monitoring",
@@ -110,11 +99,12 @@ export class MemStorage implements IStorage {
         excerpt: "How artificial intelligence and drone technology are revolutionizing crop health monitoring and yield prediction systems.",
         content: "Artificial intelligence is transforming agriculture through advanced monitoring systems...",
         featuredImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600",
-        categoryId: 1,
         authorId: 2,
+        userId: "demo-user-001",
         readTime: 8,
         isFeatured: true,
         isPublished: true,
+        tags: ["ai", "monitoring", "precision-farming"]
       },
       {
         title: "Agrivoltaics: Farming Under Solar",
@@ -122,11 +112,12 @@ export class MemStorage implements IStorage {
         excerpt: "Combining solar energy production with agricultural practices to maximize land use efficiency and create sustainable farming solutions.",
         content: "Agrivoltaics represents an innovative approach to sustainable agriculture...",
         featuredImage: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600",
-        categoryId: 3,
         authorId: 3,
+        userId: "demo-user-001",
         readTime: 6,
         isFeatured: true,
         isPublished: true,
+        tags: ["sustainability", "solar", "energy"]
       },
       {
         title: "Water-Smart Solutions for Modern Agriculture",
@@ -134,11 +125,12 @@ export class MemStorage implements IStorage {
         excerpt: "Implementing IoT-based irrigation systems that optimize water usage while maximizing crop yield through real-time monitoring.",
         content: "Smart irrigation systems are becoming essential for sustainable agriculture...",
         featuredImage: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400",
-        categoryId: 6,
         authorId: 4,
+        userId: "demo-user-001",
         readTime: 7,
         isFeatured: false,
         isPublished: true,
+        tags: ["irrigation", "iot", "water-management"]
       },
       {
         title: "The Rise of Vertical Farming Technologies",
@@ -146,11 +138,12 @@ export class MemStorage implements IStorage {
         excerpt: "How controlled environment agriculture is revolutionizing food production in urban areas with minimal space requirements.",
         content: "Vertical farming is transforming urban agriculture with innovative technologies...",
         featuredImage: "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400",
-        categoryId: 7,
         authorId: 5,
+        userId: "demo-user-001",
         readTime: 9,
         isFeatured: false,
         isPublished: true,
+        tags: ["vertical-farming", "urban-agriculture", "controlled-environment"]
       },
       {
         title: "Autonomous Farming: The Future is Here",
@@ -158,11 +151,12 @@ export class MemStorage implements IStorage {
         excerpt: "Exploring how robotic systems are transforming agricultural labor and enabling 24/7 farm monitoring and maintenance.",
         content: "Autonomous farming technologies are revolutionizing agricultural operations...",
         featuredImage: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400",
-        categoryId: 5,
         authorId: 7,
+        userId: "demo-user-001",
         readTime: 6,
         isFeatured: false,
         isPublished: true,
+        tags: ["automation", "robotics", "farming"]
       },
     ];
 
@@ -172,10 +166,6 @@ export class MemStorage implements IStorage {
   }
 
   // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(user => user.username === username);
   }
@@ -192,109 +182,114 @@ export class MemStorage implements IStorage {
     return Array.from(this.authors.values());
   }
 
-  async getAuthor(id: number): Promise<Author | undefined> {
-    return this.authors.get(id);
-  }
-
   async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
     const id = this.currentAuthorId++;
     const author: Author = { 
       ...insertAuthor, 
       id,
       bio: insertAuthor.bio || null,
-      avatar: insertAuthor.avatar || null
+      avatar: insertAuthor.avatar || null,
+      userId: insertAuthor.userId || null,
+      linkedinUrl: insertAuthor.linkedinUrl || null,
+      instagramUrl: insertAuthor.instagramUrl || null,
+      youtubeUrl: insertAuthor.youtubeUrl || null,
+      githubUrl: insertAuthor.githubUrl || null,
+      portfolioUrl: insertAuthor.portfolioUrl || null
     };
     this.authors.set(id, author);
     return author;
   }
 
+  async getAuthorByUserId(userId: string): Promise<Author | undefined> {
+    return Array.from(this.authors.values()).find(author => author.userId === userId);
+  }
+
+  async updateAuthor(id: number, updates: Partial<Author>): Promise<Author> {
+    const existingAuthor = this.authors.get(id);
+    if (!existingAuthor) {
+      throw new Error("Author not found");
+    }
+    const updatedAuthor = { ...existingAuthor, ...updates };
+    this.authors.set(id, updatedAuthor);
+    return updatedAuthor;
+  }
+
+  async updateAuthorByUserId(userId: string, updates: Partial<Author>): Promise<Author> {
+    const existingAuthor = Array.from(this.authors.values()).find(a => a.userId === userId);
+    if (!existingAuthor) {
+      throw new Error("Author not found");
+    }
+    const updatedAuthor = { ...existingAuthor, ...updates };
+    this.authors.set(existingAuthor.id, updatedAuthor);
+    return updatedAuthor;
+  }
+
   // Blog post methods
-  async getBlogPosts(options: { categorySlug?: string; limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean } = {}): Promise<BlogPostWithDetails[]> {
-    let posts = Array.from(this.blogPosts.values());
+  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
+    const { limit, offset = 0, featured, includeDrafts = false, userId } = options;
     
-    // Filter by published status unless includeDrafts is true
-    if (!options.includeDrafts) {
-      posts = posts.filter(post => post.isPublished);
-    }
-    
-    if (options.featured !== undefined) {
-      posts = posts.filter(post => post.isFeatured === options.featured);
-    }
-    
-    if (options.categorySlug) {
-      const category = await this.getCategoryBySlug(options.categorySlug);
-      if (category) {
-        posts = posts.filter(post => post.categoryId === category.id);
-      }
-    }
-    
+    let posts = Array.from(this.blogPosts.values()).filter(post => {
+      if (!includeDrafts && !post.isPublished) return false;
+      if (featured !== undefined && post.isFeatured !== featured) return false;
+      if (userId && post.userId !== userId) return false;
+      return true;
+    });
+
     // Sort by creation date (newest first)
-    posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
-    if (options.offset) {
-      posts = posts.slice(options.offset);
+    posts.sort((a, b) => b.id - a.id);
+
+    if (limit) {
+      posts = posts.slice(offset, offset + limit);
     }
-    
-    if (options.limit) {
-      posts = posts.slice(0, options.limit);
-    }
-    
+
     return Promise.all(posts.map(async post => {
-      const category = await this.categories.get(post.categoryId)!;
-      const author = await this.authors.get(post.authorId)!;
-      return { ...post, category, author };
+      const author = this.authors.get(post.authorId)!;
+      return { ...post, author };
     }));
   }
 
-  async getBlogPostBySlug(slug: string): Promise<BlogPostWithDetails | undefined> {
-    const post = Array.from(this.blogPosts.values()).find(post => post.slug === slug && post.isPublished);
-    if (!post) return undefined;
-    
-    const category = this.categories.get(post.categoryId)!;
-    const author = this.authors.get(post.authorId)!;
-    return { ...post, category, author };
-  }
-
-  async getBlogPost(id: number | string): Promise<BlogPostWithDetails | undefined> {
+  async getBlogPost(id: string | number): Promise<BlogPostWithDetails | undefined> {
     const numericId = typeof id === 'string' ? parseInt(id) : id;
     const post = this.blogPosts.get(numericId);
-    if (!post || !post.isPublished) return undefined;
-    
-    const category = this.categories.get(post.categoryId)!;
+    if (!post) return undefined;
+
     const author = this.authors.get(post.authorId)!;
-    return { ...post, category, author };
+    return { ...post, author };
   }
 
   async createBlogPost(insertPost: InsertBlogPost): Promise<BlogPost> {
     const id = this.currentBlogPostId++;
-    const now = new Date();
     const post: BlogPost = { 
       ...insertPost, 
-      id, 
+      id,
+      tags: insertPost.tags || [],
       readTime: insertPost.readTime || 5,
       isFeatured: insertPost.isFeatured || false,
-      isPublished: insertPost.isPublished || true,
-      createdAt: now,
-      updatedAt: now
+      isPublished: insertPost.isPublished !== false, // default to true
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.blogPosts.set(id, post);
     return post;
   }
 
-  async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost> {
+  async updateBlogPost(id: string | number, updateData: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost> {
     const numericId = typeof id === 'string' ? parseInt(id) : id;
     const existingPost = this.blogPosts.get(numericId);
+    
     if (!existingPost) {
       throw new Error("Blog post not found");
     }
 
-    const updatedPost: BlogPost = {
-      ...existingPost,
-      ...updateData,
-      id: numericId,
-      updatedAt: new Date().toISOString()
-    };
+    if (userId && existingPost.userId !== userId) {
+      throw new Error("Not authorized to update this post");
+    }
 
+    const updatedPost = { 
+      ...existingPost, 
+      ...updateData,
+      updatedAt: new Date()
+    };
     this.blogPosts.set(numericId, updatedPost);
     return updatedPost;
   }
@@ -305,77 +300,109 @@ export class MemStorage implements IStorage {
       post.isPublished && (
         post.title.toLowerCase().includes(searchTerm) ||
         post.excerpt.toLowerCase().includes(searchTerm) ||
-        post.content.toLowerCase().includes(searchTerm)
+        post.content.toLowerCase().includes(searchTerm) ||
+        post.tags.some(tag => tag.toLowerCase().includes(searchTerm))
       )
     );
-    
+
     return Promise.all(posts.map(async post => {
-      const category = this.categories.get(post.categoryId)!;
       const author = this.authors.get(post.authorId)!;
-      return { ...post, category, author };
+      return { ...post, author };
     }));
   }
 
-  async getRelatedPosts(postId: number | string): Promise<BlogPostWithDetails[]> {
+  async getRelatedPosts(postId: string | number): Promise<BlogPostWithDetails[]> {
     const numericId = typeof postId === 'string' ? parseInt(postId) : postId;
     const post = this.blogPosts.get(numericId);
     if (!post || !post.isPublished) return [];
     
-    const category = this.categories.get(post.categoryId)!;
-    const author = this.authors.get(post.authorId)!;
-    return [{ ...post, category, author }];
+    // Find posts with similar tags
+    const relatedPosts = Array.from(this.blogPosts.values()).filter(p => 
+      p.id !== numericId && 
+      p.isPublished &&
+      p.tags && post.tags && p.tags.some(tag => post.tags!.includes(tag))
+    ).slice(0, 3);
+    
+    return Promise.all(relatedPosts.map(async p => {
+      const author = this.authors.get(p.authorId)!;
+      return { ...p, author };
+    }));
   }
 
   async getBlogPostsByTag(tag: string): Promise<BlogPostWithDetails[]> {
     const posts = Array.from(this.blogPosts.values()).filter(post => 
-      post.isPublished && post.tags.includes(tag)
+      post.isPublished && post.tags && post.tags.includes(tag)
     );
     
     return Promise.all(posts.map(async post => {
-      const category = this.categories.get(post.categoryId)!;
       const author = this.authors.get(post.authorId)!;
-      return { ...post, category, author };
+      return { ...post, author };
     }));
   }
-}
 
-// Storage instance
-let storageInstance: IStorage | null = null;
-
-// Create storage instance based on environment
-async function createStorage(): Promise<IStorage> {
-  const mongoUri = process.env.MONGODB_URI;
-  
-  if (mongoUri && (mongoUri.startsWith('mongodb://') || mongoUri.startsWith('mongodb+srv://'))) {
-    try {
-      console.log('Connecting to MongoDB...');
-      const mongoStorage = new MongoStorage(mongoUri, 'test');
-      await mongoStorage.connect();
-      console.log('Successfully connected to MongoDB');
-      return mongoStorage;
-    } catch (error) {
-      console.error('Failed to connect to MongoDB, falling back to memory storage:', error);
-    }
-  } else if (mongoUri) {
-    console.log('Invalid MongoDB URI format. Must start with "mongodb://" or "mongodb+srv://". Using in-memory storage.');
+  // Comment methods
+  async getCommentsByPostId(postId: number): Promise<Comment[]> {
+    return Array.from(this.comments.values()).filter(comment => comment.blogPostId === postId);
   }
-  
-  console.log('Using in-memory storage');
-  return new MemStorage();
+
+  async createComment(insertComment: InsertComment): Promise<Comment> {
+    const id = this.currentCommentId++;
+    const comment: Comment = { 
+      ...insertComment, 
+      id,
+      parentId: insertComment.parentId || null,
+      createdAt: new Date(),
+      isApproved: false
+    };
+    this.comments.set(id, comment);
+    return comment;
+  }
+
+  async approveComment(id: number): Promise<Comment> {
+    const comment = this.comments.get(id);
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+    const approvedComment = { ...comment, isApproved: true };
+    this.comments.set(id, approvedComment);
+    return approvedComment;
+  }
 }
 
-// Initialize storage
+// Create a new storage instance for MongoDB or fallback to in-memory
+async function createStorage(): Promise<IStorage> {
+  try {
+    const mongoUri = process.env.MONGODB_URI;
+    const databaseName = process.env.MONGODB_DATABASE || 'blog';
+    
+    if (!mongoUri) {
+      console.log('MONGODB_URI not found in environment variables, using in-memory storage');
+      return new MemStorage();
+    }
+    
+    console.log('Attempting to connect to MongoDB...');
+    const mongoStorage = new MongoStorage(mongoUri, databaseName);
+    await mongoStorage.connect();
+    console.log('Successfully connected to MongoDB');
+    return mongoStorage;
+  } catch (error) {
+    console.log('MongoDB connection failed, using in-memory storage:', error);
+    return new MemStorage();
+  }
+}
+
+// Initialize storage once
+let storageInstance: Promise<IStorage> | null = null;
+
 async function initStorage(): Promise<IStorage> {
   if (!storageInstance) {
-    storageInstance = await createStorage();
+    storageInstance = createStorage();
   }
   return storageInstance;
 }
 
-// Export a function that returns the storage instance
-export async function getStorage(): Promise<IStorage> {
-  return await initStorage();
-}
-
-// For backward compatibility, create a default instance
 export const storage = new MemStorage();
+
+export async function getStorage(): Promise<IStorage> {
+  return initStorage();
+}

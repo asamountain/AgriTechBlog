@@ -8,13 +8,6 @@ interface TagDisplayProps {
   selectedTag?: string;
   variant?: "default" | "outline";
   showHash?: boolean;
-  category?: {
-    id: number;
-    name: string;
-    slug: string;
-    color?: string;
-    description?: string | null;
-  };
   size?: string;
 }
 
@@ -24,7 +17,6 @@ export default function TagDisplay({
   selectedTag,
   variant = "outline",
   showHash = true,
-  category,
   size 
 }: TagDisplayProps) {
   const [, setLocation] = useLocation();
@@ -38,38 +30,36 @@ export default function TagDisplay({
     }
   };
 
-  if ((!tags || tags.length === 0) && !category) {
+  if (!tags || tags.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-golden-xs">
       {/* Tags Display */}
-      {tags && tags.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-600 mb-2">Tags</h4>
-          <div className="flex flex-wrap gap-golden-xs">
-            {tags.map((tag, index) => (
-              <Badge
-                key={index}
-                variant={selectedTag === tag ? "default" : variant}
-                className={`
-                  ${selectedTag === tag 
-                    ? "bg-forest-green text-white" 
-                    : "border-forest-green text-forest-green hover:bg-forest-green hover:text-white"
-                  }
-                  cursor-pointer transition-colors
-                  p-golden-xs rounded-golden-sm
-                `}
-                onClick={() => handleTagClick(tag)}
-              >
-                {showHash && <Hash className="h-3 w-3 mr-1" />}
-                {tag}
-              </Badge>
-            ))}
-          </div>
+      <div>
+        <h4 className="text-sm font-medium text-gray-600 mb-2">Tags</h4>
+        <div className="flex flex-wrap gap-golden-xs">
+          {tags.map((tag, index) => (
+            <Badge
+              key={index}
+              variant={selectedTag === tag ? "default" : variant}
+              className={`
+                ${selectedTag === tag 
+                  ? "bg-forest-green text-white" 
+                  : "border-forest-green text-forest-green hover:bg-forest-green hover:text-white"
+                }
+                cursor-pointer transition-colors
+                p-golden-xs rounded-golden-sm
+              `}
+              onClick={() => handleTagClick(tag)}
+            >
+              {showHash && <Hash className="h-3 w-3 mr-1" />}
+              {tag}
+            </Badge>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

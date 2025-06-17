@@ -74,16 +74,6 @@ export default function FeaturedStories() {
                           Featured
                         </span>
                       </div>
-                      
-                      {/* Category Badge */}
-                      <div className="absolute top-4 right-4">
-                        <span 
-                          className="inline-block px-3 py-1 text-xs font-medium text-white uppercase tracking-wide"
-                          style={{ backgroundColor: story.category.color }}
-                        >
-                          {story.category.name}
-                        </span>
-                      </div>
                     </div>
                     
                     <div className={`p-6 ${isHero ? 'md:p-8' : ''}`}>

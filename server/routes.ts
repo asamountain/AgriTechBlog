@@ -16,13 +16,39 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+// In-memory reference to the current MongoDB connection config
+let dynamicMongoConfig: { uri: string; dbName: string } | null = null;
+
+// Shared active storage instance for all routes
+let activeStorage: IStorage = storage;
+
+// Helper to re-initialize storage with new MongoDB connection
+async function setDynamicMongoConnection(uri: string, dbName: string) {
+  const { MongoStorage } = await import('./mongodb-storage-updated');
+  const storage = new MongoStorage(uri, dbName);
+  await storage.connect();
+  activeStorage = storage;
+  dynamicMongoConfig = { uri, dbName };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
-  let activeStorage: IStorage = storage;
   try {
-    activeStorage = await getStorage();
+    const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL;
+    const databaseName = process.env.MONGODB_DATABASE || 'blog';
+    
+    if (mongoUri) {
+      console.log("Connecting to MongoDB...");
+      const { MongoStorage } = await import('./mongodb-storage-updated');
+      const mongoStorage = new MongoStorage(mongoUri, databaseName);
+      await mongoStorage.connect();
+      activeStorage = mongoStorage;
+      console.log("Successfully connected to MongoDB");
+    } else {
+      console.log("No MongoDB URI found, using in-memory storage");
+    }
   } catch (error) {
-    console.log("Using fallback storage:", error);
+    console.log("MongoDB connection failed, using fallback storage:", error);
   }
 
   // OAuth routes with passport middleware
@@ -203,15 +229,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/blog-posts/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
+      console.log(`Fetching blog post with slug: ${slug}`);
       const post = await activeStorage.getBlogPostBySlug(slug);
       
       if (!post) {
+        console.log(`Blog post not found for slug: ${slug}`);
         return res.status(404).json({ message: "Blog post not found" });
       }
       
       res.json(post);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch blog post" });
+      console.error(`Error fetching blog post with slug ${req.params.slug}:`, error);
+      res.status(500).json({ message: "Failed to fetch blog post", error: error.message });
     }
   });
 
@@ -328,41 +357,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin endpoints
   app.get("/api/admin/blog-posts", async (req, res) => {
     try {
-      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
-      // Get all posts including drafts for admin, filtered by user
-      const posts = await activeStorage.getBlogPosts({ 
-        limit: 100, 
-        includeDrafts: true,
-        userId: userId 
-      });
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
       res.json(posts);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch admin posts" });
+      console.error("Error fetching admin blog posts:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts" });
     }
   });
 
-  app.get("/api/admin/stats", async (req, res) => {
+  app.get("/api/admin/stats", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
-      const allPosts = await activeStorage.getBlogPosts({ 
-        limit: 1000, 
-        includeDrafts: true,
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+      
+      const posts = await activeStorage.getBlogPosts({ 
+        includeDrafts: true, 
         userId: userId 
       });
-      const publishedPosts = allPosts.filter(post => post.isPublished);
-      const draftPosts = allPosts.filter(post => !post.isPublished);
-      const featuredPosts = allPosts.filter(post => post.isFeatured);
-
-      const stats = {
-        totalPosts: allPosts.length,
-        publishedPosts: publishedPosts.length,
-        draftPosts: draftPosts.length,
-        featuredPosts: featuredPosts.length
-      };
-
-      res.json(stats);
+      const totalPosts = posts.length;
+      const publishedPosts = posts.filter(p => p.isPublished).length;
+      const draftPosts = totalPosts - publishedPosts;
+      const featuredPosts = posts.filter(p => p.isFeatured).length;
+      
+      res.json({
+        totalPosts,
+        publishedPosts,
+        draftPosts,
+        featuredPosts
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch stats" });
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch statistics" });
     }
   });
 
@@ -691,24 +718,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai-tagging/suggest-category', requireAuth, async (req: any, res) => {
-    try {
-      const { title, content } = req.body;
-      
-      if (!title || !content) {
-        return res.status(400).json({ message: 'Title and content are required' });
-      }
-
-      const aiService = getAITaggingService();
-      const category = await aiService.suggestCategory(title, content);
-      
-      res.json({ category });
-    } catch (error) {
-      console.error('Category suggestion error:', error);
-      res.status(500).json({ message: 'Failed to suggest category' });
-    }
-  });
-
   app.post('/api/ai-tagging/bulk-analyze', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user?.id;
@@ -749,24 +758,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/posts/:id/categorize", requireAuth, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const post = await activeStorage.getBlogPost(id);
-      if (!post) {
-        return res.status(404).json({ message: "Post not found" });
-      }
-      
-      const suggestedCategory = analyzeContentCategory(post);
-      res.json({ suggestedCategory, confidence: "high" });
-    } catch (error) {
-      console.error("Error categorizing post:", error);
-      res.status(500).json({ message: "Failed to categorize post" });
-    }
-  });
-
   // Protect admin routes
-  app.get("/api/admin/blog-posts", requireAuth, async (req, res) => {
+  app.get("/api/admin/blog-posts", async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
       res.json(posts);
@@ -776,9 +769,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/stats", requireAuth, async (req, res) => {
+  app.get("/api/admin/stats", requireAuth, async (req: any, res) => {
     try {
-      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+      
+      const posts = await activeStorage.getBlogPosts({ 
+        includeDrafts: true, 
+        userId: userId 
+      });
       const totalPosts = posts.length;
       const publishedPosts = posts.filter(p => p.isPublished).length;
       const draftPosts = totalPosts - publishedPosts;
@@ -813,7 +814,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/sitemap.xml', async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ includeDrafts: false });
-      const categories = await activeStorage.getCategories();
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -824,13 +824,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  ${categories.map(category => `
-  <url>
-    <loc>${baseUrl}/category/${category.slug}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`).join('')}
   ${posts.map(post => `
   <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
@@ -1198,6 +1191,29 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     } catch (error) {
       console.error('Error generating structured data:', error);
       res.status(500).json({ error: 'Error generating structured data' });
+    }
+  });
+
+  // Admin endpoint to set MongoDB connection
+  app.post('/api/admin/connect-mongodb', requireAuth, async (req: any, res) => {
+    const { uri, dbName } = req.body;
+    const userId = req.user?.id;
+    
+    if (!uri) {
+      return res.status(400).json({ success: false, error: 'Missing MongoDB URI' });
+    }
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' });
+    }
+    
+    try {
+      await setDynamicMongoConnection(uri, dbName || 'blog');
+      console.log(`User ${userId} connected to MongoDB: ${dbName || 'blog'}`);
+      res.json({ success: true, message: 'Connected to MongoDB successfully' });
+    } catch (err) {
+      console.error(`MongoDB connection failed for user ${userId}:`, err);
+      res.status(500).json({ success: false, error: (err as Error).message });
     }
   });
 

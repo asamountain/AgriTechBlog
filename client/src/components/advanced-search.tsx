@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { Search, Filter, Calendar, User, Tag, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { formatDate } from "@/lib/utils";
-import type { BlogPostWithDetails, Category } from "@shared/schema";
 import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 
 export default function AdvancedSearch() {
@@ -83,25 +82,6 @@ export default function AdvancedSearch() {
 
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Category
-                </label>
-                <Select value={selectedCategory || ""} onValueChange={(value) => setSelectedCategory(value || null)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.slug}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Sort by

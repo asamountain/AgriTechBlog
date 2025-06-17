@@ -1,7 +1,6 @@
 import { MongoClient, Db, Collection, ObjectId } from "mongodb";
 import { 
   type User, type InsertUser,
-  type Category, type InsertCategory,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
   type BlogPostWithDetails
@@ -12,7 +11,6 @@ export class MongoStorage implements IStorage {
   private client: MongoClient;
   private db: Db;
   private usersCollection: Collection;
-  private categoriesCollection: Collection;
   private authorsCollection: Collection;
   private blogPostsCollection: Collection;
 
@@ -20,7 +18,6 @@ export class MongoStorage implements IStorage {
     this.client = new MongoClient(connectionString);
     this.db = this.client.db(databaseName);
     this.usersCollection = this.db.collection("users");
-    this.categoriesCollection = this.db.collection("categories");
     this.authorsCollection = this.db.collection("authors");
     this.blogPostsCollection = this.db.collection("posts"); // Your actual collection name
   }
@@ -54,22 +51,6 @@ export class MongoStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await this.usersCollection.insertOne(insertUser);
     return { id: result.insertedId.toString(), ...insertUser };
-  }
-
-  // Category methods
-  async getCategories(): Promise<Category[]> {
-    const docs = await this.categoriesCollection.find({}).toArray();
-    return docs.map(doc => this.convertMongoDoc(doc));
-  }
-
-  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    const doc = await this.categoriesCollection.findOne({ slug });
-    return this.convertMongoDoc(doc);
-  }
-
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const result = await this.categoriesCollection.insertOne(insertCategory);
-    return { id: result.insertedId.toString(), ...insertCategory };
   }
 
   // Author methods
