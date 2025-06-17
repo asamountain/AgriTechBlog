@@ -132,8 +132,8 @@ export default function BlogPost() {
           post.title.toLowerCase(),
         ]}
         author={post?.author?.name || "Author"}
-        publishedTime={post?.createdAt}
-        ogImage={ogImageUrl}
+        publishedTime={post?.createdAt instanceof Date ? post.createdAt.toISOString() : post?.createdAt}
+        image={ogImageUrl}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
@@ -167,7 +167,7 @@ export default function BlogPost() {
 
                 {/* Date */}
                 <span>•</span>
-                <time dateTime={post.createdAt}>
+                <time dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}>
                   {new Date(post.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -211,7 +211,7 @@ export default function BlogPost() {
             />
 
             {/* Tags */}
-            {post.tags?.length > 0 && (
+            {post.tags && post.tags.length > 0 && (
               <div className="border-t border-gray-200 pt-6 mb-8">
                 <TagDisplay
                   tags={post.tags}
@@ -250,11 +250,11 @@ export default function BlogPost() {
             {/* Related Posts */}
             <RelatedPostsByTags 
               currentPostId={post.id} 
-              tags={post.tags || []}
+              currentPostTags={post.tags || []}
             />
 
             {/* Comments Section */}
-            <CommentSection postId={post.id} />
+            <CommentSection postId={post.id} postTitle={post.title} />
           </article>
         </main>
 

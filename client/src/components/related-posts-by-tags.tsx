@@ -16,7 +16,7 @@ export default function RelatedPostsByTags({ currentPostId, currentPostTags }: R
     queryKey: ["/api/blog-posts"],
   });
 
-  if (isLoading || !posts || currentPostTags.length === 0) {
+  if (isLoading || !posts || !currentPostTags || currentPostTags.length === 0) {
     return null;
   }
 
