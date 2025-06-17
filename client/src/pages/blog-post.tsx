@@ -151,53 +151,53 @@ export default function BlogPost() {
                     </h1>
                   </div>
 
-              {/* Post Meta */}
-              <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
-                {/* Author */}
-                {post.author && (
-                  <div className="flex items-center gap-2">
-                    {post.author.avatar && (
-                      <img 
-                        src={post.author.avatar} 
-                        alt={post.author.name}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
+                  {/* Post Meta */}
+                  <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
+                    {/* Author */}
+                    {post.author && (
+                      <div className="flex items-center gap-2">
+                        {post.author.avatar && (
+                          <img 
+                            src={post.author.avatar} 
+                            alt={post.author.name}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        )}
+                        <span className="font-medium">{post.author.name}</span>
+                      </div>
                     )}
-                    <span className="font-medium">{post.author.name}</span>
+
+                    {/* Date */}
+                    <span>•</span>
+                    <time dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}>
+                      {new Date(post.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </time>
+
+                    {/* Read Time */}
+                    <span>•</span>
+                    <span>{post.readTime} min read</span>
+                  </div>
+
+                  {/* Excerpt */}
+                  <p className="text-xl text-gray-700 leading-relaxed mb-8">
+                    {post.excerpt}
+                  </p>
+                </header>
+
+                {/* Featured Image */}
+                {post.featuredImage && (
+                  <div className="mb-8">
+                    <img 
+                      src={post.featuredImage} 
+                      alt={post.title}
+                      className="w-full h-96 object-cover rounded-xl shadow-lg"
+                    />
                   </div>
                 )}
-
-                {/* Date */}
-                <span>•</span>
-                <time dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}>
-                  {new Date(post.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </time>
-
-                {/* Read Time */}
-                <span>•</span>
-                <span>{post.readTime} min read</span>
-              </div>
-
-              {/* Excerpt */}
-              <p className="text-xl text-gray-700 leading-relaxed mb-8">
-                {post.excerpt}
-              </p>
-            </header>
-
-            {/* Featured Image */}
-            {post.featuredImage && (
-              <div className="mb-8">
-                <img 
-                  src={post.featuredImage} 
-                  alt={post.title}
-                  className="w-full h-96 object-cover rounded-xl shadow-lg"
-                />
-              </div>
-            )}
 
             {/* Article Content */}
             <div 
