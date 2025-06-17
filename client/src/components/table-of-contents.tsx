@@ -59,12 +59,29 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
     
     // Apply IDs to actual DOM elements after a brief delay to ensure content is rendered
     setTimeout(() => {
-      const actualHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-      actualHeadings.forEach((heading, index) => {
-        if (items[index] && !heading.id) {
-          heading.id = items[index].id;
-        }
-      });
+      // Only select headings within the blog content area
+      const blogContent = document.querySelector('.blog-content');
+      if (blogContent) {
+        const actualHeadings = blogContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        
+        // Debug logging
+        console.log('TOC Debug - Parsed items:', items.length);
+        console.log('TOC Debug - Actual headings found:', actualHeadings.length);
+        
+        actualHeadings.forEach((heading, index) => {
+          if (items[index]) {
+            const expectedId = items[index].id;
+            const currentId = heading.id;
+            
+            if (!currentId) {
+              heading.id = expectedId;
+              console.log(`TOC Debug - Assigned ID "${expectedId}" to heading "${items[index].text}"`);
+            } else if (currentId !== expectedId) {
+              console.log(`TOC Debug - Heading already has different ID: "${currentId}" vs expected "${expectedId}"`);
+            }
+          }
+        });
+      }
     }, 100);
   }, [content]);
 
@@ -90,12 +107,16 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
 
     // Add a small delay to ensure DOM elements are ready
     const timeoutId = setTimeout(() => {
-      tocItems.forEach(({ id }) => {
-        const element = document.getElementById(id);
-        if (element) {
-          observer.observe(element);
-        }
-      });
+      // Only observe headings within the blog content area
+      const blogContent = document.querySelector('.blog-content');
+      if (blogContent) {
+        tocItems.forEach(({ id }) => {
+          const element = blogContent.querySelector(`#${CSS.escape(id)}`);
+          if (element) {
+            observer.observe(element);
+          }
+        });
+      }
     }, 200);
 
     return () => {
@@ -105,14 +126,29 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   }, [tocItems]);
 
   const scrollToHeading = (id: string) => {
-    const element = document.getElementById(id);
+    // First try to find the element within the blog content area
+    const blogContent = document.querySelector('.blog-content');
+    let element = null;
+    
+    if (blogContent) {
+      element = blogContent.querySelector(`#${CSS.escape(id)}`);
+    }
+    
+    // Fallback to document-wide search if not found
+    if (!element) {
+      element = document.getElementById(id);
+    }
+    
     if (element) {
-      const offset = 120; // Account for fixed navigation bar height
-      const elementPosition = element.offsetTop - offset;
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
+      console.log(`TOC Debug - Scrolling to heading: "${id}"`);
+      // Use scrollIntoView with block: 'start' and behavior: 'smooth'
+      // This relies on the CSS scroll-margin-top to handle the offset automatically
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
       });
+    } else {
+      console.error(`TOC Debug - Element with id "${id}" not found`);
     }
   };
 

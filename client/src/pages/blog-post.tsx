@@ -208,7 +208,7 @@ export default function BlogPost() {
 
             {/* Article Content */}
             <div 
-              className="prose prose-lg max-w-none mb-8
+              className="blog-content prose prose-lg max-w-none mb-8
                 prose-headings:text-forest-green prose-headings:font-playfair
                 prose-p:text-gray-700 prose-p:leading-relaxed
                 prose-a:text-sage-600 hover:prose-a:text-sage-700
@@ -249,7 +249,6 @@ export default function BlogPost() {
                     <SocialShare 
                       url={`${window.location.origin}/blog/${post.slug}`}
                       title={post.title}
-                      author={post.author}
                     />
                   </div>
                 </div>
