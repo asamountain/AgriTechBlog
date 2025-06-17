@@ -112,17 +112,9 @@ export function setupHighlightRoutes(app: Express, wss: any) {
   });
 
   // Delete comment
-  app.delete("/api/highlight-comments/:commentId", async (req, res) => {
+  app.delete("/api/highlight-comments/:commentId", requireAuth, async (req: any, res) => {
     try {
-      const commentId = parseInt(req.params.commentId);
-      if (isNaN(commentId)) {
-        return res.status(400).json({ error: "Invalid comment ID" });
-      }
-
-      // Check authentication
-      if (!req.user?.id) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+      const commentId = req.params.commentId;
 
       const success = await mongoHighlightStorage.deleteComment(commentId, req.user.id);
       if (!success) {
