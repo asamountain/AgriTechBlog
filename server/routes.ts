@@ -2,10 +2,19 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
-import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
+import { insertBlogPostSchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
-import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics, generateCategoryDescription, getCategoryColor } from "./categorization";
 import { getAITaggingService } from "./ai-tagging";
+import { db } from "./db";
+import { insertUserSchema, type User, type BlogPost, type Author } from "@shared/schema";
+import { z } from "zod";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -130,87 +139,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Categories
-  app.get("/api/categories", async (req, res) => {
-    try {
-      let categories = await activeStorage.getCategories();
-      
-      // If no categories exist, create default agricultural categories
-      if (categories.length === 0) {
-        const defaultCategories = [
-          {
-            name: "Agricultural Technology",
-            slug: "agricultural-technology", 
-            description: "Latest innovations in farming technology and precision agriculture",
-            color: "#2D5016"
-          },
-          {
-            name: "Sustainable Farming",
-            slug: "sustainable-farming",
-            description: "Eco-friendly practices and sustainable agriculture methods", 
-            color: "#2D5016"
-          },
-          {
-            name: "Crop Management",
-            slug: "crop-management",
-            description: "Best practices for crop planning, growth, and harvest optimization",
-            color: "#2D5016"
-          },
-          {
-            name: "Farm Equipment",
-            slug: "farm-equipment", 
-            description: "Modern farming machinery and equipment innovations",
-            color: "#2D5016"
-          },
-          {
-            name: "Market Analysis",
-            slug: "market-analysis",
-            description: "Agricultural market trends and economic insights",
-            color: "#2D5016"
-          },
-          {
-            name: "Weather & Climate",
-            slug: "weather-climate",
-            description: "Climate impact on agriculture and weather-based farming",
-            color: "#2D5016"
-          },
-          {
-            name: "Soil Health",
-            slug: "soil-health", 
-            description: "Soil management and health optimization techniques",
-            color: "#2D5016"
-          },
-          {
-            name: "Irrigation Systems",
-            slug: "irrigation-systems",
-            description: "Water management and irrigation technology solutions",
-            color: "#2D5016"
-          }
-        ];
-
-        for (const categoryData of defaultCategories) {
-          await activeStorage.createCategory(categoryData);
-        }
-        
-        categories = await activeStorage.getCategories();
-      }
-      
-      res.json(categories);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch categories" });
-    }
-  });
-
-  app.post("/api/categories", async (req, res) => {
-    try {
-      const categoryData = insertCategorySchema.parse(req.body);
-      const category = await activeStorage.createCategory(categoryData);
-      res.status(201).json(category);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid category data" });
-    }
-  });
-
   // Authors
   app.get("/api/authors", async (req, res) => {
     try {
@@ -298,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Blog post not found" });
       }
       
-      const relatedPosts = await activeStorage.getRelatedPosts(postId, post.categoryId);
+      const relatedPosts = await activeStorage.getRelatedPosts(postId);
       res.json(relatedPosts);
     } catch (error) {
       console.error("Related posts error:", error);
