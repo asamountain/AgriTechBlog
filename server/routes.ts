@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer } from "ws";
+// WebSocket functionality removed to fix text selection issues
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
 // Schema imports removed - using direct validation in routes
@@ -1281,26 +1281,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
 
   const httpServer = createServer(app);
   
-  // Setup WebSocket server for real-time highlighting comments
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  wss.on('connection', (ws) => {
-    console.log('Client connected to highlighting WebSocket');
-    
-    ws.on('message', (message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        // Handle WebSocket messages if needed
-        console.log('Received WebSocket message:', data);
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    });
-    
-    ws.on('close', () => {
-      console.log('Client disconnected from highlighting WebSocket');
-    });
-  });
+  // WebSocket functionality removed to fix text selection issues
   
   // Setup highlight API routes
   setupSimpleHighlightRoutes(app, activeStorage);

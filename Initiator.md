@@ -84,4 +84,9 @@ All design components and spacing must follow the golden ratio for optimal visua
 - This helps other developers understand system architecture and troubleshoot issues
 - Update flowcharts whenever modifying existing complex functions
 
+## File Management Rules
+- Never create replicating files like 'useAuth.ts' and 'use-auth.ts' as it cuts down maintainability
+- Use consistent naming patterns across the project
+- Maintain single source of truth for similar functionality
+
 This document ensures visual consistency, mathematical harmony, and optimal performance throughout the application.
