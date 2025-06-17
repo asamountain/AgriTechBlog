@@ -107,7 +107,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 100; // Account for fixed header
+      const offset = 120; // Account for fixed navigation bar height
       const elementPosition = element.offsetTop - offset;
       window.scrollTo({
         top: elementPosition,

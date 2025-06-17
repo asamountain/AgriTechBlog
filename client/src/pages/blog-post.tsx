@@ -6,7 +6,7 @@ import SocialShare from "@/components/social-share";
 import SEOHead from "@/components/seo-head";
 import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
-import ScrollToTop from "@/components/scroll-to-top";
+import ScrollToTopButton from "@/components/scroll-to-top-button";
 import RelatedPostsByTags from "@/components/related-posts-by-tags";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -270,6 +270,7 @@ export default function BlogPost() {
         </main>
 
         <Footer />
+        <ScrollToTopButton />
       </div>
     </>
   );
