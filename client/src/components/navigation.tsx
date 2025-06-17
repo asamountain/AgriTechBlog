@@ -4,6 +4,7 @@ import { Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SearchOverlay from "./search-overlay";
+import PostsMenu from "./posts-menu";
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -56,6 +57,7 @@ export default function Navigation() {
             {/* Desktop Navigation */}
             <div className="hidden md:block">
               <div className="flex items-center space-x-8">
+                <PostsMenu />
                 {navItems.map((item) => (
                   <Link key={item.href} href={item.href}>
                     <span className={`transition-colors cursor-pointer ${
@@ -87,6 +89,9 @@ export default function Navigation() {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[300px]">
                   <div className="flex flex-col space-y-4 mt-6">
+                    <div className="border-b border-gray-200 pb-4">
+                      <PostsMenu />
+                    </div>
                     {navItems.map((item) => (
                       <Link key={item.href} href={item.href}>
                         <span 

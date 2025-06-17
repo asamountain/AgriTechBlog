@@ -7,6 +7,7 @@ import SEOHead from "@/components/seo-head";
 import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
 import ScrollToTop from "@/components/scroll-to-top";
+import RelatedPostsByTags from "@/components/related-posts-by-tags";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -282,14 +283,18 @@ export default function BlogPost() {
         </div>
       </section>
 
+      {/* Related Posts Section */}
+      <RelatedPostsByTags 
+        currentPostId={post.id} 
+        currentPostTags={post.tags || []} 
+      />
+
       {/* Comments Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <CommentSection postId={post.id} postTitle={post.title} />
         </div>
       </section>
-
-      {/* Call to Action Section */}
 
       <Footer />
       <ScrollToTop />
