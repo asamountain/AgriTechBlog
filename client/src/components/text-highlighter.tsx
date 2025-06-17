@@ -18,6 +18,33 @@ interface TextHighlighterProps {
   children: React.ReactNode;
 }
 
+interface HighlightMenuProps {
+  position: { x: number; y: number };
+  selectedText: string;
+  onHighlight: () => void;
+  onShare: () => void;
+  onClose: () => void;
+}
+
+function HighlightMenu({ position, selectedText, onHighlight, onShare, onClose }: HighlightMenuProps) {
+  return (
+    <div 
+      className="fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 flex gap-2"
+      style={{ left: position.x, top: position.y - 50 }}
+    >
+      <Button size="sm" onClick={onHighlight} className="bg-forest-green hover:bg-forest-green/90 text-white">
+        Highlight
+      </Button>
+      <Button size="sm" variant="outline" onClick={onShare}>
+        Share
+      </Button>
+      <Button size="sm" variant="ghost" onClick={onClose} className="px-2">
+        ×
+      </Button>
+    </div>
+  );
+}
+
 interface HighlightData {
   text: string;
   startOffset: number;
@@ -251,6 +278,10 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
   const [highlights, setHighlights] = useState<HighlightWithDetails[]>([]);
   const [activeHighlight, setActiveHighlight] = useState<HighlightWithDetails | null>(null);
   const [bubblePosition, setBubblePosition] = useState({ x: 0, y: 0 });
+  const [showHighlightMenu, setShowHighlightMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [selectedText, setSelectedText] = useState("");
+  const [selectedRange, setSelectedRange] = useState<Range | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -406,28 +437,125 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
     deleteCommentMutation.mutate(commentId);
   };
 
+  // Handle text selection for highlighting menu
+  const handleMouseUp = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      setShowHighlightMenu(false);
+      return;
+    }
+
+    const selectedText = selection.toString().trim();
+    if (selectedText.length === 0) {
+      setShowHighlightMenu(false);
+      return;
+    }
+
+    // Get selection position for menu
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    setSelectedText(selectedText);
+    setSelectedRange(range.cloneRange());
+    setMenuPosition({ 
+      x: rect.left + rect.width / 2, 
+      y: rect.top + window.scrollY 
+    });
+    setShowHighlightMenu(true);
+  }, []);
+
+  const handleHighlightAction = useCallback(() => {
+    if (!user) {
+      // Redirect to login
+      window.location.href = `/auth/google?returnTo=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+
+    if (!selectedRange || !selectedText) return;
+
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    // Create highlight data
+    const startContainer = selectedRange.startContainer;
+    const elementPath = getElementPath(
+      startContainer.nodeType === Node.TEXT_NODE 
+        ? startContainer.parentElement 
+        : startContainer as Element
+    );
+
+    const highlightData: HighlightData = {
+      text: selectedText,
+      startOffset: selectedRange.startOffset,
+      endOffset: selectedRange.endOffset,
+      elementPath,
+    };
+
+    createHighlightMutation.mutate(highlightData);
+    
+    // Clear selection and menu
+    selection.removeAllRanges();
+    setShowHighlightMenu(false);
+    setSelectedText("");
+    setSelectedRange(null);
+  }, [selectedRange, selectedText, user, createHighlightMutation]);
+
+  const handleShareAction = useCallback(() => {
+    if (selectedText) {
+      const shareUrl = `${window.location.href}#highlight=${encodeURIComponent(selectedText)}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        toast({ title: "Link copied to clipboard" });
+      });
+    }
+    setShowHighlightMenu(false);
+  }, [selectedText, toast]);
+
+  const handleCloseMenu = useCallback(() => {
+    setShowHighlightMenu(false);
+    setSelectedText("");
+    setSelectedRange(null);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = () => {
       setActiveHighlight(null);
+      setShowHighlightMenu(false);
     };
 
-    if (activeHighlight) {
+    if (activeHighlight || showHighlightMenu) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [activeHighlight]);
+  }, [activeHighlight, showHighlightMenu]);
 
   useEffect(() => {
     const content = contentRef.current;
     if (!content) return;
 
-    content.addEventListener('mouseup', handleTextSelection);
-    return () => content.removeEventListener('mouseup', handleTextSelection);
-  }, [handleTextSelection]);
+    // Add mouse up event for text selection
+    content.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      content.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseUp]);
+
+
 
   return (
     <div ref={contentRef} className="relative">
       {children}
+      
+      {/* Highlight menu for text selection */}
+      {showHighlightMenu && (
+        <HighlightMenu
+          position={menuPosition}
+          selectedText={selectedText}
+          onHighlight={handleHighlightAction}
+          onShare={handleShareAction}
+          onClose={handleCloseMenu}
+        />
+      )}
       
       {/* Render existing highlights */}
       {highlights.map((highlight) => (
