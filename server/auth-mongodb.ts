@@ -115,23 +115,23 @@ export function setupAuth(app: Express) {
   // Auth routes
   app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
   app.get('/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/' }),
+    passport.authenticate('google', { failureRedirect: '/auth/callback?error=auth_failed' }),
     (req, res) => {
       // Get the return URL from session or default to home
       const returnTo = (req.session as any)?.returnTo || '/';
       delete (req.session as any)?.returnTo;
-      res.redirect(returnTo);
+      res.redirect(`/auth/callback?returnTo=${encodeURIComponent(returnTo)}`);
     }
   );
 
   app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
   app.get('/auth/github/callback',
-    passport.authenticate('github', { failureRedirect: '/' }),
+    passport.authenticate('github', { failureRedirect: '/auth/callback?error=auth_failed' }),
     (req, res) => {
       // Get the return URL from session or default to home
-      const returnTo = req.session?.returnTo || '/';
-      delete req.session?.returnTo;
-      res.redirect(returnTo);
+      const returnTo = (req.session as any)?.returnTo || '/';
+      delete (req.session as any)?.returnTo;
+      res.redirect(`/auth/callback?returnTo=${encodeURIComponent(returnTo)}`);
     }
   );
 
