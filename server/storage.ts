@@ -257,6 +257,16 @@ export class MemStorage implements IStorage {
     return { ...post, author };
   }
 
+  async getBlogPostBySlug(slug: string, userId?: string): Promise<BlogPostWithDetails | undefined> {
+    const post = Array.from(this.blogPosts.values()).find(p => p.slug === slug);
+    if (!post) return undefined;
+    
+    if (userId && post.userId !== userId) return undefined;
+    
+    const author = this.authors.get(post.authorId)!;
+    return { ...post, author };
+  }
+
   async createBlogPost(insertPost: InsertBlogPost): Promise<BlogPost> {
     const id = this.currentBlogPostId++;
     const post: BlogPost = { 

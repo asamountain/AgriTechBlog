@@ -16,6 +16,149 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+// Function to initialize sample data if database is empty
+async function initializeSampleData(storage: any) {
+  try {
+    // Create author first
+    const author = await storage.createAuthor({
+      name: "San",
+      email: "san@example.com",
+      bio: "Sustainable Abundance Seeker",
+      avatar: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAGQAXQDASIAAhEBAxEB/8QAHAAAAAc",
+      userId: "demo-user-001",
+      linkedinUrl: null,
+      instagramUrl: null,
+      youtubeUrl: null,
+      githubUrl: null,
+      portfolioUrl: null
+    });
+
+    // Create blog posts
+    const posts = [
+      {
+        title: "Autonomous Farming: The Future is Here",
+        slug: "autonomous-farming-future-is-here",
+        excerpt: "Discover how autonomous farming technologies are revolutionizing agriculture with AI-powered tractors, drones, and smart irrigation systems.",
+        content: `# Autonomous Farming: The Future is Here
+
+Autonomous farming represents a paradigm shift in agricultural practices, combining cutting-edge technology with traditional farming wisdom. This revolution is transforming how we grow food, manage resources, and approach sustainability.
+
+## Key Technologies Driving Change
+
+### AI-Powered Tractors
+Modern autonomous tractors use GPS, computer vision, and machine learning to navigate fields with precision accuracy. These machines can work 24/7, optimizing planting patterns and reducing fuel consumption.
+
+### Drone Technology
+Agricultural drones provide real-time crop monitoring, pest detection, and precision spraying capabilities. They enable farmers to make data-driven decisions about irrigation, fertilization, and pest control.
+
+### Smart Irrigation Systems
+IoT-enabled irrigation systems monitor soil moisture, weather conditions, and crop water requirements to deliver precise amounts of water when and where needed.
+
+## Benefits of Autonomous Farming
+
+- **Increased Efficiency**: Automated systems work continuously without fatigue
+- **Precision Agriculture**: Exact application of inputs reduces waste
+- **Labor Cost Reduction**: Automation addresses labor shortages
+- **Environmental Impact**: Reduced chemical usage and optimized resource consumption
+- **Data-Driven Insights**: Continuous monitoring provides valuable analytics
+
+## Challenges and Considerations
+
+While autonomous farming offers tremendous potential, challenges include high initial investment costs, the need for reliable internet connectivity, and the requirement for technical expertise to operate and maintain these systems.
+
+## The Path Forward
+
+As technology continues to evolve, we can expect even more sophisticated autonomous farming solutions. The integration of 5G networks, advanced AI algorithms, and improved sensor technology will further enhance the capabilities of autonomous farming systems.
+
+The future of agriculture is autonomous, sustainable, and efficient. By embracing these technologies, farmers can increase productivity while reducing their environmental footprint.`,
+        featuredImage: "",
+        authorId: author.id,
+        tags: ["autonomous farming", "AI", "technology", "agriculture"],
+        readTime: 8,
+        isFeatured: true,
+        isPublished: true,
+        userId: "demo-user-001"
+      },
+      {
+        title: "Agrivoltaics: Farming Under Solar Panels",
+        slug: "agrivoltaics-farming-under-solar-panels",
+        excerpt: "Explore the innovative practice of agrivoltaics, where crops grow beneath solar panels, maximizing land use for both food and energy production.",
+        content: `# Agrivoltaics: Farming Under Solar Panels
+
+Agrivoltaics, also known as agri-photovoltaics or solar farming, represents an innovative approach to land use that combines agricultural production with solar energy generation. This dual-purpose system offers promising solutions to the growing demands for both food and renewable energy.
+
+## What is Agrivoltaics?
+
+Agrivoltaics involves installing elevated solar panels over agricultural land, allowing crops to grow underneath while generating clean electricity above. This symbiotic relationship benefits both agricultural and energy sectors.
+
+## Benefits of Agrivoltaic Systems
+
+### Improved Crop Performance
+- **Shade Protection**: Solar panels provide partial shade, protecting crops from extreme heat and reducing water stress
+- **Microclimate Creation**: The panels create a more stable microclimate with reduced temperature fluctuations
+- **Extended Growing Seasons**: Protection from harsh weather conditions can extend productive growing periods
+
+### Energy Generation
+- **Dual Revenue Streams**: Farmers can earn income from both crop sales and electricity generation
+- **Grid Contribution**: Clean energy production contributes to renewable energy goals
+- **Energy Independence**: On-farm energy generation reduces dependence on external power sources
+
+### Water Conservation
+- **Reduced Evaporation**: Panels reduce water evaporation from soil surface
+- **Improved Water Use Efficiency**: Shade conditions often require less irrigation
+- **Rainwater Collection**: Panel systems can be designed to collect and channel rainwater
+
+## Suitable Crops for Agrivoltaic Systems
+
+Certain crops perform particularly well under agrivoltaic conditions:
+- Leafy greens (lettuce, spinach, kale)
+- Herbs (basil, cilantro, parsley)
+- Berries (strawberries, blueberries)
+- Root vegetables (carrots, radishes)
+- Shade-tolerant crops
+
+## Design Considerations
+
+Successful agrivoltaic installations require careful planning:
+- **Panel Height**: Sufficient clearance for farming equipment
+- **Panel Spacing**: Optimal light transmission for crop growth
+- **Orientation**: Balancing energy production with agricultural needs
+- **Accessibility**: Maintaining access for farming operations
+
+## Economic Viability
+
+The economics of agrivoltaics depend on several factors:
+- Initial installation costs
+- Energy prices and incentives
+- Crop yields and market prices
+- Maintenance requirements
+- Long-term system durability
+
+## Future Prospects
+
+Research continues to optimize agrivoltaic systems for various climates, crops, and economic conditions. As technology advances and costs decrease, agrivoltaics may become an increasingly attractive option for sustainable land use.
+
+The integration of agriculture and solar energy represents a promising pathway toward sustainable development, addressing the dual challenges of food security and clean energy transition.`,
+        featuredImage: "",
+        authorId: author.id,
+        tags: ["agrivoltaics", "solar energy", "sustainable agriculture", "renewable energy"],
+        readTime: 7,
+        isFeatured: true,
+        isPublished: true,
+        userId: "demo-user-001"
+      }
+    ];
+
+    for (const postData of posts) {
+      await storage.createBlogPost(postData);
+    }
+
+    console.log("Sample data initialized successfully");
+  } catch (error) {
+    console.error("Error initializing sample data:", error);
+  }
+}
+
 // In-memory reference to the current MongoDB connection config
 let dynamicMongoConfig: { uri: string; dbName: string } | null = null;
 
@@ -35,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
   try {
     const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL;
-    const databaseName = process.env.MONGODB_DATABASE || 'blog';
+    const databaseName = 'test'; // Using your actual database name from Project0/Cluster0
     
     if (mongoUri) {
       console.log("Connecting to MongoDB...");
@@ -44,6 +187,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await mongoStorage.connect();
       activeStorage = mongoStorage;
       console.log("Successfully connected to MongoDB");
+      
+      // Connect to existing posts in MongoDB
+      const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
+      console.log(`Found ${existingPosts.length} existing posts in database`);
     } else {
       console.log("No MongoDB URI found, using in-memory storage");
     }

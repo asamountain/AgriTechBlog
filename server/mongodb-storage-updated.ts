@@ -70,28 +70,32 @@ export class MongoStorage implements IStorage {
 
   private mapPostDocument(doc: any): BlogPostWithDetails {
     if (!doc) throw new Error("Document is null or undefined");
+    
+    // Generate a numeric ID from ObjectId for compatibility
+    const numericId = doc._id ? parseInt(doc._id.toString().substring(0, 8), 16) : Date.now();
+    
     return {
-      id: typeof doc._id === 'string' ? parseInt(doc._id, 16) : (doc._id ? parseInt(doc._id.toString().substring(0, 8), 16) : 1),
-      title: doc.title || '',
+      id: numericId,
+      title: doc.title || 'Untitled',
       content: doc.content || '',
-      slug: doc.slug || '',
+      slug: doc.slug || this.generateSlug(doc.title || 'untitled'),
       excerpt: doc.excerpt || this.extractExcerpt(doc.content || ''),
       featuredImage: doc.coverImage || '',
-      createdAt: doc.date || new Date(),
-      updatedAt: doc.lastModified || new Date(),
+      createdAt: doc.date ? new Date(doc.date) : new Date(),
+      updatedAt: doc.lastModified ? new Date(doc.lastModified) : new Date(),
       userId: doc.userId || '',
-      tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? [doc.tags] : null),
+      tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? [doc.tags] : []),
       isFeatured: !!doc.featured,
       isPublished: !doc.draft,
       readTime: this.calculateReadTime(doc.content || ''),
       authorId: 1,
       author: {
         id: 1,
-        name: 'Default Author',
-        email: '',
-        bio: null,
+        name: 'San',
+        email: 'san@example.com',
+        bio: 'Sustainable Abundance Seeker',
         avatar: null,
-        userId: null,
+        userId: doc.userId || '',
         linkedinUrl: null,
         instagramUrl: null,
         youtubeUrl: null,
@@ -180,15 +184,26 @@ export class MongoStorage implements IStorage {
   }
 
   // Blog Post methods
-  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean } = {}): Promise<BlogPostWithDetails[]> {
-    const { limit = 100, offset = 0, featured, includeDrafts = true } = options;
+  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
+    const { limit = 100, offset = 0, featured, includeDrafts = false, userId } = options;
     let query: any = {};
+    
+    // Only show published posts by default (where draft is not true)
     if (!includeDrafts) {
       query.draft = { $ne: true };
     }
+    
     if (featured !== undefined) {
       query.featured = featured;
     }
+    
+    if (userId) {
+      query.$or = [
+        { userId: userId },
+        { userId: { $exists: false } }
+      ];
+    }
+    
     const docs = await this.blogPostsCollection
       .find(query)
       .sort({ date: -1 })
