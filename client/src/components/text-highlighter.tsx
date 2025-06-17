@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWebSocket } from "@/hooks/use-websocket";
 import { apiRequest } from "@/lib/queryClient";
 import type { HighlightWithDetails, HighlightCommentWithDetails, User } from "@shared/schema";
 
@@ -253,6 +254,9 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
   const contentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // WebSocket for real-time updates
+  const { isConnected } = useWebSocket(postId);
 
   // Fetch highlights for this post
   const { data: highlightsData } = useQuery<HighlightWithDetails[]>({
@@ -423,6 +427,8 @@ export default function TextHighlighter({ postId, postSlug, user, isOwner, child
 
   return (
     <div ref={contentRef} className="relative">
+      {children}
+      
       {/* Render existing highlights */}
       {highlights.map((highlight) => (
         <span
