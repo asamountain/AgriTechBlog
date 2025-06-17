@@ -39,7 +39,6 @@ All design components and spacing must follow the golden ratio for optimal visua
 2. **All measurements must follow golden ratio progressions**
 3. **Maintain consistency across all components**
 4. **Test proportions visually to ensure harmony**
-5. **Database Rule: ALL database operations must use the existing MongoDB setup** - no additional databases (PostgreSQL, SQLite, etc.) should be added. Every feature must integrate with the existing MongoDB collections.
 
 ## Component Guidelines
 - Buttons: Use forest green background, white text
@@ -83,10 +82,5 @@ All design components and spacing must follow the golden ratio for optimal visua
 - Document relationships between user sessions, database records, and frontend state
 - This helps other developers understand system architecture and troubleshoot issues
 - Update flowcharts whenever modifying existing complex functions
-
-## File Management Rules
-- Never create replicating files like 'useAuth.ts' and 'use-auth.ts' as it cuts down maintainability
-- Use consistent naming patterns across the project
-- Maintain single source of truth for similar functionality
 
 This document ensures visual consistency, mathematical harmony, and optimal performance throughout the application.

@@ -1,13 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-// WebSocket functionality removed to fix text selection issues
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
-// Schema imports removed - using direct validation in routes
+import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
 import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics } from "./categorization";
 import { getAITaggingService } from "./ai-tagging";
-import { setupSimpleHighlightRoutes } from "./simple-highlight-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -29,32 +27,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
-  
-  app.get('/auth/github/callback',
-    passport.authenticate('github', { failureRedirect: '/admin' }),
-    (req, res) => {
-      res.redirect('/auth/callback');
-    }
-  );
-
-  // Get authenticated user
-  app.get('/api/auth/user', (req, res) => {
-    if (req.isAuthenticated && req.isAuthenticated()) {
-      res.json(req.user);
-    } else {
-      res.status(401).json({ error: 'Not authenticated' });
-    }
-  });
-
-  // Logout route
-  app.post('/api/auth/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Logout failed' });
-      }
-      res.json({ success: true });
-    });
-  });
   
   app.get('/auth/github/callback',
     passport.authenticate('github', { failureRedirect: '/admin' }),
@@ -231,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/categories", async (req, res) => {
     try {
-      const categoryData = req.body;
+      const categoryData = insertCategorySchema.parse(req.body);
       const category = await activeStorage.createCategory(categoryData);
       res.status(201).json(category);
     } catch (error) {
@@ -251,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/authors", async (req, res) => {
     try {
-      const authorData = req.body;
+      const authorData = insertAuthorSchema.parse(req.body);
       const author = await activeStorage.createAuthor(authorData);
       res.status(201).json(author);
     } catch (error) {
@@ -336,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/blog-posts", async (req, res) => {
     try {
-      const postData = req.body;
+      const postData = insertBlogPostSchema.parse(req.body);
       const post = await activeStorage.createBlogPost(postData);
       res.status(201).json(post);
     } catch (error) {
@@ -634,10 +606,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/blog-posts/:id/comments", async (req, res) => {
     try {
       const { id } = req.params;
-      const commentData = {
+      const commentData = insertCommentSchema.parse({
         ...req.body,
         blogPostId: parseInt(id)
-      };
+      });
       
       const comment = await activeStorage.createComment(commentData);
       res.status(201).json(comment);
@@ -1280,11 +1252,5 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
   });
 
   const httpServer = createServer(app);
-  
-  // WebSocket functionality removed to fix text selection issues
-  
-  // Setup highlight API routes
-  setupSimpleHighlightRoutes(app, activeStorage);
-
   return httpServer;
 }

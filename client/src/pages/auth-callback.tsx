@@ -1,34 +1,49 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
-import { Loader2 } from "lucide-react";
+import { useEffect } from 'react';
+import { usePersistentAuth } from '@/hooks/usePersistentAuth';
+import { AgricultureLoader } from '@/components/loading-animations';
 
 export default function AuthCallback() {
-  const [, setLocation] = useLocation();
+  const { saveAuthState } = usePersistentAuth();
 
   useEffect(() => {
-    // Check if authentication was successful by trying to fetch user data
-    fetch('/api/auth/user')
-      .then(response => {
+    const handleAuthCallback = async () => {
+      try {
+        // Check if user is authenticated after OAuth redirect
+        const response = await fetch('/api/admin/verify-session', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
         if (response.ok) {
-          // Authentication successful, redirect to previous page or home
-          const returnTo = new URLSearchParams(window.location.search).get('returnTo') || '/';
-          setLocation(returnTo);
+          const data = await response.json();
+          if (data.authenticated && data.user) {
+            // Save the authenticated user to localStorage
+            saveAuthState(data.user, Date.now().toString());
+            
+            // Redirect to admin dashboard
+            window.location.href = '/admin';
+          } else {
+            // Authentication failed
+            window.location.href = '/admin';
+          }
         } else {
-          // Authentication failed, redirect to home
-          setLocation('/');
+          // Authentication failed
+          window.location.href = '/admin';
         }
-      })
-      .catch(() => {
-        // Error occurred, redirect to home
-        setLocation('/');
-      });
-  }, [setLocation]);
+      } catch (error) {
+        console.error('Auth callback error:', error);
+        window.location.href = '/admin';
+      }
+    };
+
+    handleAuthCallback();
+  }, [saveAuthState]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-forest-green/10 flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-forest-green" />
-        <p className="text-gray-600">Completing authentication...</p>
+        <AgricultureLoader theme="growth" size="lg" text="Planting your session..." />
+        <p className="text-gray-600 mt-4">Completing authentication...</p>
       </div>
     </div>
   );

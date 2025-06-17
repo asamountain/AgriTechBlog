@@ -3,8 +3,15 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import session from 'express-session';
 import type { Express } from 'express';
-import type { User } from '@shared/schema';
-import { mongoHighlightStorage } from './mongodb-highlight-storage';
+
+// User interface for session
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  provider: 'google' | 'github';
+  avatar?: string;
+}
 
 // Configure session middleware with persistent storage
 export function setupSession(app: Express) {
@@ -39,20 +46,14 @@ export function setupAuth(app: Express) {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: `${baseUrl}/auth/google/callback`
     }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-      try {
-        // Simplified user handling for MongoDB
-        const userData = {
-          id: profile.id,
-          email: profile.emails?.[0]?.value || '',
-          name: profile.displayName || '',
-          provider: 'google',
-          avatar: profile.photos?.[0]?.value
-        };
-        
-        return done(null, userData);
-      } catch (error) {
-        return done(error, null);
-      }
+      const user: User = {
+        id: profile.id,
+        email: profile.emails?.[0]?.value || '',
+        name: profile.displayName || '',
+        provider: 'google',
+        avatar: profile.photos?.[0]?.value
+      };
+      return done(null, user);
     }));
   }
 
@@ -67,20 +68,14 @@ export function setupAuth(app: Express) {
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: `${baseUrl}/auth/github/callback`
     }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-      try {
-        // Simplified user handling for MongoDB
-        const userData = {
-          id: profile.id,
-          email: profile.emails?.[0]?.value || '',
-          name: profile.displayName || profile.username || '',
-          provider: 'github',
-          avatar: profile.photos?.[0]?.value
-        };
-        
-        return done(null, userData);
-      } catch (error) {
-        return done(error, null);
-      }
+      const user: User = {
+        id: profile.id,
+        email: profile.emails?.[0]?.value || '',
+        name: profile.displayName || profile.username || '',
+        provider: 'github',
+        avatar: profile.photos?.[0]?.value
+      };
+      return done(null, user);
     }));
   }
 

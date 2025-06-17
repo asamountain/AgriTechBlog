@@ -1,7 +1,0 @@
-// WebSocket functionality disabled to fix text selection issues
-export function useWebSocket(postId?: number) {
-  return { 
-    isConnected: false, 
-    sendMessage: () => {} 
-  };
-}
