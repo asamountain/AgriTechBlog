@@ -231,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/categories", async (req, res) => {
     try {
-      const categoryData = insertCategorySchema.parse(req.body);
+      const categoryData = req.body;
       const category = await activeStorage.createCategory(categoryData);
       res.status(201).json(category);
     } catch (error) {
@@ -251,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/authors", async (req, res) => {
     try {
-      const authorData = insertAuthorSchema.parse(req.body);
+      const authorData = req.body;
       const author = await activeStorage.createAuthor(authorData);
       res.status(201).json(author);
     } catch (error) {
@@ -336,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/blog-posts", async (req, res) => {
     try {
-      const postData = insertBlogPostSchema.parse(req.body);
+      const postData = req.body;
       const post = await activeStorage.createBlogPost(postData);
       res.status(201).json(post);
     } catch (error) {
@@ -634,10 +634,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/blog-posts/:id/comments", async (req, res) => {
     try {
       const { id } = req.params;
-      const commentData = insertCommentSchema.parse({
+      const commentData = {
         ...req.body,
         blogPostId: parseInt(id)
-      });
+      };
       
       const comment = await activeStorage.createComment(commentData);
       res.status(201).json(comment);
