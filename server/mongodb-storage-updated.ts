@@ -546,4 +546,80 @@ export class MongoStorage implements IStorage {
       return 0;
     }
   }
+
+  // Highlighting system methods
+  async getHighlightsByPostId(postId: number | string): Promise<any[]> {
+    const highlights = await this.db.collection("highlights")
+      .find({ blogPostId: postId })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    const highlightDetails = [];
+    for (const highlight of highlights) {
+      const { _id, ...rest } = highlight;
+      const highlightObj = { id: _id.toString(), ...rest };
+      
+      // Get comments for this highlight
+      const comments = await this.db.collection("highlight_comments")
+        .find({ highlightId: highlightObj.id })
+        .sort({ createdAt: 1 })
+        .toArray();
+
+      highlightDetails.push({
+        ...highlightObj,
+        comments: comments.map(comment => {
+          const { _id, ...rest } = comment;
+          return { id: _id.toString(), ...rest };
+        })
+      });
+    }
+
+    return highlightDetails;
+  }
+
+  async createHighlight(highlightData: any): Promise<string> {
+    const highlightWithDate = {
+      ...highlightData,
+      createdAt: new Date(),
+    };
+
+    const result = await this.db.collection("highlights").insertOne(highlightWithDate);
+    return result.insertedId.toString();
+  }
+
+  async addHighlightComment(commentData: any): Promise<string> {
+    const commentWithDates = {
+      ...commentData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await this.db.collection("highlight_comments").insertOne(commentWithDates);
+    return result.insertedId.toString();
+  }
+
+  async updateHighlightComment(commentId: string, content: string): Promise<boolean> {
+    const result = await this.db.collection("highlight_comments").updateOne(
+      { _id: new ObjectId(commentId) },
+      { 
+        $set: { 
+          content, 
+          updatedAt: new Date() 
+        } 
+      }
+    );
+
+    return result.matchedCount > 0;
+  }
+
+  async deleteHighlightComment(commentId: string): Promise<boolean> {
+    // Delete the comment and all its replies
+    await this.db.collection("highlight_comments").deleteMany({ parentId: commentId });
+    
+    const result = await this.db.collection("highlight_comments").deleteOne({
+      _id: new ObjectId(commentId)
+    });
+
+    return result.deletedCount > 0;
+  }
 }

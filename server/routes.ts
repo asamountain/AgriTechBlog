@@ -3,11 +3,11 @@ import { createServer, type Server } from "http";
 import { WebSocketServer } from "ws";
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
-import { insertBlogPostSchema, insertCategorySchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
+// Schema imports removed - using direct validation in routes
 import { requireAuth } from "./auth";
 import { analyzeContentCategory, analyzeCategoryDistribution, getTrendingTopics } from "./categorization";
 import { getAITaggingService } from "./ai-tagging";
-import { setupHighlightRoutes } from "./highlight-routes";
+import { setupSimpleHighlightRoutes } from "./simple-highlight-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
@@ -1303,7 +1303,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
   });
   
   // Setup highlight API routes
-  setupHighlightRoutes(app, wss);
+  setupSimpleHighlightRoutes(app, activeStorage);
 
   return httpServer;
 }
