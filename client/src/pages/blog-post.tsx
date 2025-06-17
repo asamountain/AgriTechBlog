@@ -292,8 +292,8 @@ export default function BlogPost() {
 
               {/* Article Content with Highlighting */}
               <div className="prose prose-lg max-w-none">
-                <TextHighlighter
-                  postId={post.id}
+                <SimpleTextHighlighter
+                  postId={typeof post.id === 'string' ? parseInt(post.id) : post.id}
                   postSlug={post.slug}
                   user={user || undefined}
                   isOwner={user?.id === post.userId}
@@ -302,7 +302,7 @@ export default function BlogPost() {
                     className="text-gray-700 leading-relaxed blog-content"
                     dangerouslySetInnerHTML={{ __html: post.content }}
                   />
-                </TextHighlighter>
+                </SimpleTextHighlighter>
               </div>
             </div>
           </div>
