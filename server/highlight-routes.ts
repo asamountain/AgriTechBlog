@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { mongoHighlightStorage } from "./mongodb-highlight-storage";
 import { highlightSchema, highlightCommentSchema } from "@shared/schema";
 import { z } from "zod";
+import { requireAuth } from "./auth-mongodb";
 
 export function setupHighlightRoutes(app: Express, wss: any) {
   // Get highlights for a blog post
@@ -12,7 +13,7 @@ export function setupHighlightRoutes(app: Express, wss: any) {
         return res.status(400).json({ error: "Invalid post ID" });
       }
 
-      const highlights = await highlightStorage.getHighlightsByPostId(postId);
+      const highlights = await mongoHighlightStorage.getHighlightsByPostId(postId);
       res.json(highlights);
     } catch (error) {
       console.error("Error fetching highlights:", error);
@@ -21,10 +22,14 @@ export function setupHighlightRoutes(app: Express, wss: any) {
   });
 
   // Create a new highlight
-  app.post("/api/highlights", async (req, res) => {
+  app.post("/api/highlights", requireAuth, async (req: any, res) => {
     try {
-      const validatedData = insertHighlightSchema.parse(req.body);
-      const highlightId = await highlightStorage.createHighlight(validatedData);
+      const highlightData = {
+        ...req.body,
+        userId: req.user.id,
+      };
+      const validatedData = highlightSchema.parse(highlightData);
+      const highlightId = await mongoHighlightStorage.createHighlight(validatedData);
       
       // Broadcast to WebSocket clients
       broadcastHighlightUpdate(wss, validatedData.blogPostId, 'highlight_created', {
@@ -43,17 +48,9 @@ export function setupHighlightRoutes(app: Express, wss: any) {
   });
 
   // Add comment to highlight
-  app.post("/api/highlights/:highlightId/comments", async (req, res) => {
+  app.post("/api/highlights/:highlightId/comments", requireAuth, async (req: any, res) => {
     try {
-      const highlightId = parseInt(req.params.highlightId);
-      if (isNaN(highlightId)) {
-        return res.status(400).json({ error: "Invalid highlight ID" });
-      }
-
-      // Check authentication
-      if (!req.user?.id) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+      const highlightId = req.params.highlightId;
 
       const commentData = {
         ...req.body,
@@ -61,11 +58,11 @@ export function setupHighlightRoutes(app: Express, wss: any) {
         userId: req.user.id,
       };
 
-      const validatedData = insertHighlightCommentSchema.parse(commentData);
-      const commentId = await highlightStorage.addComment(validatedData);
+      const validatedData = highlightCommentSchema.parse(commentData);
+      const commentId = await mongoHighlightStorage.addComment(validatedData);
 
       // Get the created comment with user details
-      const comment = await highlightStorage.getCommentWithUser(commentId);
+      const comment = await mongoHighlightStorage.getCommentWithUser(commentId);
 
       // Broadcast to WebSocket clients
       broadcastHighlightUpdate(wss, highlightId, 'comment_added', {
@@ -84,30 +81,22 @@ export function setupHighlightRoutes(app: Express, wss: any) {
   });
 
   // Update comment
-  app.patch("/api/highlight-comments/:commentId", async (req, res) => {
+  app.patch("/api/highlight-comments/:commentId", requireAuth, async (req: any, res) => {
     try {
-      const commentId = parseInt(req.params.commentId);
-      if (isNaN(commentId)) {
-        return res.status(400).json({ error: "Invalid comment ID" });
-      }
-
-      // Check authentication
-      if (!req.user?.id) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+      const commentId = req.params.commentId;
 
       const { content } = req.body;
       if (!content || typeof content !== 'string') {
         return res.status(400).json({ error: "Content is required" });
       }
 
-      const success = await highlightStorage.updateComment(commentId, content, req.user.id);
+      const success = await mongoHighlightStorage.updateComment(commentId, content, req.user.id);
       if (!success) {
         return res.status(404).json({ error: "Comment not found or unauthorized" });
       }
 
       // Get updated comment
-      const comment = await highlightStorage.getCommentWithUser(commentId);
+      const comment = await mongoHighlightStorage.getCommentWithUser(commentId);
 
       // Broadcast to WebSocket clients
       broadcastHighlightUpdate(wss, commentId, 'comment_updated', {
@@ -135,7 +124,7 @@ export function setupHighlightRoutes(app: Express, wss: any) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const success = await highlightStorage.deleteComment(commentId, req.user.id);
+      const success = await mongoHighlightStorage.deleteComment(commentId, req.user.id);
       if (!success) {
         return res.status(404).json({ error: "Comment not found or unauthorized" });
       }
