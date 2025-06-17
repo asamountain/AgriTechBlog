@@ -337,13 +337,21 @@ function PostsManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Manage Posts</h2>
-        <Dialog open={showEditor} onOpenChange={setShowEditor}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setSelectedPost(undefined)}>
-              <Plus className="w-4 h-4 mr-2" />
-              New Post
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => window.location.href = '/create-post'}
+            className="bg-forest-green hover:bg-forest-green/90"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Post (Advanced Editor)
+          </Button>
+          <Dialog open={showEditor} onOpenChange={setShowEditor}>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={() => setSelectedPost(undefined)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Quick Post
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>

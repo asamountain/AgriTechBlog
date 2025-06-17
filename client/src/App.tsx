@@ -8,6 +8,7 @@ import Posts from "@/pages/posts";
 import BlogPost from "@/pages/blog-post";
 import AdminDashboard from "@/pages/admin";
 import AdminSEODashboard from "@/pages/admin-seo-dashboard";
+import CreatePost from "@/pages/create-post";
 import OpenGraphTester from "@/pages/og-tester";
 import TaggedPosts from "@/pages/tagged-posts";
 import AuthCallback from "@/pages/auth-callback";
@@ -26,6 +27,8 @@ function Router() {
       <Route path="/posts" component={Posts} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/seo" component={AdminSEODashboard} />
+      <Route path="/create-post" component={CreatePost} />
+      <Route path="/edit-post/:id" component={CreatePost} />
       <Route path="/og-test" component={OpenGraphTester} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/tags/:tag" component={TaggedPosts} />

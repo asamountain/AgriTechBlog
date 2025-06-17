@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import MarkdownEditor from '@/components/markdown-editor';
+import SimpleMarkdownEditor from '@/components/simple-markdown-editor';
 import Navigation from '@/components/navigation';
 import { toast } from '@/hooks/use-toast';
 import type { BlogPostWithDetails } from '@shared/schema';
@@ -30,38 +30,36 @@ export default function CreatePost() {
       isPublished: boolean;
       isFeatured: boolean;
     }) => {
+      const payload = {
+        ...data,
+        slug: data.title.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim(),
+        isPublished: isEditing ? data.isPublished : false, // Always save as draft for auto-save on new posts
+      };
+
       if (isEditing) {
-        return apiRequest(`/api/admin/blog-posts/${id}`, {
+        const response = await fetch(`/api/admin/blog-posts/${id}`, {
           method: 'PATCH',
-          body: JSON.stringify({
-            ...data,
-            slug: data.title.toLowerCase()
-              .replace(/[^\w\s-]/g, '')
-              .replace(/\s+/g, '-')
-              .replace(/-+/g, '-')
-              .trim(),
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
+        return response.json();
       } else {
-        // For new posts, create a draft
-        return apiRequest('/api/admin/blog-posts', {
+        const response = await fetch('/api/admin/blog-posts', {
           method: 'POST',
-          body: JSON.stringify({
-            ...data,
-            slug: data.title.toLowerCase()
-              .replace(/[^\w\s-]/g, '')
-              .replace(/\s+/g, '-')
-              .replace(/-+/g, '-')
-              .trim(),
-            isPublished: false, // Always save as draft for auto-save
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
+        return response.json();
       }
     },
     onSuccess: (savedPost) => {
       // If this was a new post, redirect to edit mode
       if (!isEditing && savedPost?.id) {
-        setLocation(`/admin/edit-post/${savedPost.id}`);
+        setLocation(`/edit-post/${savedPost.id}`);
       }
       
       // Invalidate relevant queries
@@ -83,25 +81,32 @@ export default function CreatePost() {
       isPublished: boolean;
       isFeatured: boolean;
     }) => {
-      const slug = data.title.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
+      const payload = {
+        ...data,
+        slug: data.title.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim(),
+      };
 
       if (isEditing) {
-        return apiRequest(`/api/admin/blog-posts/${id}`, {
+        const response = await fetch(`/api/admin/blog-posts/${id}`, {
           method: 'PATCH',
-          body: JSON.stringify({ ...data, slug }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
+        return response.json();
       } else {
-        return apiRequest('/api/admin/blog-posts', {
+        const response = await fetch('/api/admin/blog-posts', {
           method: 'POST',
-          body: JSON.stringify({ ...data, slug }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
+        return response.json();
       }
     },
-    onSuccess: (savedPost) => {
+    onSuccess: (savedPost: any) => {
       toast({
         title: 'Success',
         description: `Post ${savedPost.isPublished ? 'published' : 'saved as draft'} successfully!`,
@@ -134,7 +139,7 @@ export default function CreatePost() {
   }) => {
     // Only auto-save if there's content to save
     if (data.title.trim() || data.content.trim()) {
-      return autoSaveMutation.mutateAsync(data);
+      await autoSaveMutation.mutateAsync(data);
     }
   };
 
@@ -147,7 +152,7 @@ export default function CreatePost() {
     isPublished: boolean;
     isFeatured: boolean;
   }) => {
-    return saveMutation.mutateAsync(data);
+    await saveMutation.mutateAsync(data);
   };
 
   if (isEditing && isLoading) {
@@ -168,13 +173,13 @@ export default function CreatePost() {
       <Navigation />
       <div className="pt-20">
         <MarkdownEditor
-          initialContent={post?.content || ''}
-          initialTitle={post?.title || ''}
-          initialTags={post?.tags || []}
-          initialExcerpt={post?.excerpt || ''}
-          initialFeaturedImage={post?.featuredImage || ''}
-          isPublished={post?.isPublished || false}
-          isFeatured={post?.isFeatured || false}
+          initialContent={(post as any)?.content || ''}
+          initialTitle={(post as any)?.title || ''}
+          initialTags={(post as any)?.tags || []}
+          initialExcerpt={(post as any)?.excerpt || ''}
+          initialFeaturedImage={(post as any)?.featuredImage || ''}
+          isPublished={(post as any)?.isPublished || false}
+          isFeatured={(post as any)?.isFeatured || false}
           onAutoSave={handleAutoSave}
           onSave={handleSave}
         />
