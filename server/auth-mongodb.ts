@@ -46,7 +46,7 @@ export function setupAuth(app: Express) {
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback"
+      callbackURL: "https://54037cb7-11dd-4327-b4c8-0182009521c3-00-2xwgdjgm9t82u.janeway.replit.dev/auth/google/callback"
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         await mongoHighlightStorage.connect();
@@ -74,7 +74,7 @@ export function setupAuth(app: Express) {
     passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: "/auth/github/callback"
+      callbackURL: "https://54037cb7-11dd-4327-b4c8-0182009521c3-00-2xwgdjgm9t82u.janeway.replit.dev/auth/github/callback"
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         await mongoHighlightStorage.connect();
