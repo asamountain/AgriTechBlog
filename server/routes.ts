@@ -1112,8 +1112,8 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
   app.get('/api/og-image', async (req, res) => {
     const { title, category } = req.query as { title?: string; category?: string };
     
-    const ogTitle = title || 'AgriTech Innovation Hub';
-    const ogCategory = category || 'Agricultural Technology';
+    const ogTitle = title || 'San\'s Blog';
+    const ogCategory = category || 'Blog Post';
     
     const svg = `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -1127,8 +1127,8 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
       <text x="60" y="220" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#ffffff" text-anchor="start">
         <tspan x="60" dy="0">${ogTitle.length > 40 ? ogTitle.substring(0, 40) + '...' : ogTitle}</tspan>
       </text>
-      <text x="60" y="520" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" opacity="0.9">AgriTech Innovation Hub</text>
-      <text x="60" y="560" font-family="Arial, sans-serif" font-size="24" fill="#ffffff" opacity="0.7">Advancing Agricultural Technology Worldwide</text>
+      <text x="60" y="520" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" opacity="0.9">San's Blog</text>
+      <text x="60" y="560" font-family="Arial, sans-serif" font-size="24" fill="#ffffff" opacity="0.7">Insights on Technology and Innovation</text>
       <circle cx="1050" cy="150" r="80" fill="#ffffff" opacity="0.1"/>
       <circle cx="1100" cy="400" r="60" fill="#ffffff" opacity="0.08"/>
       <circle cx="950" cy="500" r="40" fill="#ffffff" opacity="0.06"/>

@@ -53,7 +53,7 @@ export default function SEOHead({
       { property: 'og:url', content: url },
       { property: 'og:image', content: image },
       { property: 'og:image:alt', content: `${title} - Featured Image` },
-      { property: 'og:site_name', content: 'AgriTech Innovation Hub' },
+      { property: 'og:site_name', content: 'San\'s Blog' },
       { property: 'og:locale', content: 'en_US' },
       
       // Twitter Card tags
@@ -61,8 +61,8 @@ export default function SEOHead({
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
       { name: 'twitter:image', content: image },
-      { name: 'twitter:site', content: '@AgriTechHub' },
-      { name: 'twitter:creator', content: '@AgriTechHub' },
+      { name: 'twitter:site', content: '@SansBlog' },
+      { name: 'twitter:creator', content: '@SansBlog' },
       
       // Article specific meta tags
       ...(type === 'article' && publishedTime ? [
