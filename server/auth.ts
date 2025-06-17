@@ -76,14 +76,27 @@ export function setupAuth(app: Express) {
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: `${baseUrl}/auth/github/callback`
     }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-      const user: User = {
-        id: profile.id,
-        email: profile.emails?.[0]?.value || '',
-        name: profile.displayName || profile.username || '',
-        provider: 'github',
-        avatar: profile.photos?.[0]?.value
-      };
-      return done(null, user);
+      try {
+        // Check if user exists
+        const [existingUser] = await db.select().from(users).where(eq(users.id, profile.id));
+        
+        if (existingUser) {
+          return done(null, existingUser);
+        }
+
+        // Create new user
+        const [newUser] = await db.insert(users).values({
+          id: profile.id,
+          email: profile.emails?.[0]?.value || '',
+          name: profile.displayName || profile.username || '',
+          provider: 'github',
+          avatar: profile.photos?.[0]?.value
+        }).returning();
+        
+        return done(null, newUser);
+      } catch (error) {
+        return done(error, null);
+      }
     }));
   }
 
