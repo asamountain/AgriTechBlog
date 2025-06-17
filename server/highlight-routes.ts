@@ -1,6 +1,6 @@
 import type { Express } from "express";
-import { highlightStorage } from "./highlight-storage";
-import { insertHighlightSchema, insertHighlightCommentSchema } from "@shared/schema";
+import { mongoHighlightStorage } from "./mongodb-highlight-storage";
+import { highlightSchema, highlightCommentSchema } from "@shared/schema";
 import { z } from "zod";
 
 export function setupHighlightRoutes(app: Express, wss: any) {

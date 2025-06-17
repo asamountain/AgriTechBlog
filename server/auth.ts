@@ -3,10 +3,8 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import session from 'express-session';
 import type { Express } from 'express';
-import { db } from './db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
 import type { User } from '@shared/schema';
+import { mongoHighlightStorage } from './mongodb-highlight-storage';
 
 // Configure session middleware with persistent storage
 export function setupSession(app: Express) {

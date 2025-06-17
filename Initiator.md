@@ -39,6 +39,7 @@ All design components and spacing must follow the golden ratio for optimal visua
 2. **All measurements must follow golden ratio progressions**
 3. **Maintain consistency across all components**
 4. **Test proportions visually to ensure harmony**
+5. **Database Rule: ALL database operations must use the existing MongoDB setup** - no additional databases (PostgreSQL, SQLite, etc.) should be added. Every feature must integrate with the existing MongoDB collections.
 
 ## Component Guidelines
 - Buttons: Use forest green background, white text
