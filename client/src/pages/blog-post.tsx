@@ -8,11 +8,13 @@ import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
 import ScrollToTop from "@/components/scroll-to-top";
 import RelatedPostsByTags from "@/components/related-posts-by-tags";
+import TextHighlighter from "@/components/text-highlighter";
+import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
+import { Clock, Calendar, User, ArrowLeft, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BlogPostWithDetails, Author } from "@shared/schema";
@@ -24,6 +26,7 @@ import { AgriculturalSkeleton } from "@/components/loading-animations";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
+  const { user, isAuthenticated } = useAuth();
 
   const {
     data: post,
@@ -255,12 +258,51 @@ export default function BlogPost() {
                 <TableOfContents content={post.content} />
               </div>
 
-              {/* Article Content */}
+              {/* Authentication Banner for Highlighting */}
+              {!isAuthenticated && (
+                <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <LogIn className="h-5 w-5 text-blue-600" />
+                      <span className="text-blue-800">
+                        Sign in to highlight text and add comments
+                      </span>
+                    </div>
+                    <div className="flex space-x-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.location.href = '/auth/google'}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
+                        Sign in with Google
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.location.href = '/auth/github'}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
+                        Sign in with GitHub
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Article Content with Highlighting */}
               <div className="prose prose-lg max-w-none">
-                <div
-                  className="text-gray-700 leading-relaxed blog-content"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
+                <TextHighlighter
+                  postId={post.id}
+                  postSlug={post.slug}
+                  user={user || undefined}
+                  isOwner={user?.id === post.userId}
+                >
+                  <div
+                    className="text-gray-700 leading-relaxed blog-content"
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                  />
+                </TextHighlighter>
               </div>
             </div>
           </div>

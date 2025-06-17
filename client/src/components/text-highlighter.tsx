@@ -14,6 +14,7 @@ interface TextHighlighterProps {
   postSlug: string;
   user?: User;
   isOwner: boolean;
+  children: React.ReactNode;
 }
 
 interface HighlightData {
@@ -245,7 +246,7 @@ function CommentBubble({ highlight, user, isOwner, onAddComment, onEditComment, 
   );
 }
 
-export default function TextHighlighter({ postId, postSlug, user, isOwner }: TextHighlighterProps) {
+export default function TextHighlighter({ postId, postSlug, user, isOwner, children }: TextHighlighterProps) {
   const [highlights, setHighlights] = useState<HighlightWithDetails[]>([]);
   const [activeHighlight, setActiveHighlight] = useState<HighlightWithDetails | null>(null);
   const [bubblePosition, setBubblePosition] = useState({ x: 0, y: 0 });
