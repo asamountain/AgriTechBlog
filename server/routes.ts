@@ -530,6 +530,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Recategorize all posts endpoint
+  app.post("/api/admin/recategorize-posts", async (req, res) => {
+    try {
+      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      let updated = 0;
+      
+      for (const post of posts) {
+        const newCategory = analyzeContentCategory(post);
+        if (newCategory !== post.category.name) {
+          // Find or create category
+          let category = await activeStorage.getCategoryBySlug(newCategory.toLowerCase().replace(/\s+/g, '-'));
+          
+          if (!category) {
+            category = await activeStorage.createCategory({
+              name: newCategory,
+              slug: newCategory.toLowerCase().replace(/\s+/g, '-'),
+              description: generateCategoryDescription(newCategory),
+              color: getCategoryColor(newCategory)
+            });
+          }
+          
+          // Update post category
+          await activeStorage.updateBlogPost(post.id, { categoryId: category.id });
+          updated++;
+        }
+      }
+      
+      res.json({ 
+        message: `Successfully recategorized ${updated} posts`,
+        totalPosts: posts.length,
+        updatedPosts: updated
+      });
+    } catch (error) {
+      console.error("Recategorization error:", error);
+      res.status(500).json({ message: "Failed to recategorize posts" });
+    }
+  });
+
   // Simplified AI tagging endpoint
   app.post("/api/ai-tagging/analyze/:id", async (req, res) => {
     try {
@@ -542,30 +580,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Post not found" });
       }
 
+      // Use the improved categorization system
+      const suggestedCategory = analyzeContentCategory(post);
+      
       // Simple keyword-based tagging as fallback
       const keywords = post.content.toLowerCase().match(/\b\w{4,}\b/g) || [];
       const tagCandidates = Array.from(new Set(keywords))
         .filter(word => !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'more', 'time'].includes(word))
         .slice(0, 5);
-
-      const categoryMap: { [key: string]: string } = {
-        'technology': 'Agricultural Technology',
-        'sustainable': 'Sustainable Farming',
-        'crop': 'Crop Management',
-        'equipment': 'Farm Equipment',
-        'market': 'Market Analysis',
-        'weather': 'Weather & Climate',
-        'soil': 'Soil Health',
-        'irrigation': 'Irrigation Systems'
-      };
-
-      let suggestedCategory = 'Agricultural Technology';
-      for (const [keyword, category] of Object.entries(categoryMap)) {
-        if (post.content.toLowerCase().includes(keyword) || post.title.toLowerCase().includes(keyword)) {
-          suggestedCategory = category;
-          break;
-        }
-      }
 
       res.json({
         suggestedTags: tagCandidates,

@@ -114,21 +114,18 @@ export default function BlogPost() {
   const currentUrl = `${window.location.origin}/blog/${post.slug}`;
   const keywords = [
     ...(post.tags || []),
-    "agricultural technology",
-    "precision agriculture",
-    "IoT farming",
-    "smart agriculture",
-    "crop monitoring",
-    "sustainable farming",
-    "AgriTech innovation",
     post.category.name.toLowerCase(),
+    "technology",
+    "innovation",
+    "blog",
+    "insights",
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <ReadingProgress />
       <SEOHead
-        title={`${post.title} | San's Agricultural Technology Blog`}
+        title={`${post.title} | San's Blog`}
         description={post.excerpt}
         keywords={keywords}
         image={

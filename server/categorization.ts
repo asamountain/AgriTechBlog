@@ -1,46 +1,45 @@
 import type { BlogPostWithDetails } from "@shared/schema";
 
-// AI-powered categorization keywords and patterns
+// Content-based categorization keywords and patterns
 const categoryPatterns = {
+  'Technology & Engineering': [
+    'iot', 'engineering', 'prototype', 'data collection', 'technology', 'ai', 'artificial intelligence', 
+    'machine learning', 'programming', 'software', 'development', 'technical', 'innovation',
+    'automation', 'digital', 'sensor', 'monitoring', 'analytics', 'tech', 'computer science'
+  ],
+  'Career & Professional': [
+    'job', 'career', 'developer', 'engineer', 'professional', 'work', 'employment',
+    'hiring', 'interview', 'resume', 'linkedin', 'networking', 'skills', 'experience',
+    'promotion', 'salary', 'workplace', 'industry', 'business'
+  ],
+  'Life & Philosophy': [
+    'life', 'philosophy', 'meaning', 'purpose', 'excellence', 'achievement', 'goals',
+    'values', 'reflection', 'personal', 'growth', 'mindset', 'wisdom', 'thinking',
+    'perspective', 'journey', 'self-improvement', 'motivation', 'inspiration'
+  ],
+  'Education & Learning': [
+    'education', 'learning', 'study', 'university', 'mit', 'caltech', 'postech',
+    'student', 'academic', 'research', 'knowledge', 'skill', 'course', 'degree',
+    'scholarship', 'curriculum', 'teaching', 'mentor'
+  ],
+  'Relationships & Personal': [
+    'love', 'relationship', 'partnership', 'conflict', 'stability', 'personal',
+    'emotion', 'communication', 'family', 'friendship', 'social', 'connection',
+    'trust', 'commitment', 'understanding', 'support'
+  ],
+  'Reviews & Comparisons': [
+    'comparison', 'review', 'analysis', 'evaluation', 'assessment', 'testing',
+    'versus', 'compare', 'perplexity', 'gemini', 'chatgpt', 'grok', 'service',
+    'tool', 'platform', 'feature', 'performance'
+  ],
+  'Challenges & Problem Solving': [
+    'challenge', 'problem', 'solution', 'difficulty', 'obstacle', 'overcome',
+    'struggle', 'setback', 'resilience', 'persistence', 'determination',
+    'breakthrough', 'issue', 'complexity'
+  ],
   'Agricultural Technology': [
-    'sensor', 'drone', 'automation', 'ai', 'artificial intelligence', 'machine learning',
-    'precision agriculture', 'smart farming', 'iot', 'internet of things', 'robotics',
-    'gps', 'satellite', 'monitoring', 'data analytics', 'digital farming'
-  ],
-  'Sustainable Farming': [
-    'sustainable', 'organic', 'eco-friendly', 'environmental', 'carbon footprint',
-    'renewable energy', 'water conservation', 'biodiversity', 'ecosystem',
-    'green farming', 'regenerative agriculture', 'climate change', 'conservation'
-  ],
-  'Crop Management': [
-    'crop', 'harvest', 'planting', 'seed', 'growth', 'yield', 'fertilizer',
-    'pesticide', 'cultivation', 'plant health', 'disease management', 'pest control',
-    'crop rotation', 'intercropping', 'companion planting'
-  ],
-  'Farm Equipment': [
-    'tractor', 'machinery', 'equipment', 'tools', 'implement', 'harvester',
-    'plow', 'cultivator', 'seeder', 'sprayer', 'thresher', 'combine',
-    'maintenance', 'repair', 'upgrade'
-  ],
-  'Market Analysis': [
-    'market', 'price', 'demand', 'supply', 'economics', 'profit', 'investment',
-    'commodity', 'trading', 'export', 'import', 'value chain', 'distribution',
-    'consumer trends', 'market research'
-  ],
-  'Weather & Climate': [
-    'weather', 'climate', 'rainfall', 'temperature', 'humidity', 'drought',
-    'flood', 'season', 'forecast', 'meteorology', 'climate change',
-    'adaptation', 'resilience', 'microclimate'
-  ],
-  'Soil Health': [
-    'soil', 'fertility', 'nutrients', 'ph', 'composting', 'microorganisms',
-    'soil testing', 'amendment', 'erosion', 'degradation', 'restoration',
-    'organic matter', 'soil structure', 'mineralization'
-  ],
-  'Irrigation Systems': [
-    'irrigation', 'water', 'watering', 'drip system', 'sprinkler', 'flood irrigation',
-    'water management', 'efficiency', 'scheduling', 'moisture', 'hydroponic',
-    'aquaponic', 'water conservation', 'drainage'
+    'agriculture', 'farming', 'crop', 'harvest', 'agritech', 'precision agriculture',
+    'smart farming', 'sustainable farming', 'agricultural', 'rural', 'farm'
   ]
 };
 
