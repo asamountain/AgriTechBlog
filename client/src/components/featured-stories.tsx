@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
+import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
 
 export default function FeaturedStories() {
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
@@ -28,12 +28,12 @@ export default function FeaturedStories() {
               Featured Stories
             </h2>
             <div className="flex justify-center mb-8">
-              <AgricultureLoader theme="forest" size="lg" text="Cultivating featured content..." />
+              <LoadingSpinner size="lg" text="Loading featured content..." />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <AgriculturalSkeleton key={i} />
+              <ContentSkeleton key={i} />
             ))}
           </div>
         </div>

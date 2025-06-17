@@ -168,11 +168,11 @@ export default function CommentManagement() {
           <h2 className="text-2xl font-bold text-gray-900">Comment Management</h2>
         </div>
         <div className="flex justify-center mb-8">
-          <AgricultureLoader theme="forest" size="lg" text="Gathering community feedback..." />
+          <LoadingSpinner size="lg" text="Loading comments..." />
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <AgriculturalSkeleton key={i} />
+            <ContentSkeleton key={i} />
           ))}
         </div>
       </div>
