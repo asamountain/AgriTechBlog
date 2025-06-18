@@ -916,6 +916,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/blog-posts", async (req, res) => {
+    try {
+      console.log("Creating/updating admin blog post with data:", req.body);
+      
+      const postData = req.body;
+      
+      // Add default userId for demo purposes
+      if (!postData.userId) {
+        postData.userId = "demo-user-001";
+      }
+      
+      // If there's an existing post ID, update it; otherwise create new
+      if (postData.id) {
+        const updatedPost = await activeStorage.updateBlogPost(postData.id, postData, postData.userId);
+        res.json(updatedPost);
+      } else {
+        const newPost = await activeStorage.createBlogPost(postData);
+        res.status(201).json(newPost);
+      }
+    } catch (error) {
+      console.error("Error creating/updating admin blog post:", error);
+      res.status(500).json({ message: "Failed to save blog post", error: error.message });
+    }
+  });
+
   app.get("/api/admin/stats", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user?.id;
