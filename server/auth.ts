@@ -41,6 +41,10 @@ export function setupAuth(app: Express) {
       ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
       : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
     
+    console.log('OAuth Configuration:');
+    console.log('Base URL:', baseUrl);
+    console.log('Callback URL:', `${baseUrl}/auth/google/callback`);
+    
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,

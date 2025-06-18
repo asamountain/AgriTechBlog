@@ -21,6 +21,18 @@ export function usePersistentAuth() {
   useEffect(() => {
     const restoreAuthState = async () => {
       try {
+        // Check for demo auth first (for development)
+        const demoAuth = localStorage.getItem('auth-user');
+        const demoSession = localStorage.getItem('is-authenticated');
+        
+        if (demoAuth && demoSession === 'true') {
+          const userData = JSON.parse(demoAuth);
+          setUser(userData);
+          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
+        }
+
         // Check localStorage for stored auth
         const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
         const storedSession = localStorage.getItem(SESSION_STORAGE_KEY);

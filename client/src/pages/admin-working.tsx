@@ -37,7 +37,7 @@ import Footer from "@/components/footer";
 import { useAuth } from "@/hooks/useAuth";
 import { usePersistentAuth } from "@/hooks/usePersistentAuth";
 import { trackEvent } from "@/lib/analytics";
-import AdminLogin from "@/components/admin-login";
+import AdminLoginSimple from "@/components/admin-login-simple";
 import MigrationPanel from "@/components/migration-panel";
 import CommentManagement from "@/components/comment-management";
 import { AITaggingPanel } from "@/components/ai-tagging-panel";
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   const { logout } = usePersistentAuth();
 
   if (!isAuthenticated || !user) {
-    return <AdminLogin />;
+    return <AdminLoginSimple />;
   }
 
   const handleLogout = () => {
