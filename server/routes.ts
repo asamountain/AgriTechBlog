@@ -430,6 +430,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   // Newsletter subscription (placeholder endpoint)
   app.post("/api/newsletter/subscribe", async (req, res) => {
     try {
