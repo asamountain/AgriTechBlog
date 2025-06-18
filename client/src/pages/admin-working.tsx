@@ -215,76 +215,82 @@ function PostManagement() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {posts?.map((post: Post) => (
-          <Card key={post.id} className="h-fit">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg line-clamp-2">{post.title}</CardTitle>
-                <div className="flex gap-1">
-                  {post.isFeatured && (
-                    <Badge variant="secondary" className="text-xs">
-                      Featured
-                    </Badge>
-                  )}
-                  <Badge variant={post.isPublished ? "default" : "outline"} className="text-xs">
-                    {post.isPublished ? "Published" : "Draft"}
-                  </Badge>
-                </div>
-              </div>
-              <CardDescription className="line-clamp-3">
-                {post.excerpt}
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>Created: {formatDate(post.createdAt)}</p>
-                <p>Read time: {post.readTime} min</p>
-                {post.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {post.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
+        {Array.isArray(posts) && posts.length > 0 ? (
+          posts.map((post: Post) => (
+            <Card key={post.id} className="h-fit">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg line-clamp-2">{post.title}</CardTitle>
+                  <div className="flex gap-1">
+                    {post.isFeatured && (
+                      <Badge variant="secondary" className="text-xs">
+                        Featured
                       </Badge>
-                    ))}
+                    )}
+                    <Badge variant={post.isPublished ? "default" : "outline"} className="text-xs">
+                      {post.isPublished ? "Published" : "Draft"}
+                    </Badge>
                   </div>
-                )}
-              </div>
-            </CardContent>
-            
-            <CardFooter>
-              <div className="flex w-full gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
-                  className="flex-1"
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => window.location.href = `/edit-post/${post.id}`}
-                  className="flex-1"
-                >
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleDelete(post.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
+                </div>
+                <CardDescription className="line-clamp-3">
+                  {post.excerpt}
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>Created: {formatDate(post.createdAt)}</p>
+                  <p>Read time: {post.readTime} min</p>
+                  {post.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {post.tags.map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              
+              <CardFooter>
+                <div className="flex w-full gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                    className="flex-1"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.location.href = `/edit-post/${post.id}`}
+                    className="flex-1"
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDelete(post.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-8">
+            <p className="text-gray-600">No posts found. Create your first post!</p>
+          </div>
+        )}
       </div>
     </div>
   );

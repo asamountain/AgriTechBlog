@@ -107,6 +107,11 @@ export function usePersistentAuth() {
   // Logout function
   const logout = async () => {
     try {
+      // Clear demo auth
+      localStorage.removeItem('auth-user');
+      localStorage.removeItem('is-authenticated');
+      
+      // Clear regular auth
       await fetch('/api/admin/logout', {
         method: 'POST',
         credentials: 'include',
