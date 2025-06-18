@@ -68,11 +68,7 @@ export default function SimpleMarkdownEditor({
       setSaveStatus('saving');
       const data = getCurrentData();
       
-      // Save to localStorage as backup
-      localStorage.setItem('blog-draft', JSON.stringify({
-        ...data,
-        timestamp: new Date().toISOString(),
-      }));
+      // Data persists only in MongoDB - no local storage backup
 
       await onAutoSave(data);
       setSaveStatus('saved');

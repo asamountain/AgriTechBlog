@@ -301,7 +301,7 @@ export class MongoStorage implements IStorage {
         throw new Error("Blog post not found");
       }
 
-      // Check user permission if userId provided
+      // Check user permission if userId provided (skip for admin operations when userId is undefined)
       if (userId && targetDoc.userId && targetDoc.userId !== userId) {
         throw new Error("Not authorized to update this post");
       }

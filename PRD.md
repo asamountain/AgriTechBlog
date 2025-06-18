@@ -1,5 +1,70 @@
 # Project Initiator Guidelines
 
+## Rule #1: Simplicity Over Complexity
+
+**CRITICAL: Always choose the simplest solution that works. Complexity is the enemy of maintainability.**
+
+### Core Principles:
+- **One responsibility per function/component** - no multi-purpose code
+- **Linear logic flow** - avoid nested conditions and complex branching
+- **Explicit over implicit** - clear, readable code over clever shortcuts
+- **Delete code before adding code** - remove unused features and dead code
+- **Flat over nested** - prefer composition over deep inheritance or nesting
+
+### Implementation Standards:
+- Maximum 3 levels of nesting in any function
+- Functions should be under 50 lines
+- Components should have single, clear purposes
+- Avoid abstract patterns unless absolutely necessary
+- Use descriptive names over comments
+- Prefer multiple simple functions over one complex function
+
+### Warning Signs of Complexity:
+- Functions that do multiple things
+- Nested ternary operators or complex conditionals
+- Deep object/array manipulations
+- Hard-to-test code
+- Code that requires extensive comments to understand
+
+### Benefits:
+- Easier debugging and maintenance
+- Faster development velocity
+- Better testability
+- Reduced bug surface area
+- Easier onboarding for new developers
+
+**When in doubt, choose the boring, simple solution.**
+
+---
+
+## Data Architecture Rule
+
+**CRITICAL: MongoDB is the ONLY data source. No local storage, memory storage, or mixed data approaches.**
+
+### Core Requirements:
+- All application data MUST be stored in and retrieved from MongoDB exclusively
+- No localStorage, sessionStorage, or in-memory storage for application state
+- No fallback to local data sources - if MongoDB is unavailable, show proper error states
+- All drafts, posts, user data, and application state must persist in MongoDB
+- Temporary caching is acceptable only for performance, never as a data source alternative
+
+### Benefits:
+- Eliminates data inconsistency and "spaghetti code"
+- Ensures data persistence across devices and sessions
+- Simplifies debugging and data management
+- Enables proper backup and recovery strategies
+- Supports multi-user access and collaboration
+
+### Implementation Standards:
+- Use MongoDB collections for all entities (posts, users, drafts, settings)
+- Implement proper error handling for database connectivity issues
+- Use MongoDB transactions for data integrity when needed
+- Follow single source of truth principle - never duplicate data storage
+
+This rule prevents architectural chaos and ensures reliable, consistent data management throughout the application.
+
+---
+
 ## Loading Effects Standard
 
 **Rule: All loading effects must use consistent shadowing effects, not farm-related or agricultural themes.**
