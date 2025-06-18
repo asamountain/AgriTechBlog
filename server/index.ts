@@ -17,36 +17,7 @@ app.get("/googlec3cfbe8ec5429358.html", (req, res) => {
   res.send('google-site-verification: googlec3cfbe8ec5429358.html');
 });
 
-// SEO routes - must come before other routes
-app.get("/sitemap.xml", async (req, res) => {
-  try {
-    const baseUrl = req.get('host')?.includes('localhost') 
-      ? 'http://localhost:5000' 
-      : `https://${req.get('host')}`;
-    
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/posts</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-</urlset>`;
 
-    res.setHeader('Content-Type', 'application/xml');
-    res.send(sitemap);
-  } catch (error) {
-    console.error('Error generating sitemap:', error);
-    res.status(500).send('Error generating sitemap');
-  }
-});
 
 app.get("/robots.txt", (req, res) => {
   const baseUrl = req.get('host')?.includes('localhost') 
