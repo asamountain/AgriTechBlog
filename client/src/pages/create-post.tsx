@@ -40,21 +40,27 @@ export default function CreatePost() {
         isPublished: isEditing ? data.isPublished : false, // Always save as draft for auto-save on new posts
       };
 
-      if (isEditing) {
-        const response = await fetch(`/api/admin/blog-posts/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        return response.json();
-      } else {
-        const response = await fetch('/api/admin/blog-posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        return response.json();
+      const url = isEditing ? `/api/admin/blog-posts/${id}` : '/api/admin/blog-posts';
+      const method = isEditing ? 'PATCH' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Expected JSON response, got: ${text.substring(0, 100)}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (savedPost) => {
       // If this was a new post, redirect to edit mode

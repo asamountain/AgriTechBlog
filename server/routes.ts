@@ -941,6 +941,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/admin/blog-posts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const postId = isNaN(parseInt(id)) ? id : parseInt(id);
+      const userId = "demo-user-001"; // Use demo user for now
+      
+      console.log("PATCH admin request for post:", postId, "with data:", req.body);
+      
+      const updateData = req.body;
+      const updatedPost = await activeStorage.updateBlogPost(postId, updateData, userId);
+      console.log("Admin updated post result:", updatedPost);
+      res.json(updatedPost);
+    } catch (error) {
+      console.error("PATCH admin blog post error:", error);
+      res.status(500).json({ message: "Failed to update blog post", error: error.message });
+    }
+  });
+
   app.get("/api/admin/stats", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user?.id;
