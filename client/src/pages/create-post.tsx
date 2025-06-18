@@ -15,8 +15,16 @@ export default function CreatePost() {
 
   // Fetch existing post if editing
   const { data: post, isLoading } = useQuery({
-    queryKey: ['/api/admin/blog-posts', id],
-    enabled: isEditing,
+    queryKey: ['/api/blog-posts', id],
+    queryFn: async () => {
+      if (!id) throw new Error('No post ID provided');
+      const response = await fetch(`/api/blog-posts/${id}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch post: ${response.status}`);
+      }
+      return response.json();
+    },
+    enabled: isEditing && !!id,
   });
 
   // Auto-save mutation for drafts

@@ -373,21 +373,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/blog-posts/:slug", async (req, res) => {
+  app.get("/api/blog-posts/:identifier", async (req, res) => {
     try {
-      const { slug } = req.params;
-      console.log(`Fetching blog post with slug: ${slug}`);
-      const post = await activeStorage.getBlogPostBySlug(slug);
+      const { identifier } = req.params;
+      console.log(`Fetching blog post with identifier: ${identifier}`);
+      
+      let post;
+      // Check if identifier is numeric (ID) or string (slug)
+      if (/^\d+$/.test(identifier)) {
+        // It's a numeric ID
+        const postId = isNaN(parseInt(identifier)) ? identifier : parseInt(identifier);
+        post = await activeStorage.getBlogPost(postId);
+      } else {
+        // It's a slug
+        post = await activeStorage.getBlogPostBySlug(identifier);
+      }
       
       if (!post) {
-        console.log(`Blog post not found for slug: ${slug}`);
+        console.log(`Blog post not found for identifier: ${identifier}`);
         return res.status(404).json({ message: "Blog post not found" });
       }
       
       res.json(post);
     } catch (error) {
-      console.error(`Error fetching blog post with slug ${req.params.slug}:`, error);
-      res.status(500).json({ message: "Failed to fetch blog post", error: error.message });
+      console.error(`Error fetching blog post with identifier ${req.params.identifier}:`, error);
+      res.status(500).json({ message: "Failed to fetch blog post", error: (error as any).message });
     }
   });
 
