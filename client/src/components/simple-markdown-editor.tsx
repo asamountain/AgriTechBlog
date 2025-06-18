@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Bold, Italic, Heading1, Heading2, Heading3,
   List, Quote, Image as ImageIcon, Eye, EyeOff, 
@@ -40,6 +41,7 @@ export default function SimpleMarkdownEditor({
   onSave,
   onAutoSave
 }: SimpleMarkdownEditorProps) {
+  const { toast } = useToast();
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
@@ -76,12 +78,28 @@ export default function SimpleMarkdownEditor({
       setSaveStatus('saved');
       setLastSaved(new Date());
       
-      // Reset status after 2 seconds
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      // Show success toast
+      toast({
+        title: "Draft saved",
+        description: "Your changes have been automatically saved.",
+        duration: 2000,
+      });
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
       console.error('Auto-save failed:', error);
       setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      
+      // Show error toast
+      toast({
+        title: "Auto-save failed",
+        description: "Your changes could not be saved automatically. Please save manually.",
+        variant: "destructive",
+        duration: 4000,
+      });
+      
+      setTimeout(() => setSaveStatus('idle'), 4000);
     }
   }, [onAutoSave, getCurrentData, saveStatus]);
 
@@ -93,8 +111,11 @@ export default function SimpleMarkdownEditor({
 
   // Auto-save on content change (debounced)
   useEffect(() => {
-    const timer = setTimeout(autoSave, 2000);
-    return () => clearTimeout(timer);
+    // Only auto-save if there's actual content
+    if (title.trim() || content.trim()) {
+      const timer = setTimeout(autoSave, 3000); // Increased to 3 seconds for better UX
+      return () => clearTimeout(timer);
+    }
   }, [title, content, excerpt, tags, autoSave]);
 
   // Load draft from localStorage on mount
@@ -167,13 +188,13 @@ export default function SimpleMarkdownEditor({
   const getSaveStatusIcon = () => {
     switch (saveStatus) {
       case 'saving':
-        return <Clock className="w-4 h-4 animate-spin" />;
+        return <Clock className="w-4 h-4 animate-spin text-blue-600" />;
       case 'saved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'error':
         return <AlertCircle className="w-4 h-4 text-red-600" />;
       default:
-        return null;
+        return <Save className="w-4 h-4 text-gray-400" />;
     }
   };
 
@@ -182,11 +203,11 @@ export default function SimpleMarkdownEditor({
       case 'saving':
         return 'Auto-saving...';
       case 'saved':
-        return lastSaved ? `Auto-saved at ${lastSaved.toLocaleTimeString()}` : 'Auto-saved';
+        return lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : 'Auto-saved';
       case 'error':
-        return 'Auto-save failed';
+        return 'Save failed';
       default:
-        return '';
+        return 'Waiting for changes';
     }
   };
 
@@ -196,9 +217,16 @@ export default function SimpleMarkdownEditor({
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-forest-green">Create New Post</h1>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-300 ${
+            saveStatus === 'saving' ? 'bg-blue-50 border-blue-200' :
+            saveStatus === 'saved' ? 'bg-green-50 border-green-200' :
+            saveStatus === 'error' ? 'bg-red-50 border-red-200' :
+            'bg-gray-50 border-gray-200'
+          }`}>
             {getSaveStatusIcon()}
-            {getSaveStatusText()}
+            <span className="text-sm font-medium">
+              {getSaveStatusText()}
+            </span>
           </div>
           <Button
             onClick={() => setShowPreview(!showPreview)}
