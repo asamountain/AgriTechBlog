@@ -439,9 +439,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? 'http://localhost:5000' 
         : `https://${req.get('host')}`;
       
-      // Fetch all published blog posts
-      const posts = await activeStorage.getBlogPosts({ includeDrafts: false });
-      console.log(`Sitemap: Found ${posts.length} published posts`);
+      // Fetch all blog posts (including drafts for debugging)
+      const allPosts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      const publishedPosts = allPosts.filter(post => post.isPublished);
+      console.log(`Sitemap: Total posts: ${allPosts.length}, Published: ${publishedPosts.length}`);
       
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -457,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
-${posts.map(post => `  <url>
+${publishedPosts.map(post => `  <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
     <lastmod>${new Date(post.updatedAt).toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
