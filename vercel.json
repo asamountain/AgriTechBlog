@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["server/**", "shared/**", "client/dist/**"]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/googlec3cfbe8ec5429358.html",
+      "headers": { "Content-Type": "text/html" },
+      "dest": "/api/verification"
+    },
+    {
+      "src": "/sitemap.xml",
+      "headers": { "Content-Type": "application/xml" },
+      "dest": "/api/sitemap"
+    },
+    {
+      "src": "/robots.txt",
+      "headers": { "Content-Type": "text/plain" },
+      "dest": "/api/robots"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/app"
+    }
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  }
+}
