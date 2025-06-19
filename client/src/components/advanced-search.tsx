@@ -5,20 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Search, Filter, Calendar, User, Tag, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { formatDate } from "@/lib/utils";
 import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
+import type { BlogPostWithDetails } from "@shared/schema";
 
 export default function AdvancedSearch() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
-
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
 
   const { data: searchResults = [], isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts/search", { q: searchQuery }],
@@ -30,9 +26,18 @@ export default function AdvancedSearch() {
     enabled: searchQuery.length <= 2,
   });
 
+  // Get all unique tags for filtering
+  const allTags = Array.from(
+    new Set(
+      (searchQuery.length > 2 ? searchResults : allPosts)
+        .flatMap(post => post.tags || [])
+        .filter(Boolean)
+    )
+  ).sort();
+
   // Filter and sort results
   const filteredPosts = (searchQuery.length > 2 ? searchResults : allPosts)
-    .filter(post => selectedCategory ? post.category.slug === selectedCategory : true)
+    .filter(post => selectedTag ? post.tags?.includes(selectedTag) : true)
     .sort((a, b) => {
       switch (sortBy) {
         case "oldest":
@@ -84,6 +89,25 @@ export default function AdvancedSearch() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Filter by Tag
+                </label>
+                <Select value={selectedTag || ""} onValueChange={(value) => setSelectedTag(value || null)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All tags" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All tags</SelectItem>
+                    {allTags.map((tag) => (
+                      <SelectItem key={tag} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Sort by
                 </label>
                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -104,7 +128,7 @@ export default function AdvancedSearch() {
                   variant="outline" 
                   onClick={() => {
                     setSearchQuery("");
-                    setSelectedCategory(null);
+                    setSelectedTag(null);
                     setSortBy("newest");
                   }}
                   className="w-full"
@@ -126,18 +150,25 @@ export default function AdvancedSearch() {
               `Found ${filteredPosts.length} article${filteredPosts.length !== 1 ? 's' : ''}`
             )}
           </div>
-          {searchQuery && (
-            <Badge variant="secondary" className="bg-forest-green/10 text-forest-green">
-              Search: "{searchQuery}"
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {searchQuery && (
+              <Badge variant="secondary" className="bg-forest-green/10 text-forest-green">
+                Search: "{searchQuery}"
+              </Badge>
+            )}
+            {selectedTag && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                Tag: {selectedTag}
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Results */}
         {isLoading ? (
           <div className="space-y-6">
             <div className="flex justify-center">
-              <AgricultureLoader theme="growth" size="lg" text="Searching the fields..." />
+              <AgricultureLoader size="lg" text="Searching the fields..." />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -172,11 +203,14 @@ export default function AdvancedSearch() {
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 left-4">
-                      <Badge 
-                        className="bg-white/90 text-gray-800 hover:bg-white"
-                      >
-                        {post.category.name}
-                      </Badge>
+                      {post.tags && post.tags.length > 0 && (
+                        <Badge 
+                          className="bg-white/90 text-gray-800 hover:bg-white"
+                        >
+                          <Tag className="h-3 w-3 mr-1" />
+                          {post.tags[0]}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   
@@ -188,6 +222,22 @@ export default function AdvancedSearch() {
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                       {post.excerpt}
                     </p>
+
+                    {/* Tags */}
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {post.tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {post.tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{post.tags.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center gap-4">
@@ -209,15 +259,6 @@ export default function AdvancedSearch() {
                 </Card>
               </Link>
             ))}
-          </div>
-        )}
-
-        {/* Load More Button */}
-        {filteredPosts.length > 0 && filteredPosts.length % 9 === 0 && (
-          <div className="text-center mt-12">
-            <Button variant="outline" size="lg">
-              Load More Articles
-            </Button>
           </div>
         )}
       </div>

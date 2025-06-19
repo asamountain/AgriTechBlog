@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, X, Wand2, Save } from "lucide-react";
-import type { BlogPostWithDetails, Category } from "@shared/schema";
+import type { BlogPostWithDetails } from "@shared/schema";
 
 interface PostEditorProps {
   post: BlogPostWithDetails;
@@ -24,7 +24,6 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
   const [title, setTitle] = useState(post.title);
   const [content, setContent] = useState(post.content);
   const [excerpt, setExcerpt] = useState(post.excerpt);
-  const [categoryId, setCategoryId] = useState(post.categoryId.toString());
   const [tags, setTags] = useState<string[]>(post.tags || []);
   const [newTag, setNewTag] = useState("");
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
@@ -72,14 +71,7 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
       if (data.suggestedTags) {
         setTags(data.suggestedTags);
       }
-      if (data.suggestedCategory) {
-        const matchingCategory = categories.find(cat => 
-          cat.name.toLowerCase() === data.suggestedCategory.toLowerCase()
-        );
-        if (matchingCategory) {
-          setCategoryId(matchingCategory.id.toString());
-        }
-      }
+
       toast({
         title: "AI Analysis Complete",
         description: `Generated ${data.suggestedTags?.length || 0} tags with ${Math.round((data.confidence || 0) * 100)}% confidence`,
@@ -116,7 +108,6 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
       title,
       content,
       excerpt,
-      categoryId: parseInt(categoryId),
       tags,
     });
   };

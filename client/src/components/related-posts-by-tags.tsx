@@ -67,14 +67,16 @@ export default function RelatedPostsByTags({ currentPostId, currentPostTags }: R
                   )}
                   
                   <CardContent className="p-6">
-                    <div className="mb-3">
-                      <Badge 
-                        className="text-xs font-medium text-white"
-                        style={{ backgroundColor: post.category.color }}
-                      >
-                        {post.category.name}
-                      </Badge>
-                    </div>
+                    {/* Show first tag if available */}
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="mb-3">
+                        <Badge 
+                          className="text-xs font-medium bg-forest-green text-white"
+                        >
+                          {post.tags[0]}
+                        </Badge>
+                      </div>
+                    )}
 
                     <h3 className="font-semibold text-lg text-gray-900 mb-3 group-hover:text-forest-green transition-colors line-clamp-2">
                       {post.title}
