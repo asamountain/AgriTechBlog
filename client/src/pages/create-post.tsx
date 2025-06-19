@@ -191,8 +191,8 @@ export default function CreatePost() {
           initialTitle={(post as any)?.title || ''}
           initialTags={(post as any)?.tags || []}
           initialExcerpt={(post as any)?.excerpt || ''}
-          onAutoSave={handleAutoSave}
-          onSave={handleSave}
+          onAutoSave={(data) => handleAutoSave({ ...data, featuredImage: "", isFeatured: false })}
+          onSave={(data) => handleSave({ ...data, featuredImage: "", isFeatured: false })}
         />
       </div>
     </div>

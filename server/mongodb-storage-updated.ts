@@ -119,10 +119,8 @@ export class MongoStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await this.usersCollection.insertOne(insertUser);
     return { 
-      id: result.insertedId.toString(), 
-      ...insertUser,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      id: parseInt(result.insertedId.toString().substring(0, 8), 16), 
+      ...insertUser
     };
   }
 
@@ -150,7 +148,7 @@ export class MongoStorage implements IStorage {
     };
     const result = await this.authorsCollection.insertOne(authorData);
     return { 
-      id: result.insertedId.toString(), 
+      id: parseInt(result.insertedId.toString().substring(0, 8), 16), 
       ...authorData
     };
   }

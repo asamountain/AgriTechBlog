@@ -108,7 +108,7 @@ export default function FeaturedStories() {
                               />
                             ) : (
                               <AvatarFallback className="bg-forest-green text-white text-xs font-medium">
-                                {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name).split(' ').map(n => n[0]).join('')}
+                                {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name).split(' ').map((n: string) => n[0]).join('')}
                               </AvatarFallback>
                             )}
                           </Avatar>

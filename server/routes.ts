@@ -633,12 +633,13 @@ ${publishedPosts.map(post => `  <url>
       res.json(updatedPost);
     } catch (error) {
       console.error("PATCH blog post error:", error);
-      if (error.message === "Not authorized to update this post") {
-        res.status(403).json({ message: error.message });
-      } else if (error.message === "Blog post not found") {
-        res.status(404).json({ message: error.message });
+      const err = error as Error;
+      if (err.message === "Not authorized to update this post") {
+        res.status(403).json({ message: err.message });
+      } else if (err.message === "Blog post not found") {
+        res.status(404).json({ message: err.message });
       } else {
-        res.status(400).json({ message: "Failed to update blog post", error: error.message });
+        res.status(400).json({ message: "Failed to update blog post", error: err.message });
       }
     }
   });
@@ -686,43 +687,7 @@ ${publishedPosts.map(post => `  <url>
     });
   });
 
-  // Recategorize all posts endpoint
-  app.post("/api/admin/recategorize-posts", async (req, res) => {
-    try {
-      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
-      let updated = 0;
-      
-      for (const post of posts) {
-        const newCategory = analyzeContentCategory(post);
-        if (newCategory !== post.category.name) {
-          // Find or create category
-          let category = await activeStorage.getCategoryBySlug(newCategory.toLowerCase().replace(/\s+/g, '-'));
-          
-          if (!category) {
-            category = await activeStorage.createCategory({
-              name: newCategory,
-              slug: newCategory.toLowerCase().replace(/\s+/g, '-'),
-              description: generateCategoryDescription(newCategory),
-              color: getCategoryColor(newCategory)
-            });
-          }
-          
-          // Update post category
-          await activeStorage.updateBlogPost(post.id, { categoryId: category.id });
-          updated++;
-        }
-      }
-      
-      res.json({ 
-        message: `Successfully recategorized ${updated} posts`,
-        totalPosts: posts.length,
-        updatedPosts: updated
-      });
-    } catch (error) {
-      console.error("Recategorization error:", error);
-      res.status(500).json({ message: "Failed to recategorize posts" });
-    }
-  });
+  // Note: Removed recategorization endpoint - using tag-based system instead
 
   // Simplified AI tagging endpoint
   app.post("/api/ai-tagging/analyze/:id", async (req, res) => {
@@ -736,10 +701,7 @@ ${publishedPosts.map(post => `  <url>
         return res.status(404).json({ message: "Post not found" });
       }
 
-      // Use the improved categorization system
-      const suggestedCategory = analyzeContentCategory(post);
-      
-      // Simple keyword-based tagging as fallback
+      // Simple keyword-based tagging
       const keywords = post.content.toLowerCase().match(/\b\w{4,}\b/g) || [];
       const tagCandidates = Array.from(new Set(keywords))
         .filter(word => !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'more', 'time'].includes(word))
@@ -747,7 +709,6 @@ ${publishedPosts.map(post => `  <url>
 
       res.json({
         suggestedTags: tagCandidates,
-        suggestedCategory,
         confidence: 0.7,
         reasoning: "Generated using keyword analysis"
       });

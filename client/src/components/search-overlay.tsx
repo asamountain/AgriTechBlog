@@ -88,13 +88,14 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         {post.excerpt}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge 
-                          variant="secondary"
-                          className="text-xs"
-                          style={{ backgroundColor: post.category.color, color: 'white' }}
-                        >
-                          {post.category.name}
-                        </Badge>
+                        {post.tags && post.tags.length > 0 && (
+                          <Badge 
+                            variant="secondary"
+                            className="text-xs bg-forest-green text-white"
+                          >
+                            {post.tags[0]}
+                          </Badge>
+                        )}
                         <span className="text-xs text-gray-500">
                           {post.author.name} • {formatDate(post.createdAt)}
                         </span>
