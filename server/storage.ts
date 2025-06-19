@@ -37,6 +37,7 @@ export interface IStorage {
   getCommentsByPostId(postId: number): Promise<Comment[]>;
   createComment(insertComment: InsertComment): Promise<Comment>;
   approveComment(id: number): Promise<Comment>;
+  deleteComment(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -311,7 +312,7 @@ export class MemStorage implements IStorage {
         post.title.toLowerCase().includes(searchTerm) ||
         post.excerpt.toLowerCase().includes(searchTerm) ||
         post.content.toLowerCase().includes(searchTerm) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        post.tags?.some(tag => tag.toLowerCase().includes(searchTerm)) || false
       )
     );
 
@@ -376,6 +377,10 @@ export class MemStorage implements IStorage {
     const approvedComment = { ...comment, isApproved: true };
     this.comments.set(id, approvedComment);
     return approvedComment;
+  }
+
+  async deleteComment(id: number): Promise<void> {
+    this.comments.delete(id);
   }
 }
 

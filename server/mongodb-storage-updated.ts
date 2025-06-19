@@ -143,6 +143,14 @@ export class MongoStorage implements IStorage {
   async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
     const authorData = {
       ...insertAuthor,
+      bio: insertAuthor.bio || null,
+      avatar: insertAuthor.avatar || null,
+      userId: insertAuthor.userId || null,
+      linkedinUrl: insertAuthor.linkedinUrl || null,
+      instagramUrl: insertAuthor.instagramUrl || null,
+      youtubeUrl: insertAuthor.youtubeUrl || null,
+      githubUrl: insertAuthor.githubUrl || null,
+      portfolioUrl: insertAuthor.portfolioUrl || null,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -270,7 +278,17 @@ export class MongoStorage implements IStorage {
     const result = await this.blogPostsCollection.insertOne(postData);
     return { 
       id: parseInt(result.insertedId.toString().substring(0, 8), 16),
-      ...insertPost,
+      userId: insertPost.userId,
+      title: insertPost.title,
+      slug: insertPost.slug,
+      excerpt: insertPost.excerpt,
+      content: insertPost.content,
+      featuredImage: insertPost.featuredImage,
+      authorId: insertPost.authorId,
+      tags: insertPost.tags || null,
+      readTime: insertPost.readTime || 5,
+      isFeatured: insertPost.isFeatured || false,
+      isPublished: insertPost.isPublished !== false,
       createdAt: now,
       updatedAt: now
     };
@@ -409,8 +427,20 @@ export class MongoStorage implements IStorage {
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {
-    const result = await this.commentsCollection.insertOne(insertComment);
-    return { id: result.insertedId.toString(), ...insertComment };
+    const commentData = {
+      content: insertComment.content,
+      blogPostId: insertComment.blogPostId,
+      authorName: insertComment.authorName,
+      authorEmail: insertComment.authorEmail,
+      parentId: insertComment.parentId || null,
+      createdAt: new Date(),
+      isApproved: false
+    };
+    const result = await this.commentsCollection.insertOne(commentData);
+    return { 
+      id: parseInt(result.insertedId.toString().substring(0, 8), 16), 
+      ...commentData
+    };
   }
 
   async approveComment(commentId: number): Promise<Comment> {

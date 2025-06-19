@@ -5,7 +5,7 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist/public"
+        "distDir": "dist"
       }
     }
   ],
@@ -15,29 +15,8 @@
       "dest": "/googlec3cfbe8ec5429358.html"
     },
     {
-      "src": "/sitemap.xml",
-      "dest": "/api/sitemap"
-    },
-    {
-      "src": "/robots.txt", 
-      "dest": "/api/robots"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }

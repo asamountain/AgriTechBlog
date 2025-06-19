@@ -15,6 +15,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { Request, Response, NextFunction } from "express";
 
 // Function to initialize sample data if database is empty
 async function initializeSampleData(storage: any) {
@@ -430,8 +431,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-
   // Generate sitemap.xml with all published blog posts
   app.get("/sitemap.xml", async (req, res) => {
     try {
@@ -605,12 +604,16 @@ ${publishedPosts.map(post => `  <url>
       
       const updatedPost = await activeStorage.updateBlogPost(postId, updateData, userId);
       res.json(updatedPost);
-    } catch (error) {
-      console.error("Update blog post error:", error);
-      if (error.message === "Not authorized to update this post") {
-        res.status(403).json({ message: error.message });
-      } else if (error.message === "Blog post not found") {
-        res.status(404).json({ message: error.message });
+    } catch (err) {
+      console.error("Update blog post error:", err);
+      if (err instanceof Error) {
+        if (err.message === "Not authorized to update this post") {
+          res.status(403).json({ message: err.message });
+        } else if (err.message === "Blog post not found") {
+          res.status(404).json({ message: err.message });
+        } else {
+          res.status(400).json({ message: "Failed to update blog post", error: err.message });
+        }
       } else {
         res.status(400).json({ message: "Failed to update blog post" });
       }
@@ -696,7 +699,7 @@ ${publishedPosts.map(post => `  <url>
       const postId = isNaN(parseInt(id)) ? id : parseInt(id);
       const userId = req.isAuthenticated && req.isAuthenticated() ? (req.user as any)?.id : undefined;
       
-      const post = await activeStorage.getBlogPost(postId, userId);
+      const post = await activeStorage.getBlogPost(postId);
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
@@ -734,11 +737,19 @@ ${publishedPosts.map(post => `  <url>
   app.get("/api/blog-posts/:id/comments", async (req, res) => {
     try {
       const { id } = req.params;
-      const comments = await activeStorage.getCommentsByPostId(id);
+      const numericId = parseInt(id);
+      if (isNaN(numericId)) {
+        res.status(400).json({ message: "Invalid post ID" });
+        return;
+      }
+      const comments = await activeStorage.getCommentsByPostId(numericId);
       res.json(comments);
     } catch (error) {
-      console.error("Error fetching comments:", error);
-      res.status(500).json({ message: "Failed to fetch comments" });
+      if (error instanceof Error) {
+        res.status(500).json({ message: "Failed to fetch comments", error: error.message });
+      } else {
+        res.status(500).json({ message: "Unknown error occurred" });
+      }
     }
   });
 
@@ -818,7 +829,14 @@ ${publishedPosts.map(post => `  <url>
   app.get("/api/analytics/categories", requireAuth, async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
-      const distribution = analyzeCategoryDistribution(posts);
+      const distribution = posts.reduce((acc: Record<string, number>, post) => {
+        if (post.tags) {
+          post.tags.forEach(tag => {
+            acc[tag] = (acc[tag] || 0) + 1;
+          });
+        }
+        return acc;
+      }, {});
       res.json(distribution);
     } catch (error) {
       console.error("Error analyzing categories:", error);
@@ -829,7 +847,18 @@ ${publishedPosts.map(post => `  <url>
   app.get("/api/analytics/trending", async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ includeDrafts: false });
-      const trending = getTrendingTopics(posts, 10);
+      const tagCounts = posts.reduce((acc: Record<string, number>, post) => {
+        if (post.tags) {
+          post.tags.forEach(tag => {
+            acc[tag] = (acc[tag] || 0) + 1;
+          });
+        }
+        return acc;
+      }, {});
+      const trending = Object.entries(tagCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10)
+        .map(([tag]) => tag);
       res.json(trending);
     } catch (error) {
       console.error("Error getting trending topics:", error);
@@ -847,7 +876,7 @@ ${publishedPosts.map(post => `  <url>
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const post = await activeStorage.getBlogPost(id, userId);
+      const post = await activeStorage.getBlogPost(id);
       if (!post) {
         return res.status(404).json({ message: 'Blog post not found' });
       }
@@ -871,7 +900,14 @@ ${publishedPosts.map(post => `  <url>
       }
 
       const aiService = getAITaggingService();
-      const tags = await aiService.generateTags(content);
+      // Since we don't have AI tagging yet, generate basic tags from content
+      const words = content.toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter(word => word.length > 3);
+      
+      const uniqueWords = Array.from(new Set(words));
+      const tags = uniqueWords.slice(0, 5); // Take first 5 unique words as tags
       
       res.json({ tags });
     } catch (error) {
@@ -952,7 +988,11 @@ ${publishedPosts.map(post => `  <url>
       }
     } catch (error) {
       console.error("Error creating/updating admin blog post:", error);
-      res.status(500).json({ message: "Failed to save blog post", error: error.message });
+      if (error instanceof Error) {
+        res.status(500).json({ message: "Failed to save blog post", error: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to save blog post" });
+      }
     }
   });
 
@@ -1241,7 +1281,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     <content:encoded><![CDATA[${post.content}]]></content:encoded>
     <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>
     <author>${post.author.email} (${post.author.name})</author>
-    <category><![CDATA[${post.category.name}]]></category>
+    <category><![CDATA[${post.tags?.join(", ") || "Uncategorized"}]]></category>
     ${post.tags?.map(tag => `<category><![CDATA[${tag}]]></category>`).join('') || ''}
     ${post.featuredImage ? `<enclosure url="${post.featuredImage}" type="image/jpeg"/>` : ''}
   </item>`).join('')}
@@ -1378,7 +1418,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
               "@id": `${baseUrl}/blog/${post.slug}`
             },
             "image": post.featuredImage,
-            "articleSection": post.category.name,
+            "articleSection": post.tags?.join(", ") || "Uncategorized",
             "keywords": post.tags?.join(', ') || '',
             "wordCount": Math.ceil(post.content.length / 5),
             "timeRequired": `PT${post.readTime}M`,
@@ -1421,6 +1461,70 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
       res.status(500).json({ success: false, error: (err as Error).message });
     }
   });
+
+  // Analytics endpoints
+  app.get("/api/analytics/category-distribution", async (req: Request, res: Response) => {
+    try {
+      const posts = await activeStorage.getBlogPosts();
+      // Since we've removed categories, we'll use tags instead
+      const distribution = posts.reduce((acc: Record<string, number>, post) => {
+        if (post.tags) {
+          post.tags.forEach(tag => {
+            acc[tag] = (acc[tag] || 0) + 1;
+          });
+        }
+        return acc;
+      }, {});
+      res.json(distribution);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: "Failed to get tag distribution", error: error.message });
+      } else {
+        res.status(500).json({ message: "Unknown error occurred" });
+      }
+    }
+  });
+
+  app.get("/api/analytics/trending", async (req: Request, res: Response) => {
+    try {
+      const posts = await activeStorage.getBlogPosts();
+      // Get top 10 most used tags
+      const tagCounts = posts.reduce((acc: Record<string, number>, post) => {
+        if (post.tags) {
+          post.tags.forEach(tag => {
+            acc[tag] = (acc[tag] || 0) + 1;
+          });
+        }
+        return acc;
+      }, {});
+      const trending = Object.entries(tagCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10)
+        .map(([tag]) => tag);
+      res.json(trending);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: "Failed to get trending topics", error: error.message });
+      } else {
+        res.status(500).json({ message: "Unknown error occurred" });
+      }
+    }
+  });
+
+  // Error handling middleware
+  app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof Error) {
+    if (err.message === "Not authorized to update this post") {
+      res.status(403).json({ message: err.message });
+    } else if (err.message === "Blog post not found") {
+      res.status(404).json({ message: err.message });
+    } else {
+      res.status(500).json({ message: "Internal server error", error: err.message });
+    }
+  } else {
+    res.status(500).json({ message: "Unknown error occurred" });
+  }
+});
 
   const httpServer = createServer(app);
   return httpServer;
