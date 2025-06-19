@@ -3,39 +3,40 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node",
+      "use": "@vercel/static-build",
       "config": {
-        "includeFiles": ["server/**", "shared/**", "client/dist/**"]
+        "distDir": "dist"
       }
     }
   ],
   "routes": [
     {
       "src": "/googlec3cfbe8ec5429358.html",
-      "headers": { "Content-Type": "text/html" },
-      "dest": "/api/verification"
+      "dest": "/dist/googlec3cfbe8ec5429358.html"
     },
     {
       "src": "/sitemap.xml",
-      "headers": { "Content-Type": "application/xml" },
       "dest": "/api/sitemap"
     },
     {
-      "src": "/robots.txt",
-      "headers": { "Content-Type": "text/plain" },
+      "src": "/robots.txt", 
       "dest": "/api/robots"
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/index"
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/dist/assets/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/api/app"
+      "dest": "/dist/index.html"
     }
   ],
   "functions": {
-    "api/index.js": {
+    "api/*.js": {
       "maxDuration": 30
     }
   }
