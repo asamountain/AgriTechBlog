@@ -7,6 +7,22 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "api/blog-posts.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/blog-posts.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/blog-posts/[id].ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/blog-posts/[id].ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -15,12 +31,20 @@
       "dest": "/googlec3cfbe8ec5429358.html"
     },
     {
-      "src": "/assets/(.*)\\.js",
-      "headers": { "content-type": "application/javascript" }
+      "src": "/api/blog-posts",
+      "dest": "/api/blog-posts.ts"
     },
     {
-      "src": "/assets/(.*)\\.mjs",
-      "headers": { "content-type": "application/javascript" }
+      "src": "/api/blog-posts/([^/]+)",
+      "dest": "/api/blog-posts/[id].ts?id=$1"
+    },
+    {
+      "src": "/api/admin/blog-posts/([^/]+)",
+      "dest": "/api/admin/blog-posts/[id].ts?id=$1"
+    },
+    {
+      "src": "/api/admin/blog-posts",
+      "dest": "/api/admin/blog-posts.ts"
     },
     {
       "src": "/assets/(.*)",

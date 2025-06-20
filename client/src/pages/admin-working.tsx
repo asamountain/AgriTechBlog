@@ -187,9 +187,44 @@ function PostManagement() {
     },
   });
 
+  const togglePublishMutation = useMutation({
+    mutationFn: async ({ id, isPublished }: { id: number; isPublished: boolean }) => {
+      const response = await fetch(`/api/admin/blog-posts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublished }),
+      });
+      if (!response.ok) throw new Error("Failed to update post");
+      return response.json();
+    },
+    onSuccess: (_, { isPublished }) => {
+      toast({
+        title: "Success",
+        description: isPublished ? "Post published successfully" : "Post moved to drafts",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update post status",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDelete = (id: number) => {
     if (confirm("Are you sure you want to delete this post?")) {
       deletePostMutation.mutate(id);
+    }
+  };
+
+  const handleTogglePublish = (post: Post) => {
+    const newStatus = !post.isPublished;
+    const action = newStatus ? "publish" : "unpublish";
+    if (confirm(`Are you sure you want to ${action} "${post.title}"?`)) {
+      togglePublishMutation.mutate({ id: post.id, isPublished: newStatus });
     }
   };
 
@@ -227,9 +262,19 @@ function PostManagement() {
                         Featured
                       </Badge>
                     )}
-                    <Badge variant={post.isPublished ? "default" : "outline"} className="text-xs">
-                      {post.isPublished ? "Published" : "Draft"}
-                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleTogglePublish(post)}
+                      disabled={togglePublishMutation.isPending}
+                      className={`text-xs h-6 px-2 border ${
+                        post.isPublished 
+                          ? "text-green-700 border-green-200 bg-green-50 hover:bg-green-100" 
+                          : "text-orange-700 border-orange-200 bg-orange-50 hover:bg-orange-100"
+                      }`}
+                    >
+                      {post.isPublished ? "✓ Published" : "📝 Draft"}
+                    </Button>
                   </div>
                 </div>
                 <CardDescription className="line-clamp-3">

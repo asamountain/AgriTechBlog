@@ -17,6 +17,7 @@ export class MongoStorage implements IStorage {
   private commentsCollection: Collection;
 
   constructor(connectionString: string, databaseName: string) {
+    console.log(`Initializing MongoDB connection to database: ${databaseName}`);
     this.client = new MongoClient(connectionString);
     this.db = this.client.db(databaseName);
     this.usersCollection = this.db.collection("users");
@@ -26,8 +27,21 @@ export class MongoStorage implements IStorage {
   }
 
   async connect(): Promise<void> {
-    await this.client.connect();
-    console.log("Connected to MongoDB");
+    try {
+      await this.client.connect();
+      console.log("Successfully connected to MongoDB");
+      
+      // Test the connection by listing collections
+      const collections = await this.db.listCollections().toArray();
+      console.log("Available collections:", collections.map(c => c.name));
+      
+      // Test posts collection
+      const postsCount = await this.blogPostsCollection.countDocuments();
+      console.log(`Found ${postsCount} posts in the database`);
+    } catch (error) {
+      console.error("Failed to connect to MongoDB:", error);
+      throw error;
+    }
   }
 
   async disconnect(): Promise<void> {

@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
   try {
     const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL;
-    const databaseName = 'test'; // Using your actual database name from Project0/Cluster0
+    const databaseName = 'blog_database'; // Changed from 'test' to 'blog_database'
     
     if (mongoUri) {
       console.log("Connecting to MongoDB...");
@@ -192,6 +192,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Connect to existing posts in MongoDB
       const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
       console.log(`Found ${existingPosts.length} existing posts in database`);
+      
+      // Debug: Check if posts are published
+      const allPosts = await mongoStorage.getBlogPosts({ limit: 10, includeDrafts: true });
+      console.log(`Total posts (including drafts): ${allPosts.length}`);
+      const publishedPosts = allPosts.filter(p => p.isPublished);
+      console.log(`Published posts: ${publishedPosts.length}`);
     } else {
       console.log("No MongoDB URI found, using in-memory storage");
     }
@@ -333,6 +339,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint
+  app.get("/api/debug/posts", async (req, res) => {
+    try {
+      const allPosts = await activeStorage.getBlogPosts({ includeDrafts: true, limit: 20 });
+      const publishedPosts = allPosts.filter(p => p.isPublished);
+      const draftPosts = allPosts.filter(p => !p.isPublished);
+      
+      res.json({
+        total: allPosts.length,
+        published: publishedPosts.length,
+        drafts: draftPosts.length,
+        storageType: activeStorage.constructor.name,
+        mongoUri: process.env.MONGODB_URI ? 'Set' : 'Not set',
+        samplePosts: allPosts.slice(0, 3).map(p => ({
+          title: p.title,
+          isPublished: p.isPublished,
+          tags: p.tags
+        }))
+      });
+    } catch (error) {
+      res.status(500).json({ error: (error as any).message });
+    }
+  });
+
   // Blog Posts
   app.get("/api/blog-posts", async (req, res) => {
     try {
@@ -344,10 +374,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         featured: featured ? featured === 'true' : undefined,
       };
       
+      console.log("Fetching blog posts with options:", options);
       const posts = await activeStorage.getBlogPosts(options);
+      console.log(`Found ${posts.length} posts`);
+      
       res.json(posts);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch blog posts" });
+      console.error("Error fetching blog posts:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts", error: (error as any).message });
     }
   });
 
