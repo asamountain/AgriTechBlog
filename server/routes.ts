@@ -179,30 +179,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage with MongoDB if available
   try {
     const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL;
-    const databaseName = 'blog_database'; // Changed from 'test' to 'blog_database'
+    const databaseName = 'blog_database';
     
     if (mongoUri) {
-      console.log("Connecting to MongoDB...");
-      const { MongoStorage } = await import('./mongodb-storage-updated');
-      const mongoStorage = new MongoStorage(mongoUri, databaseName);
-      await mongoStorage.connect();
-      activeStorage = mongoStorage;
-      console.log("Successfully connected to MongoDB");
+      console.log("Attempting to connect to MongoDB...");
       
-      // Connect to existing posts in MongoDB
-      const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
-      console.log(`Found ${existingPosts.length} existing posts in database`);
-      
-      // Debug: Check if posts are published
-      const allPosts = await mongoStorage.getBlogPosts({ limit: 10, includeDrafts: true });
-      console.log(`Total posts (including drafts): ${allPosts.length}`);
-      const publishedPosts = allPosts.filter(p => p.isPublished);
-      console.log(`Published posts: ${publishedPosts.length}`);
+      try {
+        const { MongoStorage } = await import('./mongodb-storage-updated');
+        const mongoStorage = new MongoStorage(mongoUri, databaseName);
+        await mongoStorage.connect();
+        activeStorage = mongoStorage;
+        console.log("Successfully connected to MongoDB");
+        
+        // Connect to existing posts in MongoDB
+        const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
+        console.log(`Found ${existingPosts.length} existing posts in database`);
+        
+        // If no posts exist, initialize sample data
+        if (existingPosts.length === 0) {
+          console.log("No posts found, initializing sample data...");
+          await initializeSampleData(mongoStorage);
+        }
+        
+        // Debug: Check if posts are published
+        const allPosts = await mongoStorage.getBlogPosts({ limit: 10, includeDrafts: true });
+        console.log(`Total posts (including drafts): ${allPosts.length}`);
+        const publishedPosts = allPosts.filter(p => p.isPublished);
+        console.log(`Published posts: ${publishedPosts.length}`);
+             } catch (mongoError) {
+         console.log("MongoDB connection failed, falling back to in-memory storage:", mongoError instanceof Error ? mongoError.message : mongoError);
+         activeStorage = storage; // Use the default in-memory storage
+         await initializeSampleData(activeStorage);
+       }
     } else {
       console.log("No MongoDB URI found, using in-memory storage");
+      activeStorage = storage; // Use the default in-memory storage
+      await initializeSampleData(activeStorage);
     }
   } catch (error) {
-    console.log("MongoDB connection failed, using fallback storage:", error);
+    console.log("Storage initialization failed, using fallback storage:", error instanceof Error ? error.message : error);
+    activeStorage = storage; // Use the default in-memory storage
+    await initializeSampleData(activeStorage);
   }
 
   // OAuth routes with passport middleware

@@ -42,6 +42,12 @@ export default async function handler(req: Request, res: Response) {
         delete updateData.isPublished;
       }
       
+      // Convert isFeatured to featured status
+      if (updateData.hasOwnProperty('isFeatured')) {
+        updateData.featured = updateData.isFeatured;
+        delete updateData.isFeatured;
+      }
+      
       // Set lastModified
       updateData.lastModified = new Date();
       

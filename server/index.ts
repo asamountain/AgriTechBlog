@@ -1,3 +1,16 @@
+import dotenv from "dotenv";
+import { existsSync } from "fs";
+
+// Try different env files in order of preference
+// For local development, prefer files that work locally
+if (process.env.NODE_ENV === 'development' && existsSync('.env')) {
+  dotenv.config();
+  console.log('📄 Using .env file');
+}else
+{
+ console.log('server config not found') 
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupSession, setupAuth } from "./auth";
@@ -17,9 +30,10 @@ app.get("/googlec3cfbe8ec5429358.html", (req, res) => {
 });
 
 app.get("/robots.txt", (req, res) => {
-  const baseUrl = req.get('host')?.includes('localhost') 
-    ? 'http://localhost:5000' 
-    : `https://${req.get('host')}`;
+  const host = req.get('host');
+  const baseUrl = host?.includes('localhost') 
+    ? `http://${host}` 
+    : `https://${host}`;
   
   const robots = `User-agent: *
 Allow: /
@@ -65,6 +79,41 @@ export default async function handler(req: Request, res: Response) {
   }
 }
 
+// Dynamic port finder function
+async function findAvailablePort(startPort: number = 5000): Promise<number> {
+  const { createServer } = await import("http");
+  
+  return new Promise((resolve, reject) => {
+    const testServer = createServer();
+    let currentPort = startPort;
+    
+    const tryPort = () => {
+      testServer.listen(currentPort, "0.0.0.0", () => {
+        testServer.close(() => {
+          resolve(currentPort);
+        });
+      });
+      
+      testServer.on("error", (err: any) => {
+        if (err.code === "EADDRINUSE") {
+          currentPort++;
+          if (currentPort > startPort + 10) {
+            reject(new Error(`No available port found between ${startPort} and ${currentPort - 1}`));
+            return;
+          }
+          // Remove the error listener to avoid memory leaks
+          testServer.removeAllListeners("error");
+          setTimeout(tryPort, 100);
+        } else {
+          reject(err);
+        }
+      });
+    };
+    
+    tryPort();
+  });
+}
+
 // For local development
 if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
   (async () => {
@@ -86,13 +135,24 @@ if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
       await setupVite(app, server);
     }
 
-    const port = 5000;
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port}`);
-    });
+    try {
+      // Find an available port starting from 5000
+      const port = await findAvailablePort(5000);
+      console.log(`🔍 Found available port: ${port}`);
+      
+      server.listen({
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      }, () => {
+        log(`🚀 Server serving on port ${port}`);
+        console.log(`📱 Local development URL: http://localhost:${port}`);
+        console.log(`🌐 Network URL: http://0.0.0.0:${port}`);
+      });
+      
+    } catch (error) {
+      console.error("❌ Failed to start server:", error);
+      process.exit(1);
+    }
   })();
 }

@@ -37,6 +37,60 @@
 
 ---
 
+## CRITICAL ADMIN EDIT POST SYSTEM LOG
+
+**⚠️ DANGER ZONE: Admin Post Editor Critical Dependencies**
+
+### Critical API Endpoint Failures - FIXED 2025-01-XX:
+**ISSUE**: Auto-save functionality was broken due to HTTP 405 "Method Not Allowed" errors
+**ROOT CAUSE**: `/api/admin/blog-posts` endpoint only accepted GET requests but auto-save attempts POST requests
+**SOLUTION**: Added POST method support to `api/admin/blog-posts.ts` with proper MongoDB integration
+**CRITICAL LESSON**: Any changes to auto-save logic MUST be tested with network tab monitoring
+
+### Auto-Save System Architecture:
+**Files That Must Stay In Sync**:
+1. `client/src/pages/create-post.tsx` - Auto-save mutation logic
+2. `client/src/components/simple-markdown-editor.tsx` - Auto-save UI components
+3. `api/admin/blog-posts.ts` - POST/GET endpoint handlers
+4. `api/admin/blog-posts/[id].ts` - PATCH endpoint for updates
+5. `server/routes.ts` - Server-side route definitions
+
+### Bulk Edit System Status: ✅ IMPLEMENTED
+**Location**: `client/src/pages/admin-working.tsx` (PostManagement component)
+**Features Available**:
+- ✅ Select individual posts with checkboxes
+- ✅ Select all posts functionality  
+- ✅ Bulk publish/unpublish operations
+- ✅ Bulk feature/unfeature operations
+- ✅ Bulk delete operations
+- ✅ Clear selection functionality
+
+### NEVER TOUCH THESE WITHOUT FULL SYSTEM TEST:
+1. **Auto-save timing intervals** (currently 10s periodic, 3s on change)
+2. **MongoDB field mapping** (isPublished ↔ draft field inversion)
+3. **Post ID generation strategy** (ObjectId substring method)
+4. **CORS headers** in API endpoints - required for cross-origin requests
+5. **Authentication flow** - admin routes bypass normal auth
+
+### Emergency Rollback Commands:
+```bash
+# If auto-save breaks, check these endpoints:
+curl -X POST /api/admin/blog-posts -H "Content-Type: application/json" -d '{"title":"test","content":"test"}'
+curl -X GET /api/admin/blog-posts
+curl -X PATCH /api/admin/blog-posts/123 -H "Content-Type: application/json" -d '{"isPublished":true}'
+```
+
+### Testing Protocol Before Any Admin Changes:
+1. ✅ Test auto-save in browser dev tools network tab
+2. ✅ Test bulk operations with multiple post selection
+3. ✅ Test PATCH updates for individual posts
+4. ✅ Verify MongoDB data consistency
+5. ✅ Test both new post creation and existing post updates
+
+**⚠️ WARNING**: The admin system is complex with multiple interdependent parts. Always test the complete workflow end-to-end before deploying changes.
+
+---
+
 ## Data Architecture Rule
 
 **CRITICAL: MongoDB is the ONLY data source. No local storage, memory storage, or mixed data approaches.**
@@ -113,6 +167,63 @@ This ensures a consistent, professional user experience across the application w
 - **Secondary Background**: Light Gray (#F9FAFB) for sections
 - **Text**: Dark Gray (#111827) for primary text, Medium Gray (#6B7280) for secondary text
 
+## Streaming Pipeline Setup Definition
+
+**CRITICAL: Unified Data Flow Architecture for Consistent Post Fetching**
+
+### Pipeline Overview
+The streaming pipeline ensures seamless data flow between MongoDB, API endpoints, and frontend components across all pages (landing page, posts page, and admin page).
+
+### Core Components:
+1. **MongoDB Storage Layer** (`server/mongodb-storage-updated.ts`)
+   - Primary data source for all blog posts
+   - Handles CRUD operations with proper error handling
+   - Maps MongoDB documents to standardized BlogPost interface
+
+2. **API Endpoint Layer** (`api/blog-posts.ts`, `api/blog-posts/featured.ts`)
+   - Provides RESTful endpoints for data access
+   - Handles query parameters (limit, offset, featured)
+   - Returns fallback sample data if MongoDB connection fails
+
+3. **Query Client Layer** (`client/src/lib/queryClient.ts`)
+   - Manages API request caching and state management
+   - Handles query parameters for pagination and filtering
+   - Provides consistent error handling and retry logic
+
+4. **Component Integration Layer**
+   - **Landing Page**: `FeaturedStories` + `BlogGrid` components
+   - **Posts Page**: Full post listing with search and filtering
+   - **Admin Page**: Post management with CRUD operations
+
+### Data Flow Pipeline:
+```
+MongoDB → API Endpoints → Query Client → React Components → User Interface
+```
+
+### Consistency Rules:
+1. **Single Source of Truth**: MongoDB is the authoritative data source
+2. **Standardized Response Format**: All endpoints return consistent BlogPost objects
+3. **Fallback Strategy**: Sample data provided when MongoDB unavailable
+4. **Error Propagation**: Clear error messages throughout the pipeline
+5. **Cache Management**: Intelligent invalidation and refetching
+
+### Endpoint Synchronization:
+- `/api/blog-posts` - All published posts
+- `/api/blog-posts/featured` - Featured posts only
+- `/api/admin/blog-posts` - Admin view with drafts
+- All endpoints must support the same query parameters and return format
+
+### Testing Protocol:
+1. Test MongoDB connection and fallback behavior
+2. Verify API endpoint response consistency
+3. Test frontend component data fetching
+4. Validate cross-page navigation and state management
+5. Ensure admin operations sync with public views
+
+This pipeline ensures that posts display consistently across the landing page, posts page, and admin interface, with proper error handling and fallback mechanisms.
+
+---
+
 ## Golden Ratio Design Principle (1:1.618)
 All design components and spacing must follow the golden ratio for optimal visual harmony:
 
@@ -188,5 +299,58 @@ All design components and spacing must follow the golden ratio for optimal visua
 - Document relationships between user sessions, database records, and frontend state
 - This helps other developers understand system architecture and troubleshoot issues
 - Update flowcharts whenever modifying existing complex functions
+
+---
+
+## Technical Development Guidelines
+
+### ES Module Standards
+**CRITICAL: Always use ES module imports instead of CommonJS require statements**
+
+Due to the project configuration (`"type": "module"` in package.json), all imports must use ES module syntax:
+
+#### ✅ Correct (ES Module):
+```typescript
+import { existsSync } from "fs";
+import path from "path";
+import { MongoClient } from "mongodb";
+```
+
+#### ❌ Incorrect (CommonJS - will cause ReferenceError):
+```javascript
+const fs = require('fs');
+const path = require('path');
+const { MongoClient } = require('mongodb');
+```
+
+### Common ES Module Conversion Patterns:
+```typescript
+// File system operations
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+// For __dirname equivalent in ES modules:
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+```
+
+### Module Resolution Troubleshooting:
+- **Error**: `ReferenceError: require is not defined in ES module scope`
+- **Solution**: Convert all `require()` calls to `import` statements
+- **Error**: `Cannot use import statement outside a module`
+- **Solution**: Ensure `"type": "module"` is set in package.json
+- **Error**: Missing file extensions in imports
+- **Solution**: Use explicit `.js` extensions for local files in some cases
+
+### Development Environment Rules:
+1. **Always use ES module syntax** for consistency across the codebase
+2. **Test imports immediately** after adding new dependencies
+3. **Check Node.js version compatibility** with ES modules (Node 14+)
+4. **Use tsx for TypeScript execution** instead of ts-node when possible
+
+This ensures consistent module handling and prevents runtime errors during development.
+
+---
 
 This document ensures visual consistency, mathematical harmony, and optimal performance throughout the application.

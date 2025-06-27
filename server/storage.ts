@@ -384,24 +384,33 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Create a new storage instance for MongoDB or fallback to in-memory
+// Create a new storage instance - PostgreSQL first, then MongoDB fallback
 async function createStorage(): Promise<IStorage> {
   try {
+    // First try PostgreSQL if available
+    if (process.env.DATABASE_URL) {
+      console.log('Using PostgreSQL database...');
+      const dbModule = await import('./db');
+      return new dbModule.DatabaseStorage();
+    }
+    
+    // Fallback to MongoDB if MONGODB_URI is available
     const mongoUri = process.env.MONGODB_URI;
     const databaseName = process.env.MONGODB_DATABASE || 'blog';
     
-    if (!mongoUri) {
-      console.log('MONGODB_URI not found in environment variables, using in-memory storage');
-      return new MemStorage();
+    if (mongoUri) {
+      console.log('Attempting to connect to MongoDB...');
+      const { MongoStorage } = await import('./mongodb-storage-updated');
+      const mongoStorage = new MongoStorage(mongoUri, databaseName);
+      await mongoStorage.connect();
+      console.log('Successfully connected to MongoDB');
+      return mongoStorage;
     }
     
-    console.log('Attempting to connect to MongoDB...');
-    const mongoStorage = new MongoStorage(mongoUri, databaseName);
-    await mongoStorage.connect();
-    console.log('Successfully connected to MongoDB');
-    return mongoStorage;
+    console.log('No database configured, using in-memory storage');
+    return new MemStorage();
   } catch (error) {
-    console.log('MongoDB connection failed, using in-memory storage:', error);
+    console.log('Database connection failed, falling back to in-memory storage:', error instanceof Error ? error.message : String(error));
     return new MemStorage();
   }
 }

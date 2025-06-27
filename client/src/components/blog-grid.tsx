@@ -14,8 +14,9 @@ export default function BlogGrid({}: BlogGridProps) {
   const [page, setPage] = useState(0);
   const limit = 6;
 
-  const { data: blogPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
+  const { data: blogPosts, isLoading, error } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts", { limit: (page + 1) * limit, offset: 0 }],
+    retry: 1,
   });
 
   // Fetch updated profile data for author information
@@ -45,6 +46,29 @@ export default function BlogGrid({}: BlogGridProps) {
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <ContentSkeleton key={i} />
             ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Latest Articles
+            </h2>
+            <div className="w-16 h-1 bg-forest-green"></div>
+          </div>
+          <div className="text-center py-16">
+            <h3 className="text-2xl font-playfair font-bold text-gray-900 mb-4">
+              Unable to load articles
+            </h3>
+            <p className="text-gray-600">
+              We're experiencing technical difficulties. Please try again later.
+            </p>
           </div>
         </div>
       </section>
@@ -86,11 +110,14 @@ export default function BlogGrid({}: BlogGridProps) {
                       <div className="bg-white rounded-none overflow-hidden transition-all duration-300 hover:shadow-lg">
                         <div className="relative">
                           <img
-                            src={post.featuredImage}
+                            src={post.featuredImage || 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400'}
                             alt={post.title}
                             className={`w-full object-cover ${
                               isLarge ? 'h-80 md:h-96' : 'h-64'
                             }`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+                            }}
                           />
                         </div>
                         
@@ -109,15 +136,30 @@ export default function BlogGrid({}: BlogGridProps) {
                             {post.excerpt}
                           </p>
                           
+                          {/* Tags */}
+                          {post.tags && post.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {post.tags.slice(0, 3).map((tag, tagIndex) => (
+                                <Badge 
+                                  key={tagIndex} 
+                                  variant="outline" 
+                                  className="text-xs border-forest-green text-forest-green"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          
                           {/* Meta Info */}
                           <div className="flex items-center justify-between text-sm text-gray-500">
                             <div className="flex items-center space-x-4">
                               <span className="font-medium text-gray-700">
-                                {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
+                                {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author?.name || 'San'}
                               </span>
                               <span>{formatDate(post.createdAt)}</span>
                             </div>
-                            <span className="text-xs uppercase tracking-wide">{post.readTime} min read</span>
+                            <span className="text-xs uppercase tracking-wide">{post.readTime || 5} min read</span>
                           </div>
                         </div>
                       </div>
@@ -131,7 +173,7 @@ export default function BlogGrid({}: BlogGridProps) {
               <div className="text-center mt-16">
                 <Button
                   onClick={() => setPage(page + 1)}
-                  className="bg-forest-green hover:bg-forest-green text-white font-medium py-3 px-8 uppercase tracking-wide text-sm transition-all duration-300"
+                  className="bg-forest-green hover:bg-forest-green/90 text-white font-medium py-3 px-8 uppercase tracking-wide text-sm transition-all duration-300"
                 >
                   Load More Articles
                 </Button>

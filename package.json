@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev:vercel": "vercel dev --listen 127.0.0.1:3000",
     "build": "vite build",
     "vercel-build": "vite build",
     "start": "NODE_ENV=production node dist/index.js",
@@ -15,7 +16,9 @@
     "deploy:local": "./deploy.sh local",
     "test:build": "npm run check && npm run build",
     "clean": "rm -rf dist api .vercel",
-    "setup:deploy": "chmod +x deploy.sh && npm install -g vercel@latest"
+    "setup:deploy": "chmod +x deploy.sh && npm install -g vercel@latest",
+    "env:pull": "vercel env pull .env.development",
+    "env:list": "vercel env ls"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

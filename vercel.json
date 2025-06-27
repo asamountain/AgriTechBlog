@@ -2,27 +2,19 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "server/index.ts",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
-    },
-    {
-      "src": "api/blog-posts.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/admin/blog-posts.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/blog-posts/[id].ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/admin/blog-posts/[id].ts",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -31,20 +23,16 @@
       "dest": "/googlec3cfbe8ec5429358.html"
     },
     {
-      "src": "/api/blog-posts",
-      "dest": "/api/blog-posts.ts"
+      "src": "/api/admin/(.*)",
+      "dest": "/api/admin/$1"
     },
     {
-      "src": "/api/blog-posts/([^/]+)",
-      "dest": "/api/blog-posts/[id].ts?id=$1"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
-      "src": "/api/admin/blog-posts/([^/]+)",
-      "dest": "/api/admin/blog-posts/[id].ts?id=$1"
-    },
-    {
-      "src": "/api/admin/blog-posts",
-      "dest": "/api/admin/blog-posts.ts"
+      "src": "/auth/(.*)",
+      "dest": "/server/index.ts"
     },
     {
       "src": "/assets/(.*)",

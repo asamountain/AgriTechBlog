@@ -37,11 +37,6 @@ export default async function handler(req: Request, res: Response) {
     return;
   }
   
-  if (req.method !== 'GET') {
-    res.status(405).json({ message: 'Method not allowed' });
-    return;
-  }
-  
   const client = new MongoClient(uri);
   
   try {
@@ -51,32 +46,86 @@ export default async function handler(req: Request, res: Response) {
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
     
-    // Parse query parameters
-    const { limit = '50', offset = '0' } = req.query;
-    const limitNum = parseInt(limit as string) || 50;
-    const offsetNum = parseInt(offset as string) || 0;
-    
-    console.log('Fetching admin posts (including drafts)');
-    
-    // Fetch all posts (including drafts for admin)
-    const docs = await postsCollection
-      .find({}) // No filter - get all posts including drafts
-      .sort({ date: -1 })
-      .skip(offsetNum)
-      .limit(limitNum)
-      .toArray();
-    
-    console.log(`Found ${docs.length} admin posts`);
-    
-    // Map documents to the expected format
-    const posts = docs.map(mapPostDocument).filter(Boolean);
-    
-    res.status(200).json(posts);
+    if (req.method === 'GET') {
+      // Parse query parameters
+      const { limit = '50', offset = '0' } = req.query;
+      const limitNum = parseInt(limit as string) || 50;
+      const offsetNum = parseInt(offset as string) || 0;
+      
+      console.log('Fetching admin posts (including drafts)');
+      
+      // Fetch all posts (including drafts for admin)
+      const docs = await postsCollection
+        .find({}) // No filter - get all posts including drafts
+        .sort({ date: -1 })
+        .skip(offsetNum)
+        .limit(limitNum)
+        .toArray();
+      
+      console.log(`Found ${docs.length} admin posts`);
+      
+      // Map documents to the expected format
+      const posts = docs.map(mapPostDocument).filter(Boolean);
+      
+      res.status(200).json(posts);
+      
+    } else if (req.method === 'POST') {
+      console.log('Creating/updating admin blog post with data:', req.body);
+      
+      const postData = req.body;
+      
+      // Add default userId for demo purposes
+      if (!postData.userId) {
+        postData.userId = "demo-user-001";
+      }
+      
+      // Convert isPublished to draft status (invert)
+      const mongoData = {
+        title: postData.title || 'Untitled',
+        content: postData.content || '',
+        excerpt: postData.excerpt || '',
+        slug: postData.slug || postData.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
+        coverImage: postData.featuredImage || '',
+        tags: Array.isArray(postData.tags) ? postData.tags : [],
+        date: new Date(),
+        lastModified: new Date(),
+        draft: !postData.isPublished, // Invert - draft = true means unpublished
+        featured: !!postData.isFeatured,
+        userId: postData.userId
+      };
+      
+      // If there's an existing post ID, update it; otherwise create new
+      if (postData.id) {
+        // Update existing post
+        const result = await postsCollection.updateOne(
+          { id: postData.id },
+          { $set: { ...mongoData, lastModified: new Date() } }
+        );
+        
+        if (result.matchedCount === 0) {
+          res.status(404).json({ message: 'Post not found' });
+          return;
+        }
+        
+        const updatedPost = await postsCollection.findOne({ id: postData.id });
+        const formattedPost = mapPostDocument(updatedPost);
+        res.status(200).json(formattedPost);
+      } else {
+        // Create new post
+        const result = await postsCollection.insertOne(mongoData);
+        const newPost = await postsCollection.findOne({ _id: result.insertedId });
+        const formattedPost = mapPostDocument(newPost);
+        res.status(201).json(formattedPost);
+      }
+      
+    } else {
+      res.status(405).json({ message: 'Method not allowed' });
+    }
     
   } catch (error) {
     console.error('Admin API Error:', error);
     res.status(500).json({ 
-      message: 'Failed to fetch admin blog posts',
+      message: 'Failed to process request',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   } finally {
