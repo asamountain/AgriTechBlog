@@ -176,49 +176,55 @@ async function setDynamicMongoConnection(uri: string, dbName: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize storage with MongoDB if available
+  // Initialize storage - PostgreSQL first, then MongoDB fallback
   try {
-    const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL;
-    const databaseName = 'blog_database';
-    
-    if (mongoUri) {
+    // First try PostgreSQL if available
+    if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('mongodb')) {
+      console.log("Using PostgreSQL database...");
+      const { DatabaseStorage } = await import('./db');
+      activeStorage = new DatabaseStorage();
+      console.log("Successfully connected to PostgreSQL");
+      
+      // Check existing posts and initialize sample data if needed
+      const existingPosts = await activeStorage.getBlogPosts({ limit: 5 });
+      console.log(`Found ${existingPosts.length} existing posts in database`);
+      
+      if (existingPosts.length === 0) {
+        console.log("No posts found, initializing sample data...");
+        await initializeSampleData(activeStorage);
+      }
+    }
+    // Fallback to MongoDB if MONGODB_URI is available
+    else if (process.env.MONGODB_URI) {
       console.log("Attempting to connect to MongoDB...");
       
       try {
         const { MongoStorage } = await import('./mongodb-storage-updated');
-        const mongoStorage = new MongoStorage(mongoUri, databaseName);
+        const mongoStorage = new MongoStorage(process.env.MONGODB_URI, 'blog_database');
         await mongoStorage.connect();
         activeStorage = mongoStorage;
         console.log("Successfully connected to MongoDB");
         
-        // Connect to existing posts in MongoDB
         const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
         console.log(`Found ${existingPosts.length} existing posts in database`);
         
-        // If no posts exist, initialize sample data
         if (existingPosts.length === 0) {
           console.log("No posts found, initializing sample data...");
           await initializeSampleData(mongoStorage);
         }
-        
-        // Debug: Check if posts are published
-        const allPosts = await mongoStorage.getBlogPosts({ limit: 10, includeDrafts: true });
-        console.log(`Total posts (including drafts): ${allPosts.length}`);
-        const publishedPosts = allPosts.filter(p => p.isPublished);
-        console.log(`Published posts: ${publishedPosts.length}`);
-             } catch (mongoError) {
-         console.log("MongoDB connection failed, falling back to in-memory storage:", mongoError instanceof Error ? mongoError.message : mongoError);
-         activeStorage = storage; // Use the default in-memory storage
-         await initializeSampleData(activeStorage);
-       }
+      } catch (mongoError) {
+        console.log("MongoDB connection failed, falling back to in-memory storage:", mongoError instanceof Error ? mongoError.message : mongoError);
+        activeStorage = storage;
+        await initializeSampleData(activeStorage);
+      }
     } else {
-      console.log("No MongoDB URI found, using in-memory storage");
-      activeStorage = storage; // Use the default in-memory storage
+      console.log("No database configured, using in-memory storage");
+      activeStorage = storage;
       await initializeSampleData(activeStorage);
     }
   } catch (error) {
     console.log("Storage initialization failed, using fallback storage:", error instanceof Error ? error.message : error);
-    activeStorage = storage; // Use the default in-memory storage
+    activeStorage = storage;
     await initializeSampleData(activeStorage);
   }
 

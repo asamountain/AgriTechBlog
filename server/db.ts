@@ -60,7 +60,7 @@ export class DatabaseStorage implements IStorage {
   async updateAuthor(id: number, updates: Partial<Author>): Promise<Author> {
     const [author] = await db
       .update(schema.authors)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(schema.authors.id, id))
       .returning();
     return author;
@@ -69,7 +69,7 @@ export class DatabaseStorage implements IStorage {
   async updateAuthorByUserId(userId: string, updates: Partial<Author>): Promise<Author> {
     const [author] = await db
       .update(schema.authors)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(schema.authors.userId, userId))
       .returning();
     return author;
