@@ -325,6 +325,43 @@ The individual blog post API endpoint `/api/blog-posts/[slug].ts` returns 404 on
 - Users see "Article Not Found" for valid blog posts
 - SEO and sharing functionality broken for individual posts
 
+### **Solution Applied**
+- **Replaced Dynamic Routes with Query Parameters**: 
+  - Removed problematic `/api/blog-posts/[slug].ts` 
+  - Created `/api/blog-post.ts` with query parameter support (`?slug=` or `?id=`)
+- **Updated Frontend API Calls**:
+  - Changed from `/api/blog-posts/${slug}` to `/api/blog-post?slug=${slug}`
+- **Simplified API Structure**: Moved individual post endpoint to root API directory
+- **Maintained Backward Compatibility**: Supports both slug and ID parameters
+
+### **API Endpoint Details**
+```typescript
+// New working endpoint
+GET /api/blog-post?slug=post-slug-here
+GET /api/blog-post?id=123456789
+
+// Old broken endpoint (removed)
+GET /api/blog-posts/[slug]
+```
+
+### **Testing Results**
+- ✅ `https://tech-san.vercel.app/api/blog-post?slug=first-week-of-internship-tip-precision-and-quick-communication-has-needed` → Returns correct JSON
+- ✅ Blog post pages now load correctly on deployed site
+- ✅ Local development continues to work
+
+### **Prevention Guidelines**
+- **Avoid Nested Dynamic Routes**: Use root-level API files for dynamic content
+- **Prefer Query Parameters**: More reliable than path parameters for Vercel deployment
+- **Test Deployed APIs Separately**: Always test API endpoints directly before testing frontend
+- **Use Simple API Structure**: Keep dynamic endpoints in `/api/` root directory
+
+### **Architecture Recommendation**
+For future API endpoints requiring dynamic content:
+```
+✅ Good: /api/endpoint.ts with ?param=value
+❌ Avoid: /api/nested/[param].ts
+```
+
 ---
 
 ## **Template for Future Fixes**
