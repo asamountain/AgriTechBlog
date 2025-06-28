@@ -97,6 +97,8 @@ curl -X PATCH /api/admin/blog-posts/123 -H "Content-Type: application/json" -d '
 
 ### Core Requirements:
 - All application data MUST be stored in and retrieved from MongoDB exclusively
+- **NEVER use local MongoDB installations** - Only use MongoDB Atlas cloud connections
+- **MANDATORY: Only connect to online MongoDB Atlas clusters** - No localhost, no local development databases
 - No localStorage, sessionStorage, or in-memory storage for application state
 - No fallback to local data sources - if MongoDB is unavailable, show proper error states
 - All drafts, posts, user data, and application state must persist in MongoDB

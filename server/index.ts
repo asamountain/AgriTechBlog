@@ -82,7 +82,7 @@ async function findAvailablePort(startPort: number = 5000): Promise<number> {
     let currentPort = startPort;
     
     const tryPort = () => {
-      testServer.listen(currentPort, "0.0.0.0", () => {
+      testServer.listen(currentPort, "127.0.0.1", () => {
         testServer.close(() => {
           resolve(currentPort);
         });
@@ -134,14 +134,10 @@ if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
       const port = await findAvailablePort(5000);
       console.log(`🔍 Found available port: ${port}`);
       
-      server.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, () => {
+      server.listen(port, "127.0.0.1", () => {
         log(`🚀 Server serving on port ${port}`);
         console.log(`📱 Local development URL: http://localhost:${port}`);
-        console.log(`🌐 Network URL: http://0.0.0.0:${port}`);
+        console.log(`🌐 Network URL: http://127.0.0.1:${port}`);
       });
       
     } catch (error) {
