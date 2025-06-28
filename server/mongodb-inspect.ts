@@ -1,5 +1,5 @@
-import { loadLocalEnvironment } from './local-env-loader';
-loadLocalEnvironment();
+import { loadEnvironment } from './local-env-loader';
+loadEnvironment();
 import { MongoClient } from 'mongodb';
 
 async function inspectMongoDB() {

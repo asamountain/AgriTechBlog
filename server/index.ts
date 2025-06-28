@@ -1,8 +1,8 @@
-// Custom environment loader that ignores Replit Secrets completely
-import { loadLocalEnvironment, displayEnvironmentStatus } from "./local-env-loader";
+// Load environment configuration
+import { loadEnvironment, displayEnvironmentStatus } from "./local-env-loader";
 
-// Force load local environment (completely independent from Replit)
-loadLocalEnvironment();
+// Load environment variables
+loadEnvironment();
 displayEnvironmentStatus();
 
 import express, { type Request, Response, NextFunction } from "express";

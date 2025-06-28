@@ -1,8 +1,8 @@
 import { MongoClient, Db, MongoClientOptions } from "mongodb";
-import { loadLocalEnvironment } from './local-env-loader';
+import { loadEnvironment } from './local-env-loader';
 
-// Load local environment variables (ignoring Replit)
-loadLocalEnvironment();
+// Load environment variables
+loadEnvironment();
 
 export interface MongoConnectionConfig {
   uri: string;

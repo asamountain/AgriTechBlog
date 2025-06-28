@@ -2,13 +2,11 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 /**
- * Custom environment loader that completely ignores Replit Secrets
- * and forces the use of local environment variables only.
- * 
- * This ensures the project works independently from Replit's environment system.
+ * Standard environment loader for the application
+ * Loads environment variables from .env file or uses defaults
  */
 
-interface LocalEnvironmentConfig {
+interface EnvironmentConfig {
   MONGODB_URI: string;
   MONGODB_DATABASE: string;
   SESSION_SECRET: string;
@@ -19,11 +17,11 @@ interface LocalEnvironmentConfig {
   GOOGLE_CLIENT_SECRET?: string;
 }
 
-// Local-only configuration - completely independent from Replit
-const LOCAL_CONFIG: LocalEnvironmentConfig = {
+// Default configuration for development
+const DEFAULT_CONFIG: EnvironmentConfig = {
   MONGODB_URI: 'mongodb+srv://blog-admin-new:dIGhkAFqirrk8Gva@cluster0.br3z5.mongodb.net/blog_database?retryWrites=true&w=majority&appName=Cluster0',
   MONGODB_DATABASE: 'blog_database',
-  SESSION_SECRET: 'super-secret-local-session-key-for-cursor-development',
+  SESSION_SECRET: 'super-secret-local-session-key-for-development',
   NODE_ENV: 'development',
   PORT: '5000',
   BCRYPT_ROUNDS: '12',
@@ -31,57 +29,31 @@ const LOCAL_CONFIG: LocalEnvironmentConfig = {
   GOOGLE_CLIENT_SECRET: 'your-google-client-secret'
 };
 
-export function loadLocalEnvironment(): void {
-  console.log('🔒 Loading LOCAL environment (ignoring Replit Secrets)...');
+export function loadEnvironment(): void {
+  console.log('🔒 Loading environment configuration...');
   
-  // Step 1: Force clear any Replit environment variables
-  clearReplitEnvironment();
-  
-  // Step 2: Try to load from .env file first
+  // Try to load from .env file first
   const envLoaded = loadFromEnvFile();
   
-  // Step 3: If no .env file, use hardcoded local config
+  // If no .env file, use default config
   if (!envLoaded) {
-    console.log('📝 Using hardcoded local configuration...');
-    setLocalConfiguration();
+    console.log('📝 Using default configuration...');
+    setDefaultConfiguration();
   }
   
-  // Step 4: Verify critical variables are set
+  // Validate critical variables are set
   validateEnvironment();
   
-  console.log('✅ Local environment loaded successfully');
+  console.log('✅ Environment loaded successfully');
   console.log(`🔗 MongoDB URI: ${maskCredentials(process.env.MONGODB_URI!)}`);
   console.log(`🗄️  Database: ${process.env.MONGODB_DATABASE}`);
-}
-
-function clearReplitEnvironment(): void {
-  // Remove any existing MongoDB-related environment variables
-  // This ensures Replit Secrets don't interfere
-  const replitKeys = [
-    'MONGODB_URI',
-    'MONGODB_DATABASE',
-    'MONGODB_URL',
-    'DATABASE_URL'
-  ];
-  
-  let clearedCount = 0;
-  replitKeys.forEach(key => {
-    if (process.env[key]) {
-      delete process.env[key];
-      clearedCount++;
-    }
-  });
-  
-  if (clearedCount > 0) {
-    console.log(`🧹 Cleared ${clearedCount} Replit environment variables`);
-  }
 }
 
 function loadFromEnvFile(): boolean {
   const envPath = join(process.cwd(), '.env');
   
   if (!existsSync(envPath)) {
-    console.log('📄 No .env file found, using local configuration');
+    console.log('📄 No .env file found, using default configuration');
     return false;
   }
   
@@ -110,12 +82,14 @@ function loadFromEnvFile(): boolean {
   }
 }
 
-function setLocalConfiguration(): void {
-  Object.entries(LOCAL_CONFIG).forEach(([key, value]) => {
-    process.env[key] = value;
+function setDefaultConfiguration(): void {
+  Object.entries(DEFAULT_CONFIG).forEach(([key, value]) => {
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
   });
   
-  console.log(`📝 Set ${Object.keys(LOCAL_CONFIG).length} local environment variables`);
+  console.log(`📝 Set ${Object.keys(DEFAULT_CONFIG).length} default environment variables`);
 }
 
 function validateEnvironment(): void {

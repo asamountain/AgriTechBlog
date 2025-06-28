@@ -37,9 +37,9 @@ export function setupAuth(app: Express) {
 
   // Google OAuth Strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-      : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://agritech-blog.vercel.app'
+      : 'http://localhost:3000';
     
     console.log('OAuth Configuration:');
     console.log('Base URL:', baseUrl);
@@ -63,9 +63,9 @@ export function setupAuth(app: Express) {
 
   // GitHub OAuth Strategy
   if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-      : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://agritech-blog.vercel.app'
+      : 'http://localhost:3000';
     
     passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
