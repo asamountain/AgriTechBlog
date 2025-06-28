@@ -28,3 +28,7 @@ secrets/
 
 # OS files
 Thumbs.db
+*.png
+*.jpg
+*.jpeg
+attached_assets/
