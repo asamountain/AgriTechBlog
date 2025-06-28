@@ -423,6 +423,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New endpoint that matches Vercel function: /api/blog-post?slug= or ?id=
+  app.get("/api/blog-post", async (req, res) => {
+    try {
+      const { slug, id } = req.query;
+      
+      if (!slug && !id) {
+        return res.status(400).json({ message: 'Either slug or id parameter is required' });
+      }
+      
+      if (Array.isArray(slug) || Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid parameters' });
+      }
+      
+      const identifier = (slug || id) as string;
+      console.log(`Fetching blog post with identifier: ${identifier}`);
+      
+      let post;
+      // Check if identifier is numeric (ID) or string (slug)
+      if (/^\d+$/.test(identifier)) {
+        // It's a numeric ID
+        const postId = parseInt(identifier);
+        post = await activeStorage.getBlogPost(postId);
+      } else {
+        // It's a slug
+        post = await activeStorage.getBlogPostBySlug(identifier);
+      }
+      
+      if (!post) {
+        console.log(`Blog post not found for identifier: ${identifier}`);
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      res.json(post);
+    } catch (error) {
+      console.error(`Error fetching blog post:`, error);
+      res.status(500).json({ message: "Failed to fetch blog post", error: (error as any).message });
+    }
+  });
+
+  // Legacy endpoint: /api/blog-posts/:identifier (kept for backward compatibility)
   app.get("/api/blog-posts/:identifier", async (req, res) => {
     try {
       const { identifier } = req.params;
