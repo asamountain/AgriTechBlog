@@ -69,14 +69,19 @@ export default async function handler(req: Request, res: Response) {
     return;
   }
   
-  const { slug } = req.query;
+  const { slug, id } = req.query;
   
-  if (!slug || Array.isArray(slug)) {
-    res.status(400).json({ message: 'Invalid post slug' });
+  if (!slug && !id) {
+    res.status(400).json({ message: 'Either slug or id parameter is required' });
     return;
   }
   
-  const identifierStr = slug as string;
+  if (Array.isArray(slug) || Array.isArray(id)) {
+    res.status(400).json({ message: 'Invalid parameters' });
+    return;
+  }
+  
+  const identifier = (slug || id) as string;
   
   if (!uri) {
     console.error('MONGODB_URI missing');
@@ -90,7 +95,7 @@ export default async function handler(req: Request, res: Response) {
   
   try {
     await client.connect();
-    console.log(`📖 SINGLE POST: Connected to MongoDB for post: ${identifierStr}`);
+    console.log(`📖 SINGLE POST: Connected to MongoDB for post: ${identifier}`);
     
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
@@ -98,9 +103,9 @@ export default async function handler(req: Request, res: Response) {
     let post: any = null;
     
     // Check if identifier is numeric (ID) or string (slug)
-    if (/^\d+$/.test(identifierStr)) {
+    if (/^\d+$/.test(identifier)) {
       // It's a numeric ID
-      const postId = parseInt(identifierStr);
+      const postId = parseInt(identifier);
       console.log(`📖 SINGLE POST: Looking for post with ID: ${postId}`);
       
       // Try multiple strategies to find by ID
@@ -130,15 +135,15 @@ export default async function handler(req: Request, res: Response) {
       }
     } else {
       // It's a slug
-      console.log(`📖 SINGLE POST: Looking for post with slug: ${identifierStr}`);
+      console.log(`📖 SINGLE POST: Looking for post with slug: ${identifier}`);
       post = await postsCollection.findOne({ 
-        slug: identifierStr,
+        slug: identifier,
         draft: { $ne: true } // Only published posts
       });
     }
     
     if (!post) {
-      console.log(`📖 SINGLE POST: Post not found for identifier: ${identifierStr}`);
+      console.log(`📖 SINGLE POST: Post not found for identifier: ${identifier}`);
       res.status(404).json({ message: 'Blog post not found' });
       return;
     }
@@ -155,7 +160,7 @@ export default async function handler(req: Request, res: Response) {
     res.status(200).json(formattedPost);
     
   } catch (error) {
-    console.error(`📖 SINGLE POST: Error fetching post ${identifierStr}:`, error);
+    console.error(`📖 SINGLE POST: Error fetching post ${identifier}:`, error);
     res.status(500).json({ 
       message: 'Failed to fetch blog post',
       error: error instanceof Error ? error.message : 'Unknown error'
