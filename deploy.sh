@@ -105,7 +105,7 @@ case $DEPLOY_ENV in
         print_status "Deploying to PRODUCTION..."
         if vercel --prod --yes; then
             print_success "🎉 Production deployment successful!"
-            print_status "Your site is live at: https://agri-tech-blog-k2vlidsx8-sjs-projects-5ee25b27.vercel.app"
+            print_status "Check your Vercel dashboard for the production URL."
         else
             print_error "Production deployment failed."
             exit 1

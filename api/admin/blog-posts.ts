@@ -62,14 +62,26 @@ export default async function handler(req: Request, res: Response) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Content-Type', 'application/json');
   
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
   
+  // Debug logging
+  console.log('API called:', req.method, req.url);
+  console.log('Environment check:', {
+    hasMongoUri: !!process.env.MONGODB_URI,
+    mongoDb: process.env.MONGODB_DATABASE
+  });
+  
   if (!uri) {
-    res.status(500).json({ message: 'MONGODB_URI environment variable is not set' });
+    console.error('MONGODB_URI missing');
+    res.status(500).json({ 
+      message: 'MONGODB_URI environment variable is not set',
+      debug: 'Environment variable check failed'
+    });
     return;
   }
   
@@ -164,12 +176,21 @@ export default async function handler(req: Request, res: Response) {
         
         const updatedPost = await postsCollection.findOne({ id: postData.id });
         const formattedPost = mapPostDocument(updatedPost);
+        if (!formattedPost) {
+          res.status(404).json({ message: 'Post not found after update' });
+          return;
+        }
         res.status(200).json(formattedPost);
       } else {
         // Create new post with unique ID
         const result = await postsCollection.insertOne(mongoData);
         const newPost = await postsCollection.findOne({ _id: result.insertedId });
         const formattedPost = mapPostDocument(newPost);
+        
+        if (!formattedPost) {
+          res.status(500).json({ message: 'Failed to create post' });
+          return;
+        }
         
         // Ensure the new post gets a unique ID added to MongoDB
         await postsCollection.updateOne(
