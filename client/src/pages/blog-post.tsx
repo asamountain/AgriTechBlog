@@ -262,7 +262,7 @@ export default function BlogPost() {
             />
 
                 {/* Comments Section */}
-                <CommentSection postId={post.id} postTitle={post.title} />
+                <CommentSection postId={Number(post.id)} postTitle={post.title} />
               </article>
             </div>
           </div>

@@ -83,14 +83,33 @@ export class MongoStorage implements IStorage {
   }
 
   private mapPostDocument(doc: any): BlogPostWithDetails {
-    if (!doc) throw new Error("Document is null or undefined");
+    if (!doc) {
+      throw new Error("Document is null or undefined");
+    }
     
-    // Generate a numeric ID from ObjectId for compatibility
-    const numericId = doc._id ? parseInt(doc._id.toString().substring(0, 8), 16) : Date.now();
+    // FIXED: Always use the persistent ID field from the database
+    let numericId: number;
+    
+    if (doc.id !== undefined && doc.id !== null) {
+      // Use the persistent ID field (after migration, all posts have this)
+      numericId = typeof doc.id === 'number' ? doc.id : parseInt(doc.id);
+    } else {
+      // Fallback: Generate from ObjectId (for any new posts not yet migrated)
+      const objectIdStr = doc._id.toString();
+      const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+      const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+      numericId = Math.abs(timestamp + sequence);
+      
+      // Save the generated ID back to the database for consistency
+      this.blogPostsCollection.updateOne(
+        { _id: doc._id },
+        { $set: { id: numericId } }
+      ).catch(err => console.warn('Failed to save generated ID:', err));
+    }
     
     return {
       id: numericId,
-      title: doc.title || 'Untitled',
+      title: doc.title || '',
       content: doc.content || '',
       slug: doc.slug || this.generateSlug(doc.title || 'untitled'),
       excerpt: doc.excerpt || this.extractExcerpt(doc.content || ''),
@@ -102,19 +121,21 @@ export class MongoStorage implements IStorage {
       isFeatured: !!doc.featured,
       isPublished: !doc.draft,
       readTime: this.calculateReadTime(doc.content || ''),
-      authorId: 1,
+      authorId: 1, // Default author ID
       author: {
         id: 1,
         name: 'San',
         email: 'san@example.com',
         bio: 'Sustainable Abundance Seeker',
         avatar: null,
-        userId: doc.userId || '',
+        userId: doc.userId || '111583071033294776048',
         linkedinUrl: null,
         instagramUrl: null,
         youtubeUrl: null,
         githubUrl: null,
-        portfolioUrl: null
+        portfolioUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     };
   }
@@ -299,7 +320,7 @@ export class MongoStorage implements IStorage {
       content: insertPost.content,
       featuredImage: insertPost.featuredImage,
       authorId: insertPost.authorId,
-      tags: insertPost.tags || null,
+      tags: insertPost.tags || [],
       readTime: insertPost.readTime || 5,
       isFeatured: insertPost.isFeatured || false,
       isPublished: insertPost.isPublished !== false,
@@ -443,7 +464,7 @@ export class MongoStorage implements IStorage {
   async createComment(insertComment: InsertComment): Promise<Comment> {
     const commentData = {
       content: insertComment.content,
-      blogPostId: insertComment.blogPostId,
+      postId: insertComment.postId,
       authorName: insertComment.authorName,
       authorEmail: insertComment.authorEmail,
       parentId: insertComment.parentId || null,
@@ -453,7 +474,13 @@ export class MongoStorage implements IStorage {
     const result = await this.commentsCollection.insertOne(commentData);
     return { 
       id: parseInt(result.insertedId.toString().substring(0, 8), 16), 
-      ...commentData
+      content: insertComment.content,
+      postId: insertComment.postId,
+      authorName: insertComment.authorName,
+      authorEmail: insertComment.authorEmail,
+      parentId: insertComment.parentId || null,
+      createdAt: new Date(),
+      isApproved: false
     };
   }
 

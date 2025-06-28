@@ -1,86 +1,151 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
+// MongoDB-compatible schema definitions using pure TypeScript interfaces and Zod validation
 
-export const authors = pgTable("authors", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  bio: text("bio"),
-  avatar: text("avatar"),
-  userId: text("user_id"), // Links author to authenticated user
-  linkedinUrl: text("linkedin_url"),
-  instagramUrl: text("instagram_url"),
-  youtubeUrl: text("youtube_url"),
-  githubUrl: text("github_url"),
-  portfolioUrl: text("portfolio_url"),
-});
+// User interfaces
+export interface User {
+  id: number | string;
+  username: string;
+  password: string;
+}
 
-export const blogPosts = pgTable("blog_posts", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  slug: text("slug").notNull().unique(),
-  excerpt: text("excerpt").notNull(),
-  content: text("content").notNull(),
-  featuredImage: text("featured_image").notNull(),
-  authorId: integer("author_id").references(() => authors.id).notNull(),
-  userId: text("user_id").notNull(), // Links posts to authenticated users
-  tags: text("tags").array().default([]), // Array of tags for SEO
-  readTime: integer("read_time").notNull().default(5),
-  isFeatured: boolean("is_featured").notNull().default(false),
-  isPublished: boolean("is_published").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export interface InsertUser {
+  username: string;
+  password: string;
+}
 
-export const comments = pgTable("comments", {
-  id: serial("id").primaryKey(),
-  blogPostId: integer("blog_post_id").notNull(),
-  parentId: integer("parent_id"), // For nested replies
-  authorName: text("author_name").notNull(),
-  authorEmail: text("author_email").notNull(),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  isApproved: boolean("is_approved").notNull().default(false),
-});
+// Author interfaces
+export interface Author {
+  id: number | string;
+  name: string;
+  email: string;
+  bio?: string | null;
+  avatar?: string | null;
+  userId?: string | null;
+  linkedinUrl?: string | null;
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  githubUrl?: string | null;
+  portfolioUrl?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-});
+export interface InsertAuthor {
+  name: string;
+  email: string;
+  bio?: string | null;
+  avatar?: string | null;
+  userId?: string | null;
+  linkedinUrl?: string | null;
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  githubUrl?: string | null;
+  portfolioUrl?: string | null;
+}
 
-export const insertAuthorSchema = createInsertSchema(authors).omit({
-  id: true,
-});
+// Blog Post interfaces
+export interface BlogPost {
+  id: number | string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featuredImage: string;
+  authorId: number | string;
+  userId: string;
+  tags: string[];
+  readTime: number;
+  isFeatured: boolean;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export interface InsertBlogPost {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featuredImage: string;
+  authorId: number | string;
+  userId: string;
+  tags?: string[];
+  readTime?: number;
+  isFeatured?: boolean;
+  isPublished?: boolean;
+}
 
-export const insertCommentSchema = createInsertSchema(comments).omit({
-  id: true,
-  createdAt: true,
-});
+// Comment interfaces
+export interface Comment {
+  id: number | string;
+  postId: number | string;
+  parentId?: number | string | null;
+  authorName: string;
+  authorEmail: string;
+  content: string;
+  createdAt: Date;
+  isApproved: boolean;
+}
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export interface InsertComment {
+  postId: number | string;
+  parentId?: number | string | null;
+  authorName: string;
+  authorEmail: string;
+  content: string;
+  isApproved?: boolean;
+}
 
-export type InsertAuthor = z.infer<typeof insertAuthorSchema>;
-export type Author = typeof authors.$inferSelect;
-
-export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
-export type BlogPost = typeof blogPosts.$inferSelect;
-
-export type InsertComment = z.infer<typeof insertCommentSchema>;
-export type Comment = typeof comments.$inferSelect;
-
-export type BlogPostWithDetails = BlogPost & {
+// Extended interfaces
+export interface BlogPostWithDetails extends BlogPost {
   author: Author;
-};
+}
+
+// Zod validation schemas for MongoDB
+export const insertUserSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const insertAuthorSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  bio: z.string().optional().nullable(),
+  avatar: z.string().optional().nullable(),
+  userId: z.string().optional().nullable(),
+  linkedinUrl: z.string().url().optional().nullable().or(z.literal("")),
+  instagramUrl: z.string().url().optional().nullable().or(z.literal("")),
+  youtubeUrl: z.string().url().optional().nullable().or(z.literal("")),
+  githubUrl: z.string().url().optional().nullable().or(z.literal("")),
+  portfolioUrl: z.string().url().optional().nullable().or(z.literal("")),
+});
+
+export const insertBlogPostSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  excerpt: z.string().min(1, "Excerpt is required"),
+  content: z.string().min(1, "Content is required"),
+  featuredImage: z.string().url("Valid image URL is required").or(z.literal("")),
+  authorId: z.union([z.number(), z.string()]),
+  userId: z.string().min(1, "User ID is required"),
+  tags: z.array(z.string()).default([]),
+  readTime: z.number().positive().default(5),
+  isFeatured: z.boolean().default(false),
+  isPublished: z.boolean().default(true),
+});
+
+export const insertCommentSchema = z.object({
+  postId: z.union([z.number(), z.string()]),
+  parentId: z.union([z.number(), z.string()]).optional().nullable(),
+  authorName: z.string().min(1, "Author name is required"),
+  authorEmail: z.string().email("Valid email is required"),
+  content: z.string().min(1, "Content is required"),
+  isApproved: z.boolean().default(false),
+});
+
+// Type exports for validation
+export type InsertUserSchema = z.infer<typeof insertUserSchema>;
+export type InsertAuthorSchema = z.infer<typeof insertAuthorSchema>;
+export type InsertBlogPostSchema = z.infer<typeof insertBlogPostSchema>;
+export type InsertCommentSchema = z.infer<typeof insertCommentSchema>;

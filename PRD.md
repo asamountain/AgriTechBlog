@@ -167,60 +167,77 @@ This ensures a consistent, professional user experience across the application w
 - **Secondary Background**: Light Gray (#F9FAFB) for sections
 - **Text**: Dark Gray (#111827) for primary text, Medium Gray (#6B7280) for secondary text
 
-## Streaming Pipeline Setup Definition
+## MongoDB Post Data Distribution Architecture
 
-**CRITICAL: Unified Data Flow Architecture for Consistent Post Fetching**
+**⚠️ CRITICAL SYSTEM ARCHITECTURE - DO NOT MODIFY WITHOUT FOLLOWING THIS STRUCTURE ⚠️**
 
-### Pipeline Overview
-The streaming pipeline ensures seamless data flow between MongoDB, API endpoints, and frontend components across all pages (landing page, posts page, and admin page).
+### **Primary Post Data Endpoints - MONGODB ONLY**
 
-### Core Components:
-1. **MongoDB Storage Layer** (`server/mongodb-storage-updated.ts`)
-   - Primary data source for all blog posts
-   - Handles CRUD operations with proper error handling
-   - Maps MongoDB documents to standardized BlogPost interface
+The following three endpoints serve as the **ONLY** data sources for all blog post displays across the application. These endpoints directly connect to **MongoDB** and must remain stable:
 
-2. **API Endpoint Layer** (`api/blog-posts.ts`, `api/blog-posts/featured.ts`)
-   - Provides RESTful endpoints for data access
-   - Handles query parameters (limit, offset, featured)
-   - Returns fallback sample data if MongoDB connection fails
-
-3. **Query Client Layer** (`client/src/lib/queryClient.ts`)
-   - Manages API request caching and state management
-   - Handles query parameters for pagination and filtering
-   - Provides consistent error handling and retry logic
-
-4. **Component Integration Layer**
-   - **Landing Page**: `FeaturedStories` + `BlogGrid` components
-   - **Posts Page**: Full post listing with search and filtering
-   - **Admin Page**: Post management with CRUD operations
-
-### Data Flow Pipeline:
-```
-MongoDB → API Endpoints → Query Client → React Components → User Interface
+#### **1. Landing Page (/) Data Source:**
+```bash
+Endpoint: GET /api/blog-posts/featured
+Purpose: Featured posts for homepage hero section
+Query: { featured: true, limit: 3, includeDrafts: false }
+Usage: Landing page hero section, featured stories carousel
+MongoDB Filter: Only published posts marked as featured
 ```
 
-### Consistency Rules:
-1. **Single Source of Truth**: MongoDB is the authoritative data source
-2. **Standardized Response Format**: All endpoints return consistent BlogPost objects
-3. **Fallback Strategy**: Sample data provided when MongoDB unavailable
-4. **Error Propagation**: Clear error messages throughout the pipeline
-5. **Cache Management**: Intelligent invalidation and refetching
+#### **2. Posts Grid Page (/posts) Data Source:**
+```bash
+Endpoint: GET /api/blog-posts
+Purpose: All published posts with pagination and filtering
+Query: { limit, offset, featured, category, includeDrafts: false }
+Usage: Main posts listing, search results, category filtering
+MongoDB Filter: Only published posts (no drafts)
+```
 
-### Endpoint Synchronization:
-- `/api/blog-posts` - All published posts
-- `/api/blog-posts/featured` - Featured posts only
-- `/api/admin/blog-posts` - Admin view with drafts
-- All endpoints must support the same query parameters and return format
+#### **3. Admin Page (/admin) Data Source:**
+```bash
+Endpoint: GET /api/admin/blog-posts
+Purpose: All posts including drafts for management
+Query: { includeDrafts: true }
+Usage: Admin dashboard, post management, bulk operations
+MongoDB Filter: All posts (published + drafts)
+```
 
-### Testing Protocol:
-1. Test MongoDB connection and fallback behavior
-2. Verify API endpoint response consistency
-3. Test frontend component data fetching
-4. Validate cross-page navigation and state management
-5. Ensure admin operations sync with public views
+### **MANDATORY ARCHITECTURE RULES:**
 
-This pipeline ensures that posts display consistently across the landing page, posts page, and admin interface, with proper error handling and fallback mechanisms.
+1. **🔒 MongoDB Primary Rule**: All three endpoints MUST use `activeStorage.getBlogPosts()` which connects directly to MongoDB
+2. **🔒 No Alternative Sources**: Never use localStorage, sessionStorage, or any non-MongoDB data sources
+3. **🔒 Endpoint Stability**: These three endpoints are permanent fixtures - modifications require updating this documentation
+4. **🔒 Consistent Response Format**: All endpoints return identical `BlogPostWithDetails[]` structure
+5. **🔒 Error Handling**: Fallback to empty arrays, never crash the UI
+
+### **Data Flow Architecture:**
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   MongoDB   │ -> │ activeStorage│ -> │ API Endpoint│ -> │  Frontend   │
+│  Database   │    │  .getBlogPosts() │    │ Component   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+      ↑                    ↑                    ↑                    ↑
+  Single Source      Native Driver      RESTful API         React Query
+   of Truth          Connection         Standard            Cache Management
+```
+
+### **Frontend Integration Points:**
+- **Landing Page**: `FeaturedStories` component fetches from `/api/blog-posts/featured`
+- **Posts Page**: `BlogGrid` component fetches from `/api/blog-posts`
+- **Admin Page**: `PostManagement` component fetches from `/api/admin/blog-posts`
+
+### **Modification Protocol:**
+1. **Before any changes**: Review this documentation
+2. **After modifications**: Update this architecture document
+3. **Testing required**: Test all three endpoints after any storage layer changes
+4. **Never break**: The three-endpoint structure is foundational to the application
+
+### **Cache Invalidation Strategy:**
+- Admin actions invalidate all related frontend caches
+- Real-time updates across all three page types
+- Consistent data display regardless of entry point
+
+**⚠️ WARNING: Breaking this architecture will cause data inconsistency across pages ⚠️**
 
 ---
 
@@ -350,6 +367,66 @@ const __dirname = dirname(__filename);
 4. **Use tsx for TypeScript execution** instead of ts-node when possible
 
 This ensures consistent module handling and prevents runtime errors during development.
+
+---
+
+## MongoDB-Only Data Policy
+
+**⚠️ CRITICAL SYSTEM REQUIREMENT - NEVER USE HARDCODED DATA ⚠️**
+
+### **Mandatory MongoDB-First Architecture**
+
+This application operates under a **strict MongoDB-only data policy**. The following rules are non-negotiable:
+
+#### **🔒 Core Requirements:**
+1. **MongoDB is the ONLY data source** - No exceptions, no fallbacks
+2. **No in-memory storage fallbacks** - If MongoDB fails, the application must fail
+3. **No hardcoded sample data** - All data must come from MongoDB database
+4. **No local storage alternatives** - MongoDB or nothing
+
+#### **🚫 Explicitly Forbidden:**
+- ✖️ MemStorage class usage
+- ✖️ Sample data seeding in constructors  
+- ✖️ Fallback to in-memory storage when MongoDB fails
+- ✖️ Hardcoded posts in storage layers
+- ✖️ localStorage, sessionStorage, or any browser storage as primary data source
+- ✖️ Mock data or placeholder content in production
+
+#### **✅ Required Implementation:**
+- ✅ MongoDB connection must be established before server starts
+- ✅ Server startup must fail if MongoDB is unreachable
+- ✅ All endpoints must serve data exclusively from MongoDB
+- ✅ Authentication errors should be fixed, not bypassed with fallbacks
+- ✅ Error messages must guide users to fix MongoDB issues
+
+#### **🔧 MongoDB Connection Requirements:**
+```bash
+# Required environment variables
+MONGODB_URI=mongodb+srv://blog-admin-new:dIGhkAFqirrk8Gva@cluster0.br3z5.mongodb.net/blog_database
+MONGODB_DATABASE=blog_database
+```
+
+#### **🚨 Failure Protocol:**
+If MongoDB connection fails:
+1. **Server must not start** - No graceful degradation
+2. **Display clear error messages** about MongoDB connection issues  
+3. **Provide troubleshooting guidance** for authentication/connection problems
+4. **Never serve cached or hardcoded data** as a substitute
+
+#### **📊 Monitoring & Validation:**
+- All blog posts must have MongoDB ObjectIds
+- All data operations must log MongoDB collection interactions
+- No posts should appear with sequential IDs (1, 2, 3...) which indicate hardcoded data
+- Admin panel must show "Connected to MongoDB" status
+
+### **Warning Signs of Policy Violations:**
+- 🚨 Posts appearing immediately after server restart without MongoDB connection
+- 🚨 Error messages about "falling back to in-memory storage"
+- 🚨 Sample blog posts about "hydroponic systems" or "AI-powered farming"
+- 🚨 Authors with names like "Dr. Sarah Chen" or "Mark Johnson"
+- 🚨 Perfect English content that doesn't match user's writing style
+
+**Breaking this policy results in showing fake data instead of the user's actual blog content, which is completely unacceptable.**
 
 ---
 

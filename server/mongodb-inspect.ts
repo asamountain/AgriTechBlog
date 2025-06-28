@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { loadLocalEnvironment } from './local-env-loader';
+loadLocalEnvironment();
 import { MongoClient } from 'mongodb';
 
 async function inspectMongoDB() {

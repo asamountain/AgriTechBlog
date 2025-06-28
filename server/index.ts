@@ -1,15 +1,9 @@
-import dotenv from "dotenv";
-import { existsSync } from "fs";
+// Custom environment loader that ignores Replit Secrets completely
+import { loadLocalEnvironment, displayEnvironmentStatus } from "./local-env-loader";
 
-// Try different env files in order of preference
-// For local development, prefer files that work locally
-if (process.env.NODE_ENV === 'development' && existsSync('.env')) {
-  dotenv.config();
-  console.log('📄 Using .env file');
-}else
-{
- console.log('server config not found') 
-}
+// Force load local environment (completely independent from Replit)
+loadLocalEnvironment();
+displayEnvironmentStatus();
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";

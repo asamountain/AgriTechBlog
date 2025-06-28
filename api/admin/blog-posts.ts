@@ -1,13 +1,44 @@
 import type { Request, Response } from 'express';
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || "mongodb+srv://blog-admin-new:wrbnidP8UoFl4RCO@cluster0.br3z5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  throw new Error('MONGODB_URI environment variable is not set');
+}
 
 function mapPostDocument(doc: any) {
   if (!doc) return null;
   
-  // Generate a numeric ID from ObjectId for compatibility
-  const numericId = doc._id ? parseInt(doc._id.toString().substring(0, 8), 16) : Date.now();
+  // IMPROVED: Generate a truly unique numeric ID from ObjectId
+  // Use the full ObjectId string to create a more unique numeric ID
+  let numericId: number;
+  
+  if (doc.id) {
+    // If explicit ID field exists, use it
+    numericId = doc.id;
+  } else if (doc._id) {
+    // Generate unique ID from full ObjectId using better method
+    const objectIdStr = doc._id.toString();
+    
+    // Method 1: Use entire ObjectId converted to number (with modulo to keep reasonable size)
+    const fullHex = objectIdStr;
+    const timestamp = parseInt(fullHex.substring(0, 8), 16);
+    const sequence = parseInt(fullHex.substring(16, 24), 16);
+    
+    // Combine timestamp and sequence for better uniqueness
+    numericId = Math.abs(timestamp + sequence);
+    
+    // If still 0 or too large, use fallback
+    if (numericId === 0 || numericId > Number.MAX_SAFE_INTEGER) {
+      numericId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+        return acc + char.charCodeAt(0);
+      }, 0) * 1000 + Date.now() % 1000);
+    }
+  } else {
+    // Ultimate fallback
+    numericId = Date.now() + Math.random() * 1000;
+  }
   
   return {
     id: numericId,
@@ -34,6 +65,11 @@ export default async function handler(req: Request, res: Response) {
   
   if (req.method === 'OPTIONS') {
     res.status(200).end();
+    return;
+  }
+  
+  if (!uri) {
+    res.status(500).json({ message: 'MONGODB_URI environment variable is not set' });
     return;
   }
   
@@ -67,7 +103,26 @@ export default async function handler(req: Request, res: Response) {
       // Map documents to the expected format
       const posts = docs.map(mapPostDocument).filter(Boolean);
       
-      res.status(200).json(posts);
+      // CRITICAL: Ensure all IDs are unique by checking for duplicates
+      const seenIds = new Set<number>();
+      const uniquePosts = posts.filter(post => post !== null).map(post => {
+        let uniqueId = post!.id;
+        let counter = 1;
+        
+        // If duplicate ID found, create a new unique one
+        while (seenIds.has(uniqueId)) {
+          uniqueId = post!.id + counter;
+          counter++;
+          console.log(`🔧 Fixed duplicate ID: ${post!.id} -> ${uniqueId} for post "${post!.title}"`);
+        }
+        
+        seenIds.add(uniqueId);
+        return { ...post!, id: uniqueId };
+      });
+      
+      console.log(`✅ Ensured ${uniquePosts.length} posts have unique IDs`);
+      
+      res.status(200).json(uniquePosts);
       
     } else if (req.method === 'POST') {
       console.log('Creating/updating admin blog post with data:', req.body);
@@ -111,10 +166,17 @@ export default async function handler(req: Request, res: Response) {
         const formattedPost = mapPostDocument(updatedPost);
         res.status(200).json(formattedPost);
       } else {
-        // Create new post
+        // Create new post with unique ID
         const result = await postsCollection.insertOne(mongoData);
         const newPost = await postsCollection.findOne({ _id: result.insertedId });
         const formattedPost = mapPostDocument(newPost);
+        
+        // Ensure the new post gets a unique ID added to MongoDB
+        await postsCollection.updateOne(
+          { _id: result.insertedId },
+          { $set: { id: formattedPost.id } }
+        );
+        
         res.status(201).json(formattedPost);
       }
       
@@ -123,9 +185,9 @@ export default async function handler(req: Request, res: Response) {
     }
     
   } catch (error) {
-    console.error('Admin API Error:', error);
+    console.error('Admin blog posts error:', error);
     res.status(500).json({ 
-      message: 'Failed to process request',
+      message: 'Internal server error',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   } finally {

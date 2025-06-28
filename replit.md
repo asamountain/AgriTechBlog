@@ -16,7 +16,7 @@ This is a modern agricultural technology blog platform built with a React.js fro
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
-- **Database**: MongoDB with native driver (not Postgres despite Drizzle config)
+- **Database**: MongoDB with native driver (primary database)
 - **Authentication**: Session-based auth with OAuth (Google/GitHub)
 - **File Storage**: Local filesystem with multer for uploads
 - **AI Integration**: Perplexity API for intelligent content tagging

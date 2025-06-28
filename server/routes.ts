@@ -5,7 +5,6 @@ import { storage, getStorage, type IStorage } from "./storage";
 import { insertBlogPostSchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
 import { getAITaggingService } from "./ai-tagging";
-import { db } from "./db";
 import { insertUserSchema, type User, type BlogPost, type Author } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -164,7 +163,7 @@ The integration of agriculture and solar energy represents a promising pathway t
 let dynamicMongoConfig: { uri: string; dbName: string } | null = null;
 
 // Shared active storage instance for all routes
-let activeStorage: IStorage = storage;
+let activeStorage: IStorage;
 
 // Helper to re-initialize storage with new MongoDB connection
 async function setDynamicMongoConnection(uri: string, dbName: string) {
@@ -176,56 +175,33 @@ async function setDynamicMongoConnection(uri: string, dbName: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize storage - PostgreSQL first, then MongoDB fallback
+  // MONGODB-ONLY POLICY: No fallbacks, MongoDB is mandatory
+  console.log("🔄 Connecting to MongoDB (MANDATORY - no fallbacks)...");
+  
+  if (!process.env.MONGODB_URI) {
+    console.error("❌ MONGODB_URI environment variable is required!");
+    console.error("❌ No fallback storage available - MongoDB is mandatory");
+    throw new Error("MONGODB_URI environment variable is required for this application");
+  }
+  
   try {
-    // First try PostgreSQL if available
-    if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('mongodb')) {
-      console.log("Using PostgreSQL database...");
-      const { DatabaseStorage } = await import('./db');
-      activeStorage = new DatabaseStorage();
-      console.log("Successfully connected to PostgreSQL");
-      
-      // Check existing posts and initialize sample data if needed
-      const existingPosts = await activeStorage.getBlogPosts({ limit: 5 });
-      console.log(`Found ${existingPosts.length} existing posts in database`);
-      
-      if (existingPosts.length === 0) {
-        console.log("No posts found, initializing sample data...");
-        await initializeSampleData(activeStorage);
-      }
-    }
-    // Fallback to MongoDB if MONGODB_URI is available
-    else if (process.env.MONGODB_URI) {
-      console.log("Attempting to connect to MongoDB...");
-      
-      try {
-        const { MongoStorage } = await import('./mongodb-storage-updated');
-        const mongoStorage = new MongoStorage(process.env.MONGODB_URI, 'blog_database');
-        await mongoStorage.connect();
-        activeStorage = mongoStorage;
-        console.log("Successfully connected to MongoDB");
-        
-        const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
-        console.log(`Found ${existingPosts.length} existing posts in database`);
-        
-        if (existingPosts.length === 0) {
-          console.log("No posts found, initializing sample data...");
-          await initializeSampleData(mongoStorage);
-        }
-      } catch (mongoError) {
-        console.log("MongoDB connection failed, falling back to in-memory storage:", mongoError instanceof Error ? mongoError.message : mongoError);
-        activeStorage = storage;
-        await initializeSampleData(activeStorage);
-      }
-    } else {
-      console.log("No database configured, using in-memory storage");
-      activeStorage = storage;
-      await initializeSampleData(activeStorage);
-    }
-  } catch (error) {
-    console.log("Storage initialization failed, using fallback storage:", error instanceof Error ? error.message : error);
-    activeStorage = storage;
-    await initializeSampleData(activeStorage);
+    const { MongoStorage } = await import('./mongodb-storage-updated');
+    const mongoStorage = new MongoStorage(process.env.MONGODB_URI, process.env.MONGODB_DATABASE || 'blog_database');
+    await mongoStorage.connect();
+    activeStorage = mongoStorage;
+    console.log("✅ Successfully connected to MongoDB");
+    
+    const existingPosts = await mongoStorage.getBlogPosts({ limit: 5 });
+    console.log(`📄 Found ${existingPosts.length} existing posts in MongoDB database`);
+    
+    // NOTE: No sample data initialization - only use real MongoDB data
+    
+  } catch (mongoError) {
+    console.error("❌ CRITICAL: MongoDB connection failed!");
+    console.error("❌ Application cannot start without MongoDB");
+    console.error("❌ Error:", mongoError instanceof Error ? mongoError.message : mongoError);
+    console.error("❌ Please fix MongoDB connection and restart");
+    throw new Error(`MongoDB connection failed: ${mongoError instanceof Error ? mongoError.message : mongoError}`);
   }
 
   // OAuth routes with passport middleware
@@ -386,7 +362,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Blog Posts
+  // ===============================================
+  // MONGODB POST DATA ENDPOINTS - CRITICAL STRUCTURE
+  // ===============================================
+  // These endpoints serve MongoDB data to the three main pages:
+  // 1. Landing Page (/) - uses /api/blog-posts/featured
+  // 2. Posts Grid (/posts) - uses /api/blog-posts
+  // 3. Admin Page (/admin) - uses /api/admin/blog-posts
+  
+  // POSTS GRID PAGE: /posts - All published posts with pagination/filtering
   app.get("/api/blog-posts", async (req, res) => {
     try {
       const { category, limit, offset, featured } = req.query;
@@ -395,24 +379,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit: limit ? parseInt(limit as string) : undefined,
         offset: offset ? parseInt(offset as string) : undefined,
         featured: featured ? featured === 'true' : undefined,
+        includeDrafts: false, // POSTS GRID: Only published posts
       };
       
-      console.log("Fetching blog posts with options:", options);
+      console.log("📄 POSTS GRID: Fetching blog posts with options:", options);
       const posts = await activeStorage.getBlogPosts(options);
-      console.log(`Found ${posts.length} posts`);
+      console.log(`📄 POSTS GRID: Found ${posts.length} posts from MongoDB`);
       
       res.json(posts);
     } catch (error) {
-      console.error("Error fetching blog posts:", error);
+      console.error("❌ POSTS GRID: Error fetching blog posts:", error);
       res.status(500).json({ message: "Failed to fetch blog posts", error: (error as any).message });
     }
   });
 
+  // LANDING PAGE: / - Featured posts for homepage hero section
   app.get("/api/blog-posts/featured", async (req, res) => {
     try {
-      const posts = await activeStorage.getBlogPosts({ featured: true, limit: 3 });
+      const posts = await activeStorage.getBlogPosts({ 
+        featured: true, 
+        limit: 3,
+        includeDrafts: false // LANDING PAGE: Only published featured posts
+      });
+      console.log(`🏠 LANDING PAGE: Found ${posts.length} featured posts from MongoDB`);
       res.json(posts);
     } catch (error) {
+      console.error("❌ LANDING PAGE: Error fetching featured posts:", error);
       res.status(500).json({ message: "Failed to fetch featured posts" });
     }
   });
@@ -863,7 +855,7 @@ ${publishedPosts.map(post => `  <url>
       // Get comments for all user posts
       const allComments = [];
       for (const post of userPosts) {
-        const postComments = await activeStorage.getCommentsByPostId(post.id);
+        const postComments = await activeStorage.getCommentsByPostId(Number(post.id));
         const commentsWithPost = postComments.map(comment => ({
           ...comment,
           postTitle: post.title,
@@ -1013,13 +1005,16 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  // Protect admin routes
+  // ADMIN PAGE: /admin - All posts including drafts for management
   app.get("/api/admin/blog-posts", async (req, res) => {
     try {
-      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
+      const posts = await activeStorage.getBlogPosts({ 
+        includeDrafts: true // ADMIN PAGE: Include both published and draft posts
+      });
+      console.log(`⚙️ ADMIN PAGE: Found ${posts.length} total posts from MongoDB (including drafts)`);
       res.json(posts);
     } catch (error) {
-      console.error("Error fetching admin blog posts:", error);
+      console.error("❌ ADMIN PAGE: Error fetching admin blog posts:", error);
       res.status(500).json({ message: "Failed to fetch blog posts" });
     }
   });

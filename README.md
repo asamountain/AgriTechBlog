@@ -6,7 +6,7 @@ A modern agricultural technology blog platform leveraging advanced content manag
 
 - **Frontend**: React.js with TypeScript
 - **Backend**: Node.js with Express
-- **Database**: MongoDB with Drizzle ORM
+- **Database**: MongoDB (Primary) with native driver
 - **Styling**: Tailwind CSS with forest-green theme (#2D5016)
 - **Authentication**: Session-based auth with 30-day persistence
 - **Content Management**: Tag-based organization with AI-powered suggestions
