@@ -288,6 +288,45 @@ This project requires **dual routing architecture**:
 
 ---
 
+## **FIX #004: Dynamic API Route Not Working on Vercel**
+
+**Date:** June 28, 2025  
+**Status:** 🔄 IN PROGRESS  
+**Priority:** HIGH  
+**Affected:** Individual blog posts
+
+### **Problem Description**
+The individual blog post API endpoint `/api/blog-posts/[slug].ts` returns 404 on deployed version, causing blog post pages to show "Article Not Found". Works correctly on localhost.
+
+### **Root Causes Identified**
+1. **Vercel Function Detection Issue**: Dynamic route not being recognized as valid serverless function
+2. **Deployment Configuration**: Possible issue with how Vercel handles dynamic routes in TypeScript
+3. **File Naming Convention**: Square bracket naming might not be properly detected during build
+
+### **Current Status**
+- ✅ Main API endpoints working (`/api/blog-posts`, `/api/admin/blog-posts`)
+- ❌ Dynamic route `/api/blog-posts/[slug]` returns generic 404
+- ✅ Local development works correctly
+- 🔄 Investigating Vercel dynamic route requirements
+
+### **Attempted Solutions**
+1. Renamed from `[identifier].ts` to `[slug].ts`
+2. Verified proper export structure (`export default async function handler`)
+3. Ensured file is properly committed and deployed
+4. Confirmed routing configuration allows API routes
+
+### **Next Steps**
+- Research Vercel dynamic route requirements for TypeScript functions
+- Consider alternative routing approaches
+- Test with simpler dynamic route patterns
+
+### **Impact on User Experience**
+- Blog post URLs work on localhost but fail on deployed site
+- Users see "Article Not Found" for valid blog posts
+- SEO and sharing functionality broken for individual posts
+
+---
+
 ## **Template for Future Fixes**
 
 ### **FIX #XXX: [Problem Title]**
