@@ -24,6 +24,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
 
 interface MarkdownEditorProps {
@@ -402,7 +403,7 @@ export default function MarkdownEditor({
                 <div className="prose prose-lg max-w-none">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeHighlight]}
+                    rehypePlugins={[rehypeSlug, rehypeHighlight]}
                   >
                     {editor.getText()}
                   </ReactMarkdown>

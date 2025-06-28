@@ -69,14 +69,14 @@ export default async function handler(req: Request, res: Response) {
     return;
   }
   
-  const { identifier } = req.query;
+  const { slug } = req.query;
   
-  if (!identifier || Array.isArray(identifier)) {
-    res.status(400).json({ message: 'Invalid post identifier' });
+  if (!slug || Array.isArray(slug)) {
+    res.status(400).json({ message: 'Invalid post slug' });
     return;
   }
   
-  const identifierStr = identifier as string;
+  const identifierStr = slug as string;
   
   if (!uri) {
     console.error('MONGODB_URI missing');

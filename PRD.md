@@ -1,5 +1,33 @@
 # Project Initiator Guidelines
 
+## 🚨 CRITICAL: ALWAYS CHECK FIX-LOG.md BEFORE MAKING CHANGES
+
+**⚠️ MANDATORY: Before modifying any deployment configuration, API endpoints, or core system components, you MUST review `FIX-LOG.md` to avoid repeating critical errors that have already been solved.**
+
+### Why This Matters:
+- Prevents reverting critical fixes that took hours to resolve
+- Avoids breaking production deployments with known problematic configurations
+- Saves development time by learning from past issues
+- Maintains system stability by following proven working solutions
+
+### When to Check FIX-LOG.md:
+- Before modifying `vercel.json` configuration
+- Before changing API endpoint configurations
+- Before updating deployment scripts
+- Before removing or adding dependencies
+- When encountering errors similar to ones listed in the log
+- Before implementing any "quick fixes" that might be documented
+
+### Critical Rules:
+1. **READ FIX-LOG.md** before making system changes
+2. **UPDATE FIX-LOG.md** when you solve a new critical issue  
+3. **FOLLOW the prevention rules** documented in previous fixes
+4. **TEST thoroughly** using the verification steps in the log
+
+**Location**: `FIX-LOG.md` in the project root
+
+---
+
 ## Rule #1: Simplicity Over Complexity
 
 **CRITICAL: Always choose the simplest solution that works. Complexity is the enemy of maintainability.**

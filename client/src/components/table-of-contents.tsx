@@ -19,37 +19,44 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    // Parse HTML content to extract headings
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    // Parse markdown content to extract headings
+    const lines = content.split('\n');
+    const headingRegex = /^(#{1,6})\s+(.+)$/;
+    const headings: { level: number; text: string; line: number }[] = [];
+    
+    lines.forEach((line, index) => {
+      const match = line.match(headingRegex);
+      if (match) {
+        const level = match[1].length;
+        const text = match[2].trim();
+        headings.push({ level, text, line: index });
+      }
+    });
     
     const items: TOCItem[] = [];
     const usedIds = new Set<string>();
     
     headings.forEach((heading, index) => {
-      const level = parseInt(heading.tagName.charAt(1));
-      const text = heading.textContent || '';
-      let id = heading.id;
+      const level = heading.level;
+      const text = heading.text;
+      let id = '';
       
-      // Generate ID if not present
-      if (!id) {
-        id = text.toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-+|-+$/g, '')
-          .trim();
-        
-        // Ensure uniqueness
-        let uniqueId = id;
-        let counter = 1;
-        while (usedIds.has(uniqueId)) {
-          uniqueId = `${id}-${counter}`;
-          counter++;
-        }
-        id = uniqueId;
+      // Generate ID from heading text
+      id = text.toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .trim();
+      
+      // Ensure uniqueness
+      let uniqueId = id;
+      let counter = 1;
+      while (usedIds.has(uniqueId)) {
+        uniqueId = `${id}-${counter}`;
+        counter++;
       }
+      id = uniqueId;
       
       usedIds.add(id);
       items.push({ id, text, level });

@@ -21,6 +21,11 @@ import { useEffect } from "react";
 import CommentSection from "@/components/comment-section";
 import TagDisplay from "@/components/tag-display";
 import { ContentSkeleton } from "@/components/loading-animations";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import 'highlight.js/styles/github-dark.css';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -216,8 +221,14 @@ export default function BlogPost() {
                 prose-blockquote:border-l-sage-500 prose-blockquote:text-gray-600
                 prose-code:bg-sage-100 prose-code:text-sage-800 prose-code:px-1 prose-code:rounded
               "
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeSlug, rehypeHighlight]}
+              >
+                {post.content}
+              </ReactMarkdown>
+            </div>
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (

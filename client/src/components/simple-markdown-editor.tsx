@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
 
 interface SimpleMarkdownEditorProps {
   initialContent?: string;
@@ -328,7 +329,10 @@ export default function SimpleMarkdownEditor({
             <CardContent>
               {showPreview ? (
                 <div className="prose prose-lg max-w-none min-h-[400px] p-4 border rounded-md">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeSlug]}
+                  >
                     {content || '*No content yet. Start typing in edit mode!*'}
                   </ReactMarkdown>
                 </div>
