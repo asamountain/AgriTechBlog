@@ -402,7 +402,7 @@ This application operates under a **strict MongoDB-only data policy**. The follo
 #### **🔧 MongoDB Connection Requirements:**
 ```bash
 # Required environment variables
-MONGODB_URI=mongodb+srv://blog-admin-new:dIGhkAFqirrk8Gva@cluster0.br3z5.mongodb.net/blog_database
+MONGODB_URI=mongodb+srv://admin-account:database-password@cluster0.br3z5.mongodb.net/blog_database
 MONGODB_DATABASE=blog_database
 ```
 
