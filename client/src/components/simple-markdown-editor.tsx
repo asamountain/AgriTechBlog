@@ -12,17 +12,20 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
+import { ensureMarkdown, containsHtml } from '@/lib/html-to-markdown';
 
 interface SimpleMarkdownEditorProps {
   initialContent?: string;
   initialTitle?: string;
   initialTags?: string[];
   initialExcerpt?: string;
+  initialFeaturedImage?: string;
   onSave?: (data: {
     title: string;
     content: string;
     excerpt: string;
     tags: string[];
+    featuredImage: string;
     isPublished: boolean;
   }) => Promise<void>;
   onAutoSave?: (data: {
@@ -30,6 +33,7 @@ interface SimpleMarkdownEditorProps {
     content: string;
     excerpt: string;
     tags: string[];
+    featuredImage: string;
     isPublished: boolean;
   }) => Promise<void>;
 }
@@ -39,28 +43,32 @@ export default function SimpleMarkdownEditor({
   initialTitle = '',
   initialTags = [],
   initialExcerpt = '',
+  initialFeaturedImage = '',
   onSave,
   onAutoSave
 }: SimpleMarkdownEditorProps) {
   const { toast } = useToast();
   const [title, setTitle] = useState(initialTitle);
-  const [content, setContent] = useState(initialContent);
+  const [content, setContent] = useState(() => ensureMarkdown(initialContent));
   const [excerpt, setExcerpt] = useState(initialExcerpt);
+  const [featuredImage, setFeaturedImage] = useState(initialFeaturedImage);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [newTag, setNewTag] = useState('');
   const [published, setPublished] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [htmlDetected, setHtmlDetected] = useState(containsHtml(initialContent));
 
   // Auto-save functionality
   const getCurrentData = useCallback(() => ({
     title,
     content,
     excerpt,
+    featuredImage,
     tags,
     isPublished: published,
-  }), [title, content, excerpt, tags, published]);
+  }), [title, content, excerpt, featuredImage, tags, published]);
 
   const autoSave = useCallback(async () => {
     if (!onAutoSave || saveStatus === 'saving') return;
@@ -113,7 +121,16 @@ export default function SimpleMarkdownEditor({
       const timer = setTimeout(autoSave, 3000); // Increased to 3 seconds for better UX
       return () => clearTimeout(timer);
     }
-  }, [title, content, excerpt, tags, autoSave]);
+  }, [title, content, excerpt, featuredImage, tags, autoSave]);
+
+  // Convert HTML content when initialContent changes
+  useEffect(() => {
+    if (initialContent && containsHtml(initialContent)) {
+      const convertedContent = ensureMarkdown(initialContent);
+      setContent(convertedContent);
+      setHtmlDetected(true);
+    }
+  }, [initialContent]);
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -122,8 +139,10 @@ export default function SimpleMarkdownEditor({
       try {
         const draft = JSON.parse(savedDraft);
         setTitle(draft.title || '');
-        setContent(draft.content || '');
+        const draftContent = draft.content || '';
+        setContent(containsHtml(draftContent) ? ensureMarkdown(draftContent) : draftContent);
         setExcerpt(draft.excerpt || '');
+        setFeaturedImage(draft.featuredImage || '');
         setTags(draft.tags || []);
         setPublished(draft.isPublished || false);
       } catch (error) {
@@ -257,6 +276,12 @@ export default function SimpleMarkdownEditor({
                   className="text-2xl font-bold border-none p-0 focus:ring-0 placeholder:text-gray-400"
                 />
                 
+                {htmlDetected && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+                    📝 HTML content detected and converted to markdown format for better editing.
+                  </div>
+                )}
+                
                 {/* Markdown Toolbar */}
                 <div className="flex flex-wrap gap-2 border-b pb-4">
                   <Button
@@ -384,6 +409,39 @@ export default function SimpleMarkdownEditor({
                 onChange={(e) => setExcerpt(e.target.value)}
                 className="w-full p-3 border rounded-md resize-none h-24"
               />
+            </CardContent>
+          </Card>
+
+          {/* Featured Image */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Featured Image (Thumbnail)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Input
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={featuredImage}
+                onChange={(e) => setFeaturedImage(e.target.value)}
+              />
+              {featuredImage && (
+                <div className="mt-2">
+                  <img
+                    src={featuredImage}
+                    alt="Featured image preview"
+                    className="w-full h-32 object-cover rounded-md border"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+                    }}
+                  />
+                  <p className="text-xs text-gray-600 mt-1">
+                    Preview of how the thumbnail will appear on the blog
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                Enter a URL for the post thumbnail. This image will be displayed in blog listings, social shares, and as the featured image.
+              </p>
             </CardContent>
           </Card>
 

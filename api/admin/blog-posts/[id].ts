@@ -52,6 +52,12 @@ export default async function handler(req: Request, res: Response) {
         delete updateData.isFeatured;
       }
       
+      // Convert featuredImage to coverImage for MongoDB storage
+      if (updateData.hasOwnProperty('featuredImage')) {
+        updateData.coverImage = updateData.featuredImage;
+        delete updateData.featuredImage;
+      }
+      
       // Set lastModified
       updateData.lastModified = new Date();
       

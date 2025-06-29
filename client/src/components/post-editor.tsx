@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, X, Wand2, Save } from "lucide-react";
 import type { BlogPostWithDetails } from "@shared/schema";
+import { ensureMarkdown, containsHtml } from "@/lib/html-to-markdown";
 
 interface PostEditorProps {
   post: BlogPostWithDetails;
@@ -22,11 +23,13 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
   const queryClient = useQueryClient();
   
   const [title, setTitle] = useState(post.title);
-  const [content, setContent] = useState(post.content);
+  const [content, setContent] = useState(() => ensureMarkdown(post.content));
   const [excerpt, setExcerpt] = useState(post.excerpt);
+  const [featuredImage, setFeaturedImage] = useState(post.featuredImage || '');
   const [tags, setTags] = useState<string[]>(post.tags || []);
   const [newTag, setNewTag] = useState("");
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+  const [htmlConverted, setHtmlConverted] = useState(containsHtml(post.content));
 
   // Update post mutation
   const updatePostMutation = useMutation({
@@ -108,6 +111,7 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
       title,
       content,
       excerpt,
+      featuredImage,
       tags,
     });
   };
@@ -134,6 +138,11 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
               onChange={(e) => setTitle(e.target.value)}
               className="rounded-golden-sm"
             />
+            {htmlConverted && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-2 text-xs text-blue-800">
+                📝 HTML content was automatically converted to markdown format
+              </div>
+            )}
           </div>
 
           {/* Tags Section */}
@@ -201,6 +210,37 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
               rows={3}
               className="rounded-golden-sm"
             />
+          </div>
+
+          {/* Featured Image / Thumbnail */}
+          <div className="space-y-golden-xs">
+            <Label htmlFor="featuredImage">Featured Image (Thumbnail)</Label>
+            <Input
+              id="featuredImage"
+              type="url"
+              placeholder="https://example.com/image.jpg"
+              value={featuredImage}
+              onChange={(e) => setFeaturedImage(e.target.value)}
+              className="rounded-golden-sm"
+            />
+            {featuredImage && (
+              <div className="mt-2">
+                <img
+                  src={featuredImage}
+                  alt="Featured image preview"
+                  className="w-full h-32 object-cover rounded-md border"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+                  }}
+                />
+                <p className="text-xs text-gray-600 mt-1">
+                  Preview of how the thumbnail will appear on the blog
+                </p>
+              </div>
+            )}
+            <p className="text-xs text-gray-500">
+              Enter a URL for the post thumbnail. This image will be displayed in blog listings, social shares, and as the featured image.
+            </p>
           </div>
 
           {/* Content */}

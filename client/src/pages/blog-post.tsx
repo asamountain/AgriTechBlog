@@ -9,16 +9,14 @@ import ReadingProgress from "@/components/reading-progress";
 import ScrollToTopButton from "@/components/scroll-to-top-button";
 import RelatedPostsByTags from "@/components/related-posts-by-tags";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import type { BlogPostWithDetails, Author } from "@shared/schema";
+import type { BlogPostWithDetails } from "@shared/schema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
-import CommentSection from "@/components/comment-section";
 import TagDisplay from "@/components/tag-display";
 import { ContentSkeleton } from "@/components/loading-animations";
 import ReactMarkdown from 'react-markdown';
@@ -26,6 +24,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
+import { ensureMarkdown } from '@/lib/html-to-markdown';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -136,7 +135,6 @@ export default function BlogPost() {
           ...(post?.tags || []),
           post.title.toLowerCase(),
         ]}
-        author={post?.author?.name || "Author"}
         publishedTime={post?.createdAt instanceof Date ? post.createdAt.toISOString() : post?.createdAt}
         image={ogImageUrl}
       />
@@ -226,7 +224,7 @@ export default function BlogPost() {
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeSlug, rehypeHighlight]}
               >
-                {post.content}
+                {ensureMarkdown(post.content)}
               </ReactMarkdown>
             </div>
 
@@ -239,41 +237,19 @@ export default function BlogPost() {
               </div>
             )}
 
-            {/* Author Bio */}
-            {post.author && (
-              <div className="bg-sage-50 rounded-xl p-6 mb-8">
-                <div className="flex items-start gap-4">
-                  {post.author.avatar && (
-                    <img 
-                      src={post.author.avatar} 
-                      alt={post.author.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-forest-green mb-2">
-                      About {post.author.name}
-                    </h3>
-                    {post.author.bio && (
-                      <p className="text-gray-700 mb-3">{post.author.bio}</p>
-                    )}
-                    <SocialShare 
-                      url={`${window.location.origin}/blog/${post.slug}`}
-                      title={post.title}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
+            {/* Social Share */}
+            <div className="border-t border-gray-200 pt-6 mb-8">
+              <SocialShare 
+                  url={`${window.location.origin}/blog/${post.slug}`}
+                  title={post.title}
+               />
+            </div>
             {/* Related Posts */}
             <RelatedPostsByTags 
               currentPostId={post.id} 
               currentPostTags={post.tags || []}
             />
 
-                {/* Comments Section */}
-                <CommentSection postId={Number(post.id)} postTitle={post.title} />
               </article>
             </div>
           </div>
