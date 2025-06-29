@@ -21,7 +21,7 @@ export function setupSession(app: Express) {
     saveUninitialized: false,
     rolling: true, // Reset expiration on activity
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production', // true in production with HTTPS
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days for persistent login
       httpOnly: true, // Prevent XSS attacks
       sameSite: 'lax' // CSRF protection
@@ -38,7 +38,7 @@ export function setupAuth(app: Express) {
   // Google OAuth Strategy
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://agritech-blog.vercel.app'
+      ? 'https://tech-san.vercel.app'
       : 'http://localhost:3000';
     
     console.log('OAuth Configuration:');
@@ -64,7 +64,7 @@ export function setupAuth(app: Express) {
   // GitHub OAuth Strategy
   if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://agritech-blog.vercel.app'
+      ? 'https://tech-san.vercel.app'
       : 'http://localhost:3000';
     
     passport.use(new GitHubStrategy({
