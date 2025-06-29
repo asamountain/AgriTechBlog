@@ -163,22 +163,8 @@ export default function BlogPost() {
 
                   {/* Post Meta */}
                   <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
-                    {/* Author */}
-                    {post.author && (
-                      <div className="flex items-center gap-2">
-                        {post.author.avatar && (
-                          <img 
-                            src={post.author.avatar} 
-                            alt={post.author.name}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        )}
-                        <span className="font-medium">{post.author.name}</span>
-                      </div>
-                    )}
 
                     {/* Date */}
-                    <span>•</span>
                     <time dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}>
                       {new Date(post.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
