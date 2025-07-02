@@ -29,12 +29,14 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
   const [tags, setTags] = useState<string[]>(post.tags || []);
   const [newTag, setNewTag] = useState("");
   const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
   const [htmlConverted, setHtmlConverted] = useState(containsHtml(post.content));
 
   // Update post mutation
   const updatePostMutation = useMutation({
     mutationFn: async (updateData: any) => {
-      const response = await fetch(`/api/blog-posts/${post.id}`, {
+      // Use admin endpoint for consistency when editing from admin interface
+      const response = await fetch(`/api/admin/blog-posts/${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
@@ -89,10 +91,61 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
     },
   });
 
+  // AI excerpt generation mutation
+  const generateExcerptMutation = useMutation({
+    mutationFn: async () => {
+      if (post.id) {
+        // Use existing post endpoint for saved posts
+        const response = await fetch(`/api/ai-tagging/generate-excerpt/${post.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to generate excerpt');
+        return response.json();
+      } else {
+        // Use content-based endpoint as fallback
+        if (!title.trim() || !content.trim()) {
+          throw new Error('Please add a title and content before generating an excerpt');
+        }
+        const response = await fetch('/api/ai-tagging/generate-excerpt-from-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content })
+        });
+        if (!response.ok) throw new Error('Failed to generate excerpt');
+        return response.json();
+      }
+    },
+    onSuccess: (data: any) => {
+      if (data.excerpt) {
+        setExcerpt(data.excerpt);
+      }
+
+      toast({
+        title: "AI Excerpt Generated",
+        description: "Created an engaging excerpt for your post",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "AI Excerpt Failed",
+        description: error.message || "Could not generate excerpt. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleGenerateTags = async () => {
     setIsGeneratingTags(true);
     await generateTagsMutation.mutateAsync();
     setIsGeneratingTags(false);
+  };
+
+  const handleGenerateExcerpt = async () => {
+    setIsGeneratingExcerpt(true);
+    await generateExcerptMutation.mutateAsync();
+    setIsGeneratingExcerpt(false);
   };
 
   const addTag = () => {
@@ -202,14 +255,33 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
 
           {/* Excerpt */}
           <div className="space-y-golden-xs">
-            <Label htmlFor="excerpt">Excerpt</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="excerpt">Excerpt</Label>
+              <Button
+                onClick={handleGenerateExcerpt}
+                disabled={isGeneratingExcerpt}
+                size="sm"
+                className="bg-forest-green text-white hover:opacity-80"
+              >
+                {isGeneratingExcerpt ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Wand2 className="h-4 w-4 mr-2" />
+                )}
+                AI Generate
+              </Button>
+            </div>
             <Textarea
               id="excerpt"
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               rows={3}
               className="rounded-golden-sm"
+              placeholder="Write an engaging summary that captures readers' attention..."
             />
+            <p className="text-xs text-gray-500">
+              Create an attractive excerpt that hooks readers and encourages them to read the full post. Use AI Generate for compelling suggestions.
+            </p>
           </div>
 
           {/* Featured Image / Thumbnail */}

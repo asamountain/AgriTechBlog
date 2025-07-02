@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation } from '@tanstack/react-query';
 import { 
   Bold, Italic, Heading1, Heading2, Heading3,
   List, Quote, Image as ImageIcon, Eye, EyeOff, 
-  Save, Clock, CheckCircle, AlertCircle
+  Save, Clock, CheckCircle, AlertCircle, Wand2, Loader2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -20,6 +21,7 @@ interface SimpleMarkdownEditorProps {
   initialTags?: string[];
   initialExcerpt?: string;
   initialFeaturedImage?: string;
+  postId?: string | number; // Add post ID for AI features
   onSave?: (data: {
     title: string;
     content: string;
@@ -44,6 +46,7 @@ export default function SimpleMarkdownEditor({
   initialTags = [],
   initialExcerpt = '',
   initialFeaturedImage = '',
+  postId,
   onSave,
   onAutoSave
 }: SimpleMarkdownEditorProps) {
@@ -59,6 +62,51 @@ export default function SimpleMarkdownEditor({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [htmlDetected, setHtmlDetected] = useState(containsHtml(initialContent));
+  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+
+  // AI excerpt generation mutation
+  const generateExcerptMutation = useMutation({
+    mutationFn: async () => {
+      if (postId) {
+        // Use existing post endpoint for saved posts
+        const response = await fetch(`/api/ai-tagging/generate-excerpt/${postId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to generate excerpt');
+        return response.json();
+      } else {
+        // Use content-based endpoint for new posts
+        if (!title.trim() || !content.trim()) {
+          throw new Error('Please add a title and content before generating an excerpt');
+        }
+        const response = await fetch('/api/ai-tagging/generate-excerpt-from-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content })
+        });
+        if (!response.ok) throw new Error('Failed to generate excerpt');
+        return response.json();
+      }
+    },
+    onSuccess: (data: any) => {
+      if (data.excerpt) {
+        setExcerpt(data.excerpt);
+        toast({
+          title: "AI Excerpt Generated",
+          description: "Created an engaging excerpt for your post",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "AI Excerpt Failed",
+        description: error.message || "Could not generate excerpt. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Auto-save functionality
   const getCurrentData = useCallback(() => ({
@@ -181,6 +229,20 @@ export default function SimpleMarkdownEditor({
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleGenerateExcerpt = async () => {
+    if (!title.trim() || !content.trim()) {
+      toast({
+        title: "Content Required",
+        description: "Please add a title and content before generating an excerpt.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsGeneratingExcerpt(true);
+    await generateExcerptMutation.mutateAsync();
+    setIsGeneratingExcerpt(false);
   };
 
   const insertMarkdown = (before: string, after: string = '') => {
@@ -400,15 +462,33 @@ export default function SimpleMarkdownEditor({
           {/* Excerpt */}
           <Card>
             <CardHeader>
-              <CardTitle>Excerpt</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Excerpt</CardTitle>
+                <Button
+                  onClick={handleGenerateExcerpt}
+                  disabled={isGeneratingExcerpt || (!title.trim() || !content.trim())}
+                  size="sm"
+                  className="bg-forest-green text-white hover:opacity-80"
+                >
+                  {isGeneratingExcerpt ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Wand2 className="h-4 w-4 mr-2" />
+                  )}
+                  AI Generate
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <textarea
-                placeholder="Brief description of your post..."
+                placeholder="Write an engaging summary that captures readers' attention..."
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
                 className="w-full p-3 border rounded-md resize-none h-24"
               />
+              <p className="text-xs text-gray-500">
+                Create an attractive excerpt that hooks readers and encourages them to read the full post. Add a title and content, then use AI Generate for compelling suggestions.
+              </p>
             </CardContent>
           </Card>
 

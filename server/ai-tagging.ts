@@ -29,6 +29,12 @@ interface TaggingResult {
   reasoning: string;
 }
 
+interface ExcerptResult {
+  excerpt: string;
+  reasoning: string;
+  alternatives?: string[];
+}
+
 export class AITaggingService {
   private apiKey: string;
   private apiUrl: string;
@@ -112,6 +118,83 @@ Respond with a JSON object containing an array of suggested tags:
     }
   }
 
+  async generateExcerpt(post: BlogPostWithDetails): Promise<ExcerptResult> {
+    try {
+      if (!this.apiKey) {
+        return this.getFallbackExcerpt(post.title, post.content);
+      }
+
+      const prompt = `Create an engaging, attractive excerpt for this agricultural technology blog post that will capture readers' attention and encourage them to read the full article.
+
+Title: "${post.title}"
+Content: "${post.content.substring(0, 1200)}..."
+
+Requirements for the excerpt:
+- 120-180 characters maximum (perfect for social media and search previews)
+- Hook readers immediately with compelling language
+- Include specific benefits or intriguing insights
+- Use action words and emotional triggers
+- Highlight unique value proposition
+- Make it scannable and punchy
+- Focus on what readers will learn or gain
+- End with intrigue that makes them want to read more
+
+Tone: Professional yet accessible, innovative, forward-thinking, inspiring
+
+Respond with a JSON object:
+{
+  "excerpt": "Your compelling excerpt here",
+  "reasoning": "Brief explanation of approach used",
+  "alternatives": ["alternative excerpt 1", "alternative excerpt 2"]
+}`;
+
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert content marketing specialist focused on agricultural technology. You excel at creating compelling, click-worthy excerpts that drive engagement. Always respond with valid JSON format.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 400,
+          temperature: 0.7, // Higher creativity for engaging content
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Perplexity API error: ${response.status}`);
+      }
+
+      const data: PerplexityResponse = await response.json();
+      const result = data.choices[0]?.message?.content;
+
+      if (result) {
+        const parsed = JSON.parse(result);
+        return {
+          excerpt: parsed.excerpt || '',
+          reasoning: parsed.reasoning || 'AI excerpt generated',
+          alternatives: parsed.alternatives || []
+        };
+      }
+
+      return this.getFallbackExcerpt(post.title, post.content);
+    } catch (error) {
+      console.error('AI excerpt generation error:', error);
+      return this.getFallbackExcerpt(post.title, post.content);
+    }
+  }
+
   private getFallbackAnalysis(title: string, content: string): TaggingResult {
     const fallbackTags = this.extractKeywords(title, content);
     
@@ -137,6 +220,51 @@ Respond with a JSON object containing an array of suggested tags:
     );
 
     return foundTerms.length > 0 ? foundTerms : ['agriculture', 'technology', 'farming'];
+  }
+
+  private getFallbackExcerpt(title: string, content: string): ExcerptResult {
+    const fallbackExcerpt = this.extractExcerpt(title, content);
+    
+    return {
+      excerpt: fallbackExcerpt,
+      reasoning: 'Generated using excerpt extraction as fallback method'
+    };
+  }
+
+  private extractExcerpt(title: string, content: string): string {
+    // Remove HTML tags and clean up the content
+    const cleanContent = content.replace(/<[^>]*>/g, ' ')
+                               .replace(/\s+/g, ' ')
+                               .trim();
+    
+    // Look for the first paragraph or meaningful sentence
+    const sentences = cleanContent.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    
+    if (sentences.length > 0) {
+      const firstSentence = sentences[0].trim();
+      
+      // Create engaging excerpts with action words
+      const actionWords = ['discover', 'explore', 'learn', 'revolutionize', 'transform', 'boost', 'enhance', 'optimize', 'maximize'];
+      const hasActionWord = actionWords.some(word => firstSentence.toLowerCase().includes(word));
+      
+      if (hasActionWord && firstSentence.length <= 150) {
+        return firstSentence + '.';
+      }
+      
+      if (firstSentence.length <= 120) {
+        return firstSentence + '.';
+      }
+      
+      // Truncate smartly at word boundary
+      const truncated = firstSentence.substring(0, 120);
+      const lastSpace = truncated.lastIndexOf(' ');
+      return lastSpace > 80 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+    }
+    
+    // Fallback to first 120 characters
+    return cleanContent.length > 120 ? 
+      cleanContent.substring(0, 120).trim() + '...' : 
+      cleanContent;
   }
 }
 

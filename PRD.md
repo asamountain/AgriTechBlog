@@ -461,3 +461,502 @@ If MongoDB connection fails:
 ---
 
 This document ensures visual consistency, mathematical harmony, and optimal performance throughout the application.
+
+---
+
+## API Endpoint Standards
+
+**⚠️ CRITICAL: All API endpoints must follow RESTful conventions and consistent error handling**
+
+### **Endpoint Naming Conventions:**
+```bash
+# Blog Posts
+GET    /api/blog-posts              # List all published posts
+GET    /api/blog-posts/featured     # Featured posts only
+GET    /api/blog-posts/[id]         # Single post by ID
+POST   /api/blog-posts              # Create new post
+PATCH  /api/blog-posts/[id]         # Update existing post
+DELETE /api/blog-posts/[id]         # Delete post
+
+# Admin Endpoints
+GET    /api/admin/blog-posts        # All posts including drafts
+POST   /api/admin/blog-posts        # Admin create with auto-save
+PATCH  /api/admin/blog-posts/[id]   # Admin update with bulk operations
+DELETE /api/admin/blog-posts/[id]   # Admin delete
+
+# AI Services
+POST   /api/ai-tagging/generate-tags      # Generate tags from content
+POST   /api/ai-tagging/generate-excerpt   # Generate excerpt from content
+GET    /api/ai-tagging/generate-excerpt/[id]  # Generate excerpt from existing post
+```
+
+### **Response Format Standards:**
+```typescript
+// Success Response
+{
+  success: true,
+  data: T,
+  meta?: {
+    total?: number,
+    page?: number,
+    limit?: number
+  }
+}
+
+// Error Response
+{
+  success: false,
+  error: string,
+  details?: string,
+  code?: number
+}
+```
+
+### **HTTP Status Code Rules:**
+- **200**: Successful GET/PATCH operations
+- **201**: Successful POST (creation)
+- **400**: Bad request (validation errors)
+- **401**: Unauthorized (authentication required)
+- **403**: Forbidden (insufficient permissions)
+- **404**: Resource not found
+- **405**: Method not allowed
+- **500**: Internal server error
+
+### **Authentication Standards:**
+- Admin endpoints require session-based authentication
+- Public endpoints require no authentication
+- AI endpoints use content-based auth (no auth for new posts, auth for existing posts)
+- Session validation must be consistent across all protected routes
+
+---
+
+## Component Architecture Standards
+
+**⚠️ CRITICAL: Maintain consistent component patterns and avoid prop drilling**
+
+### **Component File Organization:**
+```
+client/src/components/
+├── ui/              # Shadcn/ui components (unchanged)
+├── [feature].tsx    # Feature-specific components
+└── layout/          # Layout components (navigation, footer, etc.)
+```
+
+### **Component Naming Conventions:**
+- **PascalCase** for all component files: `BlogGrid.tsx`, `PostEditor.tsx`
+- **kebab-case** for non-component files: `use-auth.ts`, `query-client.ts`
+- **Descriptive names** that indicate purpose: `AdvancedSearch.tsx` not `Search.tsx`
+
+### **Component Structure Standards:**
+```typescript
+// Required component structure
+interface ComponentProps {
+  // Props interface at top
+}
+
+export default function ComponentName({ ...props }: ComponentProps) {
+  // 1. State declarations
+  // 2. Hooks (useQuery, useAuth, etc.)
+  // 3. Event handlers
+  // 4. Effects
+  // 5. Render logic (early returns for loading/error states)
+  // 6. Main JSX return
+}
+```
+
+### **State Management Rules:**
+- **Local state** for component-specific data (form inputs, UI toggles)
+- **React Query** for server state (API data, caching)
+- **Props** for parent-child communication
+- **Context** only for truly global state (auth, theme)
+- **No Redux** - Keep state management simple
+
+### **Performance Requirements:**
+- Use `React.memo()` for expensive components that receive stable props
+- Implement proper `useMemo()` and `useCallback()` for complex calculations
+- Avoid inline object/array creation in JSX
+- Use `React.lazy()` for route-level code splitting
+
+---
+
+## Security & Authentication Guidelines
+
+**⚠️ CRITICAL: Security is non-negotiable - follow these standards exactly**
+
+### **Authentication Flow:**
+```mermaid
+graph TD
+    A[User Login] --> B[OAuth Provider]
+    B --> C[Callback with Code]
+    C --> D[Exchange Code for Token]
+    D --> E[Create Session]
+    E --> F[Set HttpOnly Cookie]
+    F --> G[Access Admin Features]
+```
+
+### **Session Security Standards:**
+```typescript
+// Production session configuration
+{
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    httpOnly: true,                                // Prevent XSS
+    maxAge: 24 * 60 * 60 * 1000,                 // 24 hours
+    sameSite: 'lax'                               // CSRF protection
+  }
+}
+```
+
+### **OAuth Configuration Security:**
+- **Domain matching**: OAuth callbacks MUST match deployment domain
+- **Environment separation**: Different OAuth apps for development/production
+- **Secret rotation**: Regular rotation of SESSION_SECRET and OAuth secrets
+- **Scope limitation**: Request minimal necessary OAuth scopes
+
+### **API Security Rules:**
+1. **Input validation** on all POST/PATCH endpoints
+2. **Rate limiting** on AI endpoints to prevent abuse
+3. **CORS headers** configured for specific domains only
+4. **No sensitive data** in client-side logs or error messages
+5. **Environment variables** for all secrets (never hardcode)
+
+### **Content Security:**
+- **HTML sanitization** for user-generated content
+- **Markdown parsing** with XSS protection
+- **Image URL validation** for featured images
+- **File upload restrictions** (if implemented)
+
+---
+
+## Performance & Monitoring Standards
+
+**⚠️ CRITICAL: Performance directly impacts user experience and SEO rankings**
+
+### **Core Web Vitals Targets:**
+- **Largest Contentful Paint (LCP)**: < 2.5 seconds
+- **First Input Delay (FID)**: < 100 milliseconds
+- **Cumulative Layout Shift (CLS)**: < 0.1
+- **First Contentful Paint (FCP)**: < 1.8 seconds
+
+### **Performance Optimization Rules:**
+```typescript
+// Image optimization
+<img 
+  src={featuredImage} 
+  alt={title}
+  loading="lazy"           // Lazy load below fold
+  decoding="async"         // Non-blocking decode
+  width={400}              // Explicit dimensions
+  height={300}             // Prevent layout shift
+/>
+
+// Code splitting
+const AdminPage = lazy(() => import('./pages/admin'));
+const PostEditor = lazy(() => import('./components/post-editor'));
+```
+
+### **Bundle Size Monitoring:**
+- **Total bundle size**: < 500KB gzipped
+- **Route chunks**: < 200KB per route
+- **Third-party deps**: Audit regularly, remove unused
+- **Tree shaking**: Ensure ES modules and proper imports
+
+### **Database Performance:**
+```typescript
+// MongoDB query optimization
+// ✅ Good: Use indexes and projections
+const posts = await collection.find(
+  { published: true },
+  { projection: { content: 0 } }  // Exclude large fields
+).limit(10).toArray();
+
+// ❌ Bad: Full text search without indexes
+const posts = await collection.find({
+  $text: { $search: query }       // Requires text index
+}).toArray();
+```
+
+### **Caching Strategy:**
+- **React Query**: 5 minute stale time for blog posts
+- **Browser caching**: Proper cache headers for static assets
+- **CDN integration**: Vercel Edge Network for global distribution
+- **API response caching**: Cache-Control headers on stable endpoints
+
+---
+
+## SEO & Content Optimization Standards
+
+**⚠️ CRITICAL: SEO is essential for content discovery and traffic growth**
+
+### **Meta Tag Requirements:**
+```typescript
+// Required for every page
+<head>
+  <title>{title} | San AgriTech Blog</title>
+  <meta name="description" content={description} />
+  <meta name="keywords" content={tags.join(', ')} />
+  
+  {/* Open Graph */}
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={featuredImage} />
+  <meta property="og:type" content="article" />
+  
+  {/* Twitter Cards */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={featuredImage} />
+</head>
+```
+
+### **URL Structure Standards:**
+```bash
+# SEO-friendly URL patterns
+/                           # Homepage
+/posts                      # All posts listing
+/posts/[slug]              # Individual post
+/posts/tagged/[tag]        # Posts by tag
+/posts/category/[category] # Posts by category (if implemented)
+```
+
+### **Content Quality Requirements:**
+- **Minimum word count**: 300 words per post
+- **Heading structure**: Proper H1, H2, H3 hierarchy
+- **Internal linking**: Link to related posts
+- **Alt text**: Descriptive alt text for all images
+- **Schema markup**: JSON-LD structured data for articles
+
+### **Technical SEO Checklist:**
+- ✅ Sitemap.xml generation
+- ✅ Robots.txt configuration
+- ✅ Mobile responsiveness
+- ✅ Page load speed optimization
+- ✅ HTTPS enforcement
+- ✅ Canonical URLs
+- ✅ 404 error handling
+
+---
+
+## Deployment & DevOps Standards
+
+**⚠️ CRITICAL: Deployment must be reliable and repeatable**
+
+### **Environment Configuration:**
+```bash
+# Production Environment Variables (Vercel)
+MONGODB_URI=mongodb+srv://...        # Atlas connection string
+MONGODB_DATABASE=blog_database       # Database name
+SESSION_SECRET=crypto_random_string  # Session encryption key
+NODE_ENV=production                  # Environment flag
+GOOGLE_CLIENT_ID=oauth_client_id     # OAuth configuration
+GOOGLE_CLIENT_SECRET=oauth_secret    # OAuth secret
+GITHUB_CLIENT_ID=oauth_client_id     # OAuth configuration
+GITHUB_CLIENT_SECRET=oauth_secret    # OAuth secret
+```
+
+### **Deployment Pipeline:**
+```mermaid
+graph TD
+    A[Git Push] --> B[Vercel Build]
+    B --> C[Type Check]
+    C --> D[Build Production]
+    D --> E[Environment Variables]
+    E --> F[Deploy to Edge]
+    F --> G[Health Check]
+    G --> H{Success?}
+    H -->|Yes| I[Update Live]
+    H -->|No| J[Rollback]
+```
+
+### **Pre-Deployment Checklist:**
+- ✅ All environment variables configured in Vercel
+- ✅ OAuth domains updated for production URL
+- ✅ MongoDB connection tested with production credentials
+- ✅ Build process completes without errors
+- ✅ No TypeScript errors or warnings
+- ✅ All critical features tested locally
+
+### **Health Check Endpoints:**
+```typescript
+// Health check for monitoring
+GET /api/health
+Response: {
+  status: "healthy",
+  database: "connected",
+  timestamp: "2025-01-XX...",
+  version: "1.0.0"
+}
+```
+
+### **Rollback Procedure:**
+1. **Immediate**: Use Vercel dashboard to rollback to previous deployment
+2. **Investigate**: Check Vercel logs and error reports
+3. **Fix**: Address issues in development environment
+4. **Test**: Verify fix with full deployment cycle
+5. **Document**: Update FIX-LOG.md with issue and resolution
+
+---
+
+## Error Handling & Debugging Standards
+
+**⚠️ CRITICAL: Proper error handling prevents user frustration and data loss**
+
+### **Error Boundary Implementation:**
+```typescript
+// Required error boundary for all route components
+function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary
+      fallback={<ErrorFallback />}
+      onError={(error, errorInfo) => {
+        console.error('App Error:', error, errorInfo);
+        // Log to monitoring service in production
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+```
+
+### **API Error Response Standards:**
+```typescript
+// Consistent error format across all endpoints
+try {
+  // API logic
+} catch (error) {
+  console.error('API Error:', error);
+  
+  return Response.json({
+    success: false,
+    error: 'Failed to process request',
+    details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    timestamp: new Date().toISOString()
+  }, { status: 500 });
+}
+```
+
+### **User-Facing Error Messages:**
+- **Network errors**: "Please check your connection and try again"
+- **Authentication errors**: "Please log in to access this feature"
+- **Validation errors**: Specific field-level messages
+- **Server errors**: "Something went wrong. Please try again later"
+- **Not found errors**: "The content you're looking for doesn't exist"
+
+### **Debugging Tools Configuration:**
+```typescript
+// Development-only debugging helpers
+if (process.env.NODE_ENV === 'development') {
+  // React Query DevTools
+  import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+  
+  // Console logging for API calls
+  console.log('API Request:', method, url, data);
+}
+```
+
+### **Error Logging Strategy:**
+- **Client-side**: Console logging in development, service logging in production
+- **Server-side**: Structured logging with timestamps and context
+- **Database**: Log critical data operations and failures
+- **Authentication**: Log login attempts and security events
+
+---
+
+## Testing & Quality Assurance Standards
+
+**⚠️ CRITICAL: Quality assurance prevents bugs from reaching production**
+
+### **Manual Testing Checklist:**
+```bash
+# Core Functionality Testing
+✅ Homepage loads with featured posts
+✅ Posts page displays all published content
+✅ Individual post pages render correctly
+✅ Admin login works with OAuth providers
+✅ Post creation and editing functions
+✅ Auto-save works without errors
+✅ Featured image upload and display
+✅ Tag and category management
+✅ Bulk operations in admin panel
+✅ Search functionality works
+✅ Mobile responsiveness verified
+```
+
+### **API Testing Protocol:**
+```bash
+# Test all endpoints before deployment
+curl -X GET https://your-domain.com/api/blog-posts
+curl -X POST https://your-domain.com/api/admin/blog-posts -H "Content-Type: application/json"
+curl -X PATCH https://your-domain.com/api/admin/blog-posts/123
+curl -X GET https://your-domain.com/api/health
+```
+
+### **Browser Compatibility Testing:**
+- **Chrome** (latest 2 versions)
+- **Firefox** (latest 2 versions)
+- **Safari** (latest 2 versions)
+- **Edge** (latest 2 versions)
+- **Mobile Safari** (iOS)
+- **Chrome Mobile** (Android)
+
+### **Performance Testing:**
+- Use Chrome DevTools Lighthouse for Core Web Vitals
+- Test with simulated slow 3G connection
+- Verify bundle sizes with webpack-bundle-analyzer
+- Check database query performance with MongoDB Compass
+
+### **Security Testing:**
+- Verify HTTPS enforcement
+- Test OAuth callback security
+- Check for XSS vulnerabilities in content rendering
+- Validate CORS header configuration
+- Test session security and timeout behavior
+
+---
+
+## Content Management Workflow
+
+**⚠️ CRITICAL: Streamlined content workflow ensures consistent quality**
+
+### **Post Creation Workflow:**
+```mermaid
+graph TD
+    A[Create New Post] --> B[Write Content]
+    B --> C[Add Featured Image]
+    C --> D[Generate AI Tags/Excerpt]
+    D --> E[Preview Post]
+    E --> F{Content Ready?}
+    F -->|No| B
+    F -->|Yes| G[Publish Post]
+    G --> H[Verify Live Display]
+    H --> I[Share on Social Media]
+```
+
+### **Content Quality Standards:**
+- **Spelling and grammar**: Use AI assistance for proofreading
+- **Image quality**: High-resolution featured images (minimum 1200x630)
+- **Content length**: Minimum 300 words for SEO value
+- **Linking**: Include relevant internal and external links
+- **Tags**: 3-7 relevant tags per post
+- **Excerpt**: Engaging 120-180 character AI-generated excerpt
+
+### **Editorial Calendar Integration:**
+- Plan content themes around agricultural seasons
+- Maintain consistent publishing schedule
+- Balance technical and educational content
+- Include trending agricultural technology topics
+
+### **Content Backup Strategy:**
+- All content stored in MongoDB with automatic Atlas backups
+- Export functionality for content portability
+- Version control for major content updates
+- Regular database health checks and maintenance
+
+---
+
+This comprehensive PRD ensures the San AgriTech Blog maintains high standards across all aspects of development, deployment, and content management while providing clear guidelines for current and future team members.

@@ -15,10 +15,11 @@ export default function CreatePost() {
 
   // Fetch existing post if editing
   const { data: post, isLoading } = useQuery({
-    queryKey: ['/api/blog-posts', id],
+    queryKey: ['/api/admin/blog-posts', id],
     queryFn: async () => {
       if (!id) throw new Error('No post ID provided');
-      const response = await fetch(`/api/blog-posts/${id}`);
+      // Use admin endpoint for consistency when editing posts from admin page
+      const response = await fetch(`/api/admin/blog-posts/${id}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch post: ${response.status}`);
       }
@@ -192,6 +193,7 @@ export default function CreatePost() {
           initialTags={(post as any)?.tags || []}
           initialExcerpt={(post as any)?.excerpt || ''}
           initialFeaturedImage={(post as any)?.featuredImage || ''}
+          postId={id}
           onAutoSave={(data) => handleAutoSave({ ...data, isFeatured: false })}
           onSave={(data) => handleSave({ ...data, isFeatured: false })}
         />
