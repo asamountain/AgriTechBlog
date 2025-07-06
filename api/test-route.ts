@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default function handler(req: Request, res: Response) {
+export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ 
     message: 'Test route working',

@@ -1270,6 +1270,34 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
+  // ADMIN EDIT: Get individual post for editing in admin panel
+  app.get("/api/admin/blog-posts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (!id || Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid post ID' });
+      }
+      
+      console.log(`⚙️ ADMIN EDIT: Fetching post with ID: ${id}`);
+      
+      // Handle both numeric and string IDs  
+      const postId = isNaN(parseInt(id)) ? id : parseInt(id);
+      const post = await activeStorage.getBlogPost(postId);
+      
+      if (!post) {
+        console.log(`❌ ADMIN EDIT: Post not found for ID: ${id}`);
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      console.log(`✅ ADMIN EDIT: Found post "${post.title}" for editing`);
+      res.json(post);
+    } catch (error) {
+      console.error("❌ ADMIN EDIT: Error fetching admin blog post:", error);
+      res.status(500).json({ message: "Failed to fetch blog post", error: (error as any).message });
+    }
+  });
+
   app.post("/api/admin/blog-posts", async (req, res) => {
     try {
       console.log("Creating/updating admin blog post with data:", req.body);

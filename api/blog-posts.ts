@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
@@ -52,7 +52,7 @@ function mapPostDocument(doc: any) {
   };
 }
 
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');

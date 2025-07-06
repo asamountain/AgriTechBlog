@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { MongoClient, ObjectId } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
@@ -7,7 +7,7 @@ if (!uri) {
   throw new Error('MONGODB_URI environment variable is not set');
 }
 
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
@@ -178,9 +178,9 @@ export default async function handler(req: Request, res: Response) {
         
         for (const post of allPosts) {
           const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
-            if (generatedId === numericId) {
-              existingPost = post;
-              filter = { _id: post._id };
+          if (generatedId === numericId) {
+            existingPost = post;
+            filter = { _id: post._id };
             console.log('✅ Admin PATCH: Found post by generated ID from ObjectId');
             
             // IMPORTANT: Add explicit ID field to make future lookups faster
@@ -189,7 +189,7 @@ export default async function handler(req: Request, res: Response) {
               { $set: { id: generatedId } }
             );
             console.log('🔧 Admin PATCH: Added explicit ID field for future lookups');
-              break;
+            break;
           }
         }
       }
