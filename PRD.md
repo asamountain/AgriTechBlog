@@ -959,4 +959,208 @@ graph TD
 
 ---
 
+## Edit Post Functionality - Complete Engineering Documentation
+
+### 🚨 **CRITICAL ISSUE RESOLVED: Production API Endpoints for Individual Posts**
+
+**Problem:** The `/edit-post/[id]` functionality was not working in production on Vercel due to dynamic route deployment issues.
+
+**Root Cause:** Vercel has specific requirements for dynamic API routes that weren't being met by the nested dynamic route structure `/api/admin/blog-posts/[id].ts`.
+
+**Solution:** Switched from dynamic routes to query parameter approach for better Vercel compatibility.
+
+---
+
+### 🏗️ **Complete Architecture Overview**
+
+#### **Frontend Routes:**
+- **Local:** `http://localhost:5001/edit-post/[id]` ✅
+- **Production:** `https://tech-san.vercel.app/edit-post/[id]` ✅
+
+#### **API Endpoints:**
+- **List Posts:** `GET /api/admin/blog-posts` ✅
+- **Individual Post:** `GET /api/admin/blog-posts?id=[id]` ✅
+- **Update Post:** `PATCH /api/admin/blog-posts?id=[id]` ✅
+- **Delete Post:** `DELETE /api/admin/blog-posts?id=[id]` ✅
+
+---
+
+### 📋 **Data Flow Structure**
+
+#### **1. Frontend Components:**
+```typescript
+// CreatePost Component (client/src/pages/create-post.tsx)
+- Uses useQuery to fetch: `/api/admin/blog-posts?id=${id}`
+- Uses useMutation to save: `/api/admin/blog-posts?id=${id}` (PATCH)
+
+// PostEditor Component (client/src/components/post-editor.tsx)  
+- Uses useMutation to update: `/api/admin/blog-posts?id=${id}` (PATCH)
+```
+
+#### **2. Backend API Structure:**
+```typescript
+// Single Endpoint: api/admin/blog-posts.ts
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const { id } = req.query;
+  
+  if (id && !Array.isArray(id)) {
+    // Handle individual post operations
+    if (req.method === 'GET') { /* fetch individual post */ }
+    if (req.method === 'PATCH') { /* update post */ }
+    if (req.method === 'DELETE') { /* delete post */ }
+  } else {
+    // Handle list operations
+    if (req.method === 'GET') { /* fetch all posts */ }
+    if (req.method === 'POST') { /* create new post */ }
+  }
+}
+```
+
+#### **3. Database ID Resolution Strategy:**
+```typescript
+// Robust ID matching for MongoDB posts
+// Strategy 1: Try explicit ID field first (most reliable)
+existingPost = await postsCollection.findOne({ id: numericId });
+
+// Strategy 2: If not found, search by generated ID from ObjectId
+const allPosts = await postsCollection.find({}).toArray();
+for (const post of allPosts) {
+  const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
+  if (generatedId === numericId) {
+    existingPost = post;
+    // Add explicit ID field for future lookups
+    await postsCollection.updateOne(
+      { _id: post._id },
+      { $set: { id: generatedId } }
+    );
+    break;
+  }
+}
+```
+
+---
+
+### 🔧 **Technical Implementation Details**
+
+#### **Key Changes Made:**
+1. **Replaced Dynamic Routes:** 
+   - ❌ `/api/admin/blog-posts/[id].ts` (Vercel deployment issues)
+   - ✅ `/api/admin/blog-posts.ts?id=X` (Query parameter approach)
+
+2. **Updated Frontend Calls:**
+   - ❌ `fetch(\`/api/admin/blog-posts/\${id}\`)`
+   - ✅ `fetch(\`/api/admin/blog-posts?id=\${id}\`)`
+
+3. **Fixed Vercel Compatibility:**
+   - ❌ `Express` types (`Request`, `Response`)
+   - ✅ `Vercel` types (`VercelRequest`, `VercelResponse`)
+
+#### **Data Format Mapping:**
+```typescript
+// Frontend Format ↔ MongoDB Format
+{
+  id: number,              // ↔ id: number | generated from _id
+  title: string,           // ↔ title: string
+  content: string,         // ↔ content: string
+  slug: string,            // ↔ slug: string
+  excerpt: string,         // ↔ excerpt: string
+  featuredImage: string,   // ↔ coverImage: string
+  createdAt: Date,         // ↔ date: Date
+  updatedAt: Date,         // ↔ lastModified: Date
+  userId: string,          // ↔ userId: string
+  tags: string[],          // ↔ tags: string[]
+  isFeatured: boolean,     // ↔ featured: boolean
+  isPublished: boolean,    // ↔ !draft: boolean (inverted)
+  readTime: number         // ↔ calculated from content
+}
+```
+
+---
+
+### 🧪 **Testing & Verification**
+
+#### **Test Commands:**
+```bash
+# Test List Endpoint
+curl -s https://tech-san.vercel.app/api/admin/blog-posts | jq '. | length'
+
+# Test Individual Post
+curl -s "https://tech-san.vercel.app/api/admin/blog-posts?id=3567125075" | jq .
+
+# Test Update (PATCH)
+curl -X PATCH "https://tech-san.vercel.app/api/admin/blog-posts?id=3567125075" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Updated Title"}'
+```
+
+#### **Verification Results:**
+- ✅ **Production API Working:** Individual post fetch successful
+- ✅ **Frontend Loading:** Edit page shows post content
+- ✅ **Database Integration:** MongoDB data properly fetched and formatted
+- ✅ **Save Functionality:** Post updates persist correctly
+
+---
+
+### 🛠️ **Future Engineering Notes**
+
+#### **If This Breaks Again:**
+1. **Check Vercel Deployment Logs:** Look for function timeout or memory issues
+2. **Verify Environment Variables:** `MONGODB_URI` and `MONGODB_DATABASE` must be set
+3. **Test API Endpoints Directly:** Use curl commands above to isolate frontend vs backend issues
+4. **Check Data Format:** Ensure frontend-backend data mapping is consistent
+
+#### **Performance Considerations:**
+- The ID resolution strategy may be slow for large datasets
+- Consider adding database indexes: `db.posts.createIndex({ id: 1 })`
+- For production scale, implement caching layer
+
+#### **Security Notes:**
+- Admin endpoints bypass user authentication
+- Consider adding admin token validation for production
+- Implement rate limiting for API endpoints
+
+---
+
+### 📊 **Known Working Configuration**
+
+#### **Environment:**
+- **Node.js:** v18+ 
+- **MongoDB:** v5+
+- **Vercel:** Platform v2
+- **TypeScript:** v5+
+
+#### **Dependencies:**
+- `@vercel/node`: ^5.3.0
+- `mongodb`: ^6.x
+- `@tanstack/react-query`: ^5.x
+
+#### **File Structure:**
+```
+api/
+├── admin/
+│   └── blog-posts.ts        # ✅ Single endpoint handling all operations
+├── blog-posts.ts            # ✅ Public blog posts endpoint
+├── blog-post.ts             # ✅ Individual public post endpoint
+└── test-route.ts            # ✅ Health check endpoint
+
+client/src/
+├── pages/
+│   └── create-post.tsx      # ✅ Edit post page
+└── components/
+    └── post-editor.tsx      # ✅ Post editing component
+```
+
+---
+
+### 🎯 **Success Metrics**
+
+- **✅ Local Development:** Working perfectly
+- **✅ Production Deployment:** All endpoints responding correctly
+- **✅ Database Integration:** MongoDB data fetching and updating
+- **✅ User Experience:** Edit page loads and saves posts successfully
+
+**Last Updated:** 2025-07-06  
+**Status:** ✅ FULLY FUNCTIONAL  
+**Next Engineer:** Use this documentation as the complete reference for edit-post functionality
+
 This comprehensive PRD ensures the San AgriTech Blog maintains high standards across all aspects of development, deployment, and content management while providing clear guidelines for current and future team members.
