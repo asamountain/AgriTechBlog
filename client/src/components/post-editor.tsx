@@ -35,8 +35,8 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
   // Update post mutation
   const updatePostMutation = useMutation({
     mutationFn: async (updateData: any) => {
-      // Use admin endpoint for consistency when editing from admin interface
-      const response = await fetch(`/api/admin/blog-posts/${post.id}`, {
+      // Use admin endpoint with ID as query parameter for better Vercel compatibility
+      const response = await fetch(`/api/admin/blog-posts?id=${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
@@ -51,14 +51,6 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/blog-posts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/blog-posts'] });
-      onClose();
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update post",
-        variant: "destructive",
-      });
     },
   });
 

@@ -60,7 +60,7 @@ function mapPostDocument(doc: any) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
   
@@ -71,6 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   // Debug logging
   console.log('API called:', req.method, req.url);
+  console.log('Query params:', req.query);
   console.log('Environment check:', {
     hasMongoUri: !!process.env.MONGODB_URI,
     mongoDb: process.env.MONGODB_DATABASE
@@ -84,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     return;
   }
-  
+
   const client = new MongoClient(uri);
   
   try {
@@ -94,6 +95,248 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
     
+    // Check if this is a request for a specific post by ID
+    const { id } = req.query;
+    
+    if (id && !Array.isArray(id)) {
+      // Handle individual post request by ID
+      const postId = id as string;
+      console.log('📖 Admin: Fetching individual post with ID:', postId);
+      
+      if (req.method === 'GET') {
+        // GET specific post by ID
+        let filter: any = null;
+        let existingPost: any = null;
+        
+        const numericId = parseInt(postId);
+        
+        // Strategy 1: Try to find by explicit ID field first (most reliable)
+        if (!isNaN(numericId)) {
+          existingPost = await postsCollection.findOne({ id: numericId });
+          if (existingPost) {
+            filter = { id: numericId };
+            console.log('✅ Admin GET: Found post by explicit ID field');
+          }
+        }
+        
+        // Strategy 2: If not found by explicit ID, find by generated ID from ObjectId
+        if (!existingPost) {
+          console.log('🔍 Admin GET: Searching by generated ID...');
+          
+          // Get all posts and find the one with matching generated ID
+          const allPosts = await postsCollection.find({}).toArray();
+          
+          for (const post of allPosts) {
+            const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
+            if (generatedId === numericId) {
+              existingPost = post;
+              filter = { _id: post._id };
+              console.log('✅ Admin GET: Found post by generated ID from ObjectId');
+              
+              // IMPORTANT: Add explicit ID field to make future lookups faster
+              await postsCollection.updateOne(
+                { _id: post._id },
+                { $set: { id: generatedId } }
+              );
+              console.log('🔧 Admin GET: Added explicit ID field for future lookups');
+              break;
+            }
+          }
+        }
+        
+        if (!existingPost) {
+          console.log('❌ Admin GET: Post not found with ID:', postId, 'Numeric:', numericId);
+          res.status(404).json({ 
+            message: 'Post not found',
+            searchedId: postId,
+            numericId: numericId
+          });
+          return;
+        }
+        
+        // Convert to frontend format
+        const formattedPost = {
+          id: existingPost?.id || (existingPost?._id ? parseInt(existingPost._id.toString().substring(0, 8), 16) : numericId),
+          title: existingPost?.title || 'Untitled',
+          content: existingPost?.content || '',
+          slug: existingPost?.slug || existingPost?.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
+          excerpt: existingPost?.excerpt || (existingPost?.content ? existingPost.content.substring(0, 150) + '...' : ''),
+          featuredImage: existingPost?.coverImage || '',
+          createdAt: existingPost?.date ? new Date(existingPost.date).toISOString() : new Date().toISOString(),
+          updatedAt: existingPost?.lastModified ? new Date(existingPost.lastModified).toISOString() : new Date().toISOString(),
+          userId: existingPost?.userId || '',
+          tags: Array.isArray(existingPost?.tags) ? existingPost.tags : (existingPost?.tags ? [existingPost.tags] : []),
+          isFeatured: !!existingPost?.featured,
+          isPublished: !existingPost?.draft,
+          readTime: Math.ceil((existingPost?.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length / 200),
+        };
+        
+        console.log('✅ Admin GET: Returning individual post:', formattedPost.title, 'Published:', formattedPost.isPublished);
+        res.status(200).json(formattedPost);
+        return;
+        
+      } else if (req.method === 'PATCH') {
+        // PATCH specific post by ID
+        const updateData = req.body;
+        console.log('📝 Admin PATCH: Updating post with ID:', postId, 'Data:', updateData);
+        
+        // Convert isPublished to draft status (invert)
+        if (updateData.hasOwnProperty('isPublished')) {
+          updateData.draft = !updateData.isPublished;
+          delete updateData.isPublished;
+        }
+        
+        // Convert isFeatured to featured status
+        if (updateData.hasOwnProperty('isFeatured')) {
+          updateData.featured = updateData.isFeatured;
+          delete updateData.isFeatured;
+        }
+        
+        // Convert featuredImage to coverImage for MongoDB storage
+        if (updateData.hasOwnProperty('featuredImage')) {
+          updateData.coverImage = updateData.featuredImage;
+          delete updateData.featuredImage;
+        }
+        
+        // Set lastModified
+        updateData.lastModified = new Date();
+        
+        // Find and update the post using the same ID matching logic
+        let filter: any = null;
+        let existingPost: any = null;
+        
+        const numericId = parseInt(postId);
+        
+        // Strategy 1: Try to find by explicit ID field first
+        if (!isNaN(numericId)) {
+          existingPost = await postsCollection.findOne({ id: numericId });
+          if (existingPost) {
+            filter = { id: numericId };
+            console.log('✅ Admin PATCH: Found post by explicit ID field');
+          }
+        }
+        
+        // Strategy 2: If not found by explicit ID, find by generated ID from ObjectId
+        if (!existingPost) {
+          console.log('🔍 Admin PATCH: Searching by generated ID...');
+          
+          const allPosts = await postsCollection.find({}).toArray();
+          
+          for (const post of allPosts) {
+            const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
+            if (generatedId === numericId) {
+              existingPost = post;
+              filter = { _id: post._id };
+              console.log('✅ Admin PATCH: Found post by generated ID from ObjectId');
+              
+              // Add explicit ID field
+              await postsCollection.updateOne(
+                { _id: post._id },
+                { $set: { id: generatedId } }
+              );
+              console.log('🔧 Admin PATCH: Added explicit ID field for future lookups');
+              break;
+            }
+          }
+        }
+        
+        if (!existingPost) {
+          console.log('❌ Admin PATCH: Post not found with ID:', postId, 'Numeric:', numericId);
+          res.status(404).json({ 
+            message: 'Post not found',
+            searchedId: postId,
+            numericId: numericId
+          });
+          return;
+        }
+        
+        console.log('📝 Admin PATCH: Updating post with filter:', JSON.stringify(filter));
+        
+        // Perform the update
+        const result = await postsCollection.updateOne(filter, { $set: updateData });
+        
+        if (result.matchedCount === 0) {
+          console.log('❌ Admin PATCH: Update failed - no matches');
+          res.status(404).json({ message: 'Post not found during update' });
+          return;
+        }
+        
+        if (result.modifiedCount === 0) {
+          console.log('⚠️  Admin PATCH: Update matched but no changes made');
+        } else {
+          console.log('✅ Admin PATCH: Update successful');
+        }
+        
+        // Get the updated post
+        const updatedPost = await postsCollection.findOne(filter);
+        
+        // Convert back to frontend format
+        const formattedPost = {
+          id: updatedPost?.id || (updatedPost?._id ? parseInt(updatedPost._id.toString().substring(0, 8), 16) : numericId),
+          title: updatedPost?.title || 'Untitled',
+          content: updatedPost?.content || '',
+          slug: updatedPost?.slug || updatedPost?.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
+          excerpt: updatedPost?.excerpt || (updatedPost?.content ? updatedPost.content.substring(0, 150) + '...' : ''),
+          featuredImage: updatedPost?.coverImage || '',
+          createdAt: updatedPost?.date ? new Date(updatedPost.date).toISOString() : new Date().toISOString(),
+          updatedAt: updatedPost?.lastModified ? new Date(updatedPost.lastModified).toISOString() : new Date().toISOString(),
+          userId: updatedPost?.userId || '',
+          tags: Array.isArray(updatedPost?.tags) ? updatedPost.tags : (updatedPost?.tags ? [updatedPost.tags] : []),
+          isFeatured: !!updatedPost?.featured,
+          isPublished: !updatedPost?.draft,
+          readTime: Math.ceil((updatedPost?.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length / 200),
+        };
+        
+        console.log('✅ Admin PATCH: Returning updated post:', formattedPost.title, 'Published:', formattedPost.isPublished);
+        res.status(200).json(formattedPost);
+        return;
+        
+      } else if (req.method === 'DELETE') {
+        // DELETE specific post by ID
+        let filter: any = null;
+        let existingPost: any = null;
+        
+        const numericId = parseInt(postId);
+        
+        // Use same ID matching logic for delete
+        if (!isNaN(numericId)) {
+          existingPost = await postsCollection.findOne({ id: numericId });
+          if (existingPost) {
+            filter = { id: numericId };
+          }
+        }
+        
+        if (!existingPost) {
+          const allPosts = await postsCollection.find({}).toArray();
+          for (const post of allPosts) {
+            const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
+            if (generatedId === numericId) {
+              existingPost = post;
+              filter = { _id: post._id };
+              break;
+            }
+          }
+        }
+        
+        if (!existingPost) {
+          res.status(404).json({ message: 'Post not found' });
+          return;
+        }
+        
+        const result = await postsCollection.deleteOne(filter);
+        
+        if (result.deletedCount === 0) {
+          res.status(404).json({ message: 'Post not found' });
+          return;
+        }
+        
+        console.log('🗑️  Admin DELETE: Successfully deleted post');
+        res.status(200).json({ message: 'Post deleted successfully' });
+        return;
+      }
+    }
+    
+    // If no ID provided, handle as list request (existing functionality)
     if (req.method === 'GET') {
       // Parse query parameters
       const { limit = '50', offset = '0' } = req.query;

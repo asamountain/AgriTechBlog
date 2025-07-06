@@ -18,8 +18,8 @@ export default function CreatePost() {
     queryKey: ['/api/admin/blog-posts', id],
     queryFn: async () => {
       if (!id) throw new Error('No post ID provided');
-      // Use admin endpoint for consistency when editing posts from admin page
-      const response = await fetch(`/api/admin/blog-posts/${id}`);
+      // Use admin endpoint with ID as query parameter for better Vercel compatibility
+      const response = await fetch(`/api/admin/blog-posts?id=${id}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch post: ${response.status}`);
       }
