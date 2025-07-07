@@ -49,7 +49,8 @@ export default function CreatePost() {
         isPublished: isEditing ? data.isPublished : false, // Always save as draft for auto-save on new posts
       };
 
-      const url = isEditing ? `/api/admin/blog-posts/${id}` : '/api/admin/blog-posts';
+      // Use query parameter format for better Vercel compatibility
+      const url = isEditing ? `/api/admin/blog-posts?id=${id}` : '/api/admin/blog-posts';
       const method = isEditing ? 'PATCH' : 'POST';
       
       const response = await fetch(url, {
@@ -106,7 +107,8 @@ export default function CreatePost() {
       };
 
       if (isEditing) {
-        const response = await fetch(`/api/admin/blog-posts/${id}`, {
+        // Use query parameter format for better Vercel compatibility
+        const response = await fetch(`/api/admin/blog-posts?id=${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
