@@ -1164,3 +1164,198 @@ client/src/
 **Next Engineer:** Use this documentation as the complete reference for edit-post functionality
 
 This comprehensive PRD ensures the San AgriTech Blog maintains high standards across all aspects of development, deployment, and content management while providing clear guidelines for current and future team members.
+
+---
+
+## 🤖 **CRITICAL AUTO-SAVE FIX - AI ENGINEER GUIDELINES**
+
+### 🚨 **RECENTLY RESOLVED: Auto-Save 404 Errors (2025-07-06)**
+
+**Issue:** Auto-save functionality was failing with 404 errors in production because it was using inconsistent endpoint formats.
+
+**Root Cause:** The auto-save mutations in `create-post.tsx` were still using the old dynamic route format `/api/admin/blog-posts/${id}` while the main functionality had been converted to query parameters `/api/admin/blog-posts?id=${id}`.
+
+**Fix Applied:** Updated all auto-save and manual save mutations to use the consistent query parameter format.
+
+**Files Modified:**
+- `client/src/pages/create-post.tsx` - Fixed `autoSaveMutation` and `saveMutation`
+
+---
+
+### 📋 **MANDATORY GUIDELINES FOR FUTURE AI ENGINEERS**
+
+#### **🔧 Endpoint Consistency Rules**
+
+**RULE 1: Always Use Query Parameter Format for Individual Posts**
+```typescript
+✅ CORRECT: `/api/admin/blog-posts?id=${id}`
+❌ WRONG:   `/api/admin/blog-posts/${id}`
+```
+
+**RULE 2: Check ALL Mutations and Queries**
+When updating endpoints, verify these files have consistent formats:
+- `client/src/pages/create-post.tsx` (autoSaveMutation, saveMutation)
+- `client/src/components/post-editor.tsx` (updatePostMutation)
+- `client/src/pages/create-post.tsx` (useQuery for fetching)
+
+**RULE 3: Vercel Deployment Compatibility**
+- Dynamic nested routes `/api/admin/blog-posts/[id].ts` cause deployment issues
+- Query parameters `/api/admin/blog-posts.ts?id=X` are more reliable
+- Always use `VercelRequest`/`VercelResponse` types, never Express types
+
+#### **🧪 Testing Protocol for API Changes**
+
+**STEP 1: Local Testing**
+```bash
+# Test local endpoints
+curl -s "http://localhost:5000/api/admin/blog-posts?id=4367658208" | jq .
+curl -X PATCH "http://localhost:5000/api/admin/blog-posts?id=4367658208" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test Update"}'
+```
+
+**STEP 2: Production Testing**
+```bash
+# Test production endpoints after deployment
+curl -s "https://tech-san.vercel.app/api/admin/blog-posts?id=4367658208" | jq .
+curl -X PATCH "https://tech-san.vercel.app/api/admin/blog-posts?id=4367658208" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test Update"}'
+```
+
+**STEP 3: Frontend Integration Testing**
+1. Open browser console
+2. Navigate to `/edit-post/[id]` 
+3. Make edits and verify:
+   - No 404 errors in console
+   - Auto-save status indicators work
+   - Success toasts appear
+   - Data persists after page refresh
+
+#### **🔍 Common Pitfalls to Avoid**
+
+**PITFALL 1: Incomplete Endpoint Updates**
+- When changing API structure, grep search for ALL occurrences
+- Check both frontend queries AND mutations
+- Don't forget auto-save functionality
+
+**PITFALL 2: Mixed Endpoint Formats**
+- Never mix `/api/admin/blog-posts/${id}` and `/api/admin/blog-posts?id=${id}`
+- Use grep search to find inconsistencies: `grep -r "blog-posts.*\${.*}" client/`
+
+**PITFALL 3: Forgetting Production Testing**
+- Local testing is not enough - Vercel has different behavior
+- Always test production endpoints after deployment
+- Check browser console for 404 errors
+
+#### **🚀 Auto-Save Functionality Architecture**
+
+**Auto-Save Flow:**
+```typescript
+// 1. User makes changes
+// 2. Debounced timer (3 seconds) triggers
+// 3. autoSaveMutation executes
+// 4. PATCH request to /api/admin/blog-posts?id=${id}
+// 5. Success toast shows "Draft saved"
+// 6. Status indicator updates
+```
+
+**Auto-Save Status States:**
+- `idle`: No changes or waiting
+- `saving`: Currently saving (shows spinner)
+- `saved`: Successfully saved (shows checkmark)
+- `error`: Save failed (shows error icon)
+
+**Auto-Save Trigger Conditions:**
+- Timer: Every 10 seconds if content exists
+- Debounced: 3 seconds after any content change
+- Manual: When user clicks save button
+
+#### **🔧 Debugging Auto-Save Issues**
+
+**Check These Files First:**
+1. `client/src/pages/create-post.tsx` - Main auto-save logic
+2. `client/src/components/simple-markdown-editor.tsx` - Editor auto-save
+3. `api/admin/blog-posts.ts` - Backend endpoint handling
+
+**Common Debug Steps:**
+```bash
+# 1. Check if API endpoint responds
+curl -s "https://tech-san.vercel.app/api/admin/blog-posts?id=TEST_ID"
+
+# 2. Check for console errors
+# Open browser dev tools → Console tab
+# Look for: "Auto-save failed" or HTTP 404 errors
+
+# 3. Verify endpoint format in code
+grep -r "blog-posts.*\${.*}" client/src/
+
+# 4. Check Vercel function logs
+# Go to Vercel dashboard → Functions tab → Look for errors
+```
+
+#### **📝 Code Pattern Templates**
+
+**Query Pattern (for fetching):**
+```typescript
+const { data: post } = useQuery({
+  queryKey: ['/api/admin/blog-posts', id],
+  queryFn: async () => {
+    const response = await fetch(`/api/admin/blog-posts?id=${id}`);
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    return response.json();
+  },
+  enabled: !!id,
+});
+```
+
+**Mutation Pattern (for saving):**
+```typescript
+const mutation = useMutation({
+  mutationFn: async (data) => {
+    const response = await fetch(`/api/admin/blog-posts?id=${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error(`Save failed: ${response.status}`);
+    return response.json();
+  },
+});
+```
+
+#### **⚠️ CRITICAL REMINDERS**
+
+1. **NEVER** create new `/api/admin/blog-posts/[id].ts` files
+2. **ALWAYS** use query parameters for individual post operations
+3. **ALWAYS** test both local and production after API changes
+4. **ALWAYS** check browser console for 404 errors
+5. **ALWAYS** verify auto-save works by making test edits
+
+---
+
+### 🎯 **Success Verification Checklist**
+
+After any API endpoint changes, verify ALL of these work:
+
+**Frontend Routes:**
+- [ ] `/edit-post/[id]` loads post data
+- [ ] Auto-save shows "Saving..." → "Auto-saved" 
+- [ ] Manual save works and redirects
+- [ ] No 404 errors in browser console
+
+**API Endpoints:**
+- [ ] `GET /api/admin/blog-posts` (list all posts)
+- [ ] `GET /api/admin/blog-posts?id=X` (individual post)
+- [ ] `PATCH /api/admin/blog-posts?id=X` (update post)
+- [ ] `POST /api/admin/blog-posts` (create post)
+
+**Production Testing:**
+- [ ] All endpoints respond correctly on Vercel
+- [ ] Auto-save works in production environment
+- [ ] Data persists across page refreshes
+- [ ] Error handling shows appropriate messages
+
+---
+
+**⭐ GOLDEN RULE: When in doubt, use query parameters over dynamic routes for Vercel compatibility!**
