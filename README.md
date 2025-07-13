@@ -1,3 +1,35 @@
+# AgriTech Blog
+
+## 🚀 Quick Start for Developers
+
+**One command to rule them all:**
+
+```bash
+npm run dev
+```
+
+**Then open:** **http://localhost:5173**
+
+That's it! 🎉
+
+### What happens:
+- ✅ Backend server starts (MongoDB + API)
+- ✅ Frontend server starts (React + Vite)
+- ✅ API proxy configured automatically
+- ✅ Hot reload enabled for development
+
+### Available URLs:
+- **Main App**: http://localhost:5173
+- **Admin Panel**: http://localhost:5173/admin
+- **Create Post**: http://localhost:5173/create-post
+
+### Debug Features (Admin pages only):
+- Press `Ctrl+Shift+D` for debug overlay
+- Click purple "🔍 Debug Flow" button
+- Enhanced console tracking included
+
+---
+
 # AgroTech Blog Platform
 
 A sophisticated agricultural technology blog platform featuring AI-powered content management, advanced SEO optimization, and comprehensive admin tools for modern agricultural content creation.

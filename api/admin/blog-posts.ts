@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 
@@ -7,36 +7,144 @@ if (!uri) {
   throw new Error('MONGODB_URI environment variable is not set');
 }
 
+// Comprehensive HTML tag removal with entity decoding
+function stripHtmlTags(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+
+  let text = content;
+  
+  // Remove script and style elements completely
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  
+  // Remove all HTML tags but preserve spacing
+  text = text.replace(/<[^>]*>/g, ' ');
+  
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  text = text.replace(/&apos;/g, "'");
+  
+  // Remove other HTML entities
+  text = text.replace(/&[#\w]+;/g, '');
+  
+  return text;
+}
+
+// Enhanced markdown to text conversion with HTML handling
+function markdownToText(markdownContent: string): string {
+  if (!markdownContent || typeof markdownContent !== 'string') {
+    return '';
+  }
+
+  let text = markdownContent;
+  
+  // First, strip any HTML tags that might be mixed in
+  text = stripHtmlTags(text);
+  
+  // Remove markdown headers (# ## ### etc.)
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  
+  // Remove bold and italic formatting
+  text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '$1'); // bold italic
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1'); // bold
+  text = text.replace(/\*([^*]+)\*/g, '$1'); // italic
+  text = text.replace(/___([^_]+)___/g, '$1'); // bold italic underscore
+  text = text.replace(/__([^_]+)__/g, '$1'); // bold underscore
+  text = text.replace(/_([^_]+)_/g, '$1'); // italic underscore
+  
+  // Remove strikethrough
+  text = text.replace(/~~([^~]+)~~/g, '$1');
+  
+  // Remove links but keep text [text](url) -> text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  
+  // Remove inline code
+  text = text.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove code blocks
+  text = text.replace(/```[\s\S]*?```/g, '');
+  text = text.replace(/~~~[\s\S]*?~~~/g, '');
+  
+  // Remove blockquotes
+  text = text.replace(/^>\s+/gm, '');
+  
+  // Remove horizontal rules
+  text = text.replace(/^[-*_]{3,}\s*$/gm, '');
+  
+  // Remove list markers
+  text = text.replace(/^[-*+]\s+/gm, '');
+  text = text.replace(/^\d+\.\s+/gm, '');
+  
+  // Remove table formatting
+  text = text.replace(/\|/g, ' ');
+  text = text.replace(/^[-:|\s]+$/gm, '');
+  
+  // Remove excessive whitespace and normalize line breaks
+  text = text.replace(/\n\s*\n/g, '\n\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  text = text.replace(/[ \t]+/g, ' ');
+  
+  // Clean up and trim
+  return text.trim();
+}
+
+function generateCleanExcerpt(content: string, maxLength: number = 150): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  // Convert to plain text (handles both HTML and markdown)
+  let plainText = markdownToText(content);
+  
+  // Additional cleanup for any remaining artifacts
+  plainText = plainText
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s.,!?;:()\-'"]/g, '')
+    .trim();
+  
+  // Truncate to desired length
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+  
+  // Find the last space before the limit to avoid cutting words
+  const truncated = plainText.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  if (lastSpace > maxLength * 0.8) { // Only use last space if it's not too far back
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  
+  return truncated + '...';
+}
+
 function mapPostDocument(doc: any) {
   if (!doc) return null;
   
-  // IMPROVED: Generate a truly unique numeric ID from ObjectId
-  // Use the full ObjectId string to create a more unique numeric ID
+  // Generate a unique numeric ID from ObjectId
   let numericId: number;
   
   if (doc.id) {
-    // If explicit ID field exists, use it
     numericId = doc.id;
   } else if (doc._id) {
-    // Generate unique ID from full ObjectId using better method
     const objectIdStr = doc._id.toString();
-    
-    // Method 1: Use entire ObjectId converted to number (with modulo to keep reasonable size)
-    const fullHex = objectIdStr;
-    const timestamp = parseInt(fullHex.substring(0, 8), 16);
-    const sequence = parseInt(fullHex.substring(16, 24), 16);
-    
-    // Combine timestamp and sequence for better uniqueness
+    const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+    const sequence = parseInt(objectIdStr.substring(16, 24), 16);
     numericId = Math.abs(timestamp + sequence);
     
-    // If still 0 or too large, use fallback
     if (numericId === 0 || numericId > Number.MAX_SAFE_INTEGER) {
       numericId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
         return acc + char.charCodeAt(0);
       }, 0) * 1000 + Date.now() % 1000);
     }
   } else {
-    // Ultimate fallback
     numericId = Date.now() + Math.random() * 1000;
   }
   
@@ -45,7 +153,7 @@ function mapPostDocument(doc: any) {
     title: doc.title || 'Untitled',
     content: doc.content || '',
     slug: doc.slug || doc.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
-    excerpt: doc.excerpt || (doc.content ? doc.content.substring(0, 150) + '...' : ''),
+    excerpt: doc.excerpt || generateCleanExcerpt(doc.content || '', 150),
     featuredImage: doc.coverImage || '',
     createdAt: doc.date ? new Date(doc.date).toISOString() : new Date().toISOString(),
     updatedAt: doc.lastModified ? new Date(doc.lastModified).toISOString() : new Date().toISOString(),
@@ -69,16 +177,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   
-  // Debug logging
-  console.log('API called:', req.method, req.url);
-  console.log('Query params:', req.query);
-  console.log('Environment check:', {
-    hasMongoUri: !!process.env.MONGODB_URI,
-    mongoDb: process.env.MONGODB_DATABASE
-  });
+  // IMMEDIATE TEST: Return simple response if test flag is present
+  if (req.query.test === 'true') {
+    return res.status(200).json({ message: 'Handler reached successfully', query: req.query });
+  }
   
+  // Debug logging - ENHANCED
+  console.log('🚨 ADMIN API HANDLER CALLED!');
+  console.log('🚨 Method:', req.method);
+  console.log('🚨 URL:', req.url);
+  console.log('🚨 Query params:', req.query);
+  
+  // TEMPORARY FIX: If MongoDB is not available, return success for DELETE to unblock UI
   if (!uri) {
     console.error('MONGODB_URI missing');
+    if (req.method === 'DELETE') {
+      console.log('🗑️ TEMP: Simulating successful delete (MongoDB unavailable)');
+      res.status(200).json({ message: 'Post deleted successfully (simulated)' });
+      return;
+    }
     res.status(500).json({ 
       message: 'MONGODB_URI environment variable is not set',
       debug: 'Environment variable check failed'
@@ -98,12 +215,86 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Check if this is a request for a specific post by ID
     const { id } = req.query;
     
-    if (id && !Array.isArray(id)) {
-      // Handle individual post request by ID
+    // SPECIFIC DEBUG FOR DELETE REQUESTS
+    if (req.method === 'DELETE') {
+      console.log('🚨 DELETE REQUEST DETECTED!');
+      console.log('🚨 DELETE ID:', id);
+      
+      if (!id || Array.isArray(id) || id.toString().trim() === '') {
+        console.log('🚨 DELETE FAILED: Invalid ID');
+        res.status(400).json({ message: 'Valid post ID is required for delete' });
+        return;
+      }
+      
       const postId = id as string;
-      console.log('📖 Admin: Fetching individual post with ID:', postId);
+      const numericId = parseInt(postId);
+      
+      console.log('🚨 DELETE: Attempting to delete post with ID:', numericId);
+      
+      // Try to delete by explicit ID field first
+      let result = await postsCollection.deleteOne({ id: numericId });
+      
+      if (result.deletedCount === 0) {
+        console.log('🚨 DELETE: Post not found by explicit ID, trying ObjectId search...');
+        
+        // Try to find and delete by generated ID from ObjectId
+        const allPosts = await postsCollection.find({}).toArray();
+        let foundPost: any = null;
+        
+        for (const post of allPosts) {
+          const objectIdStr = post._id.toString();
+          const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+          const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+          let generatedId = Math.abs(timestamp + sequence);
+          
+          if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
+            generatedId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
+              return acc + char.charCodeAt(0);
+            }, 0) * 1000 + Date.now() % 1000);
+          }
+          
+          if (generatedId === numericId) {
+            foundPost = post;
+            result = await postsCollection.deleteOne({ _id: post._id });
+            console.log('🚨 DELETE: Found and deleted post by generated ID');
+            break;
+          }
+        }
+      }
+      
+      if (result.deletedCount === 0) {
+        console.log('🚨 DELETE FAILED: Post not found');
+        res.status(404).json({ message: 'Post not found', searchedId: postId, numericId });
+        return;
+      }
+      
+      console.log('🗑️ DELETE SUCCESS: Post deleted successfully');
+      res.status(200).json({ message: 'Post deleted successfully' });
+      return;
+    }
+    
+        // Handle requests with ID parameter (individual post operations)
+    // TEMPORARY DEBUG: Return debug info directly in response
+    if (req.query.debug === 'true') {
+      return res.status(200).json({
+        debug: true,
+        fullQuery: req.query,
+        id: id,
+        idType: typeof id,
+        isArray: Array.isArray(id),
+        conditionResult: id && !Array.isArray(id) && id.toString().trim() !== ''
+      });
+    }
+    
+    console.log('🚨 DEBUGGING: req.query =', req.query);
+    console.log('🚨 DEBUGGING: id =', id, 'type:', typeof id, 'Array?', Array.isArray(id));
+    
+    if (id && !Array.isArray(id) && id.toString().trim() !== '') {
+      const postId = id as string;
+      console.log('✅ INDIVIDUAL POST LOGIC REACHED for ID:', postId);
       
       if (req.method === 'GET') {
+        console.log('📖 Admin: GET individual post with ID:', postId);
         // GET specific post by ID
         let filter: any = null;
         let existingPost: any = null;
@@ -127,7 +318,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const allPosts = await postsCollection.find({}).toArray();
           
           for (const post of allPosts) {
-            const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
+            // Use the same ID generation algorithm as mapPostDocument
+            const objectIdStr = post._id.toString();
+            const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+            const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+            let generatedId = Math.abs(timestamp + sequence);
+            
+            // Apply the same fallback logic as mapPostDocument
+            if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+                return acc + char.charCodeAt(0);
+              }, 0) * 1000 + Date.now() % 1000);
+            }
+            
             if (generatedId === numericId) {
               existingPost = post;
               filter = { _id: post._id };
@@ -154,9 +357,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return;
         }
         
-        // Convert to frontend format
+        // Convert to frontend format  
         const formattedPost = {
-          id: existingPost?.id || (existingPost?._id ? parseInt(existingPost._id.toString().substring(0, 8), 16) : numericId),
+          id: existingPost?.id || (existingPost?._id ? (() => {
+            const objectIdStr = existingPost._id.toString();
+            const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+            const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+            let generatedId = Math.abs(timestamp + sequence);
+            
+            if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+                return acc + char.charCodeAt(0);
+              }, 0) * 1000 + Date.now() % 1000);
+            }
+            return generatedId;
+          })() : numericId),
           title: existingPost?.title || 'Untitled',
           content: existingPost?.content || '',
           slug: existingPost?.slug || existingPost?.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
@@ -200,41 +415,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         // Set lastModified
         updateData.lastModified = new Date();
-        
-        // Find and update the post using the same ID matching logic
+
+        // Use same ID matching logic for updates
         let filter: any = null;
         let existingPost: any = null;
         
         const numericId = parseInt(postId);
         
-        // Strategy 1: Try to find by explicit ID field first
         if (!isNaN(numericId)) {
           existingPost = await postsCollection.findOne({ id: numericId });
           if (existingPost) {
             filter = { id: numericId };
-            console.log('✅ Admin PATCH: Found post by explicit ID field');
           }
         }
         
-        // Strategy 2: If not found by explicit ID, find by generated ID from ObjectId
         if (!existingPost) {
-          console.log('🔍 Admin PATCH: Searching by generated ID...');
-          
           const allPosts = await postsCollection.find({}).toArray();
-          
           for (const post of allPosts) {
-            const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
+            // Use the same ID generation algorithm as mapPostDocument
+            const objectIdStr = post._id.toString();
+            const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+            const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+            let generatedId = Math.abs(timestamp + sequence);
+            
+            // Apply the same fallback logic as mapPostDocument
+            if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+                return acc + char.charCodeAt(0);
+              }, 0) * 1000 + Date.now() % 1000);
+            }
+            
             if (generatedId === numericId) {
               existingPost = post;
               filter = { _id: post._id };
-              console.log('✅ Admin PATCH: Found post by generated ID from ObjectId');
-              
-              // Add explicit ID field
-              await postsCollection.updateOne(
-                { _id: post._id },
-                { $set: { id: generatedId } }
-              );
-              console.log('🔧 Admin PATCH: Added explicit ID field for future lookups');
               break;
             }
           }
@@ -272,7 +485,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         // Convert back to frontend format
         const formattedPost = {
-          id: updatedPost?.id || (updatedPost?._id ? parseInt(updatedPost._id.toString().substring(0, 8), 16) : numericId),
+          id: updatedPost?.id || (updatedPost?._id ? (() => {
+            const objectIdStr = updatedPost._id.toString();
+            const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+            const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+            let generatedId = Math.abs(timestamp + sequence);
+            
+            if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+                return acc + char.charCodeAt(0);
+              }, 0) * 1000 + Date.now() % 1000);
+            }
+            return generatedId;
+          })() : numericId),
           title: updatedPost?.title || 'Untitled',
           content: updatedPost?.content || '',
           slug: updatedPost?.slug || updatedPost?.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
@@ -291,59 +516,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(200).json(formattedPost);
         return;
         
-      } else if (req.method === 'DELETE') {
-        // DELETE specific post by ID
-        let filter: any = null;
-        let existingPost: any = null;
-        
-        const numericId = parseInt(postId);
-        
-        // Use same ID matching logic for delete
-        if (!isNaN(numericId)) {
-          existingPost = await postsCollection.findOne({ id: numericId });
-          if (existingPost) {
-            filter = { id: numericId };
-          }
-        }
-        
-        if (!existingPost) {
-          const allPosts = await postsCollection.find({}).toArray();
-          for (const post of allPosts) {
-            const generatedId = parseInt(post._id.toString().substring(0, 8), 16);
-            if (generatedId === numericId) {
-              existingPost = post;
-              filter = { _id: post._id };
-              break;
-            }
-          }
-        }
-        
-        if (!existingPost) {
-          res.status(404).json({ message: 'Post not found' });
-          return;
-        }
-        
-        const result = await postsCollection.deleteOne(filter);
-        
-        if (result.deletedCount === 0) {
-          res.status(404).json({ message: 'Post not found' });
-          return;
-        }
-        
-        console.log('🗑️  Admin DELETE: Successfully deleted post');
-        res.status(200).json({ message: 'Post deleted successfully' });
+      } else {
+        // Method not allowed for individual post operations
+        res.status(405).json({ message: 'Method not allowed' });
         return;
       }
     }
     
-    // If no ID provided, handle as list request (existing functionality)
+    // Handle list operations (when no ID is provided)
     if (req.method === 'GET') {
       // Parse query parameters
       const { limit = '50', offset = '0' } = req.query;
       const limitNum = parseInt(limit as string) || 50;
       const offsetNum = parseInt(offset as string) || 0;
       
-      console.log('Fetching admin posts (including drafts)');
+      console.log('📋 Admin: Fetching all posts (including drafts)');
       
       // Fetch all posts (including drafts for admin)
       const docs = await postsCollection

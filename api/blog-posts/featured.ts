@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 
@@ -187,20 +187,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   
-  const { slug, id } = req.query;
-  
-  if (!slug && !id) {
-    res.status(400).json({ message: 'Either slug or id parameter is required' });
-    return;
-  }
-  
-  if (Array.isArray(slug) || Array.isArray(id)) {
-    res.status(400).json({ message: 'Invalid parameters' });
-    return;
-  }
-  
-  const identifier = (slug || id) as string;
-  
   if (!uri) {
     console.error('MONGODB_URI missing');
     res.status(500).json({ 
@@ -213,74 +199,91 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   try {
     await client.connect();
-    console.log(`📖 SINGLE POST: Connected to MongoDB for post: ${identifier}`);
+    console.log('⭐ FEATURED: Connected to MongoDB for featured posts');
     
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
     
-    let post: any = null;
+    // Parse query parameters
+    const { limit = '3' } = req.query;
+    const limitNum = parseInt(limit as string) || 3;
     
-    // Check if identifier is numeric (ID) or string (slug)
-    if (/^\d+$/.test(identifier)) {
-      // It's a numeric ID
-      const postId = parseInt(identifier);
-      console.log(`📖 SINGLE POST: Looking for post with ID: ${postId}`);
+    console.log('⭐ FEATURED: Fetching featured posts with limit:', limitNum);
+    
+    // Build filter - only featured AND published posts
+    const filter = { 
+      featured: true,
+      draft: { $ne: true } // Only published posts
+    };
+    
+    // Fetch featured posts
+    const docs = await postsCollection
+      .find(filter)
+      .sort({ date: -1 })
+      .limit(limitNum)
+      .toArray();
+    
+    console.log(`⭐ FEATURED: Found ${docs.length} featured published posts`);
+    
+    // If no featured posts found, get the latest published posts instead
+    if (docs.length === 0) {
+      console.log('⭐ FEATURED: No featured posts found, getting latest published posts instead');
+      const latestDocs = await postsCollection
+        .find({ draft: { $ne: true } }) // Only published posts
+        .sort({ date: -1 })
+        .limit(limitNum)
+        .toArray();
       
-      // Try multiple strategies to find by ID
-      // Strategy 1: Try explicit ID field
-      post = await postsCollection.findOne({ 
-        id: postId,
-        draft: { $ne: true } // Only published posts
-      });
+      console.log(`⭐ FEATURED: Found ${latestDocs.length} latest published posts as fallback`);
       
-      // Strategy 2: Try generated ID from ObjectId
-      if (!post) {
-        const allPosts = await postsCollection.find({ 
-          draft: { $ne: true } 
-        }).toArray();
+      // Map documents to the expected format
+      const posts = latestDocs.map(mapPostDocument).filter(Boolean);
+      
+      // Ensure unique IDs
+      const seenIds = new Set<number>();
+      const uniquePosts = posts.filter(post => post !== null).map(post => {
+        let uniqueId = post!.id;
+        let counter = 1;
         
-        for (const doc of allPosts) {
-          const objectIdStr = doc._id.toString();
-          const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
-          const sequence = parseInt(objectIdStr.substring(16, 24), 16);
-          const generatedId = Math.abs(timestamp + sequence);
-          
-          if (generatedId === postId) {
-            post = doc;
-            break;
-          }
+        while (seenIds.has(uniqueId)) {
+          uniqueId = post!.id + counter;
+          counter++;
         }
-      }
-    } else {
-      // It's a slug
-      console.log(`📖 SINGLE POST: Looking for post with slug: ${identifier}`);
-      post = await postsCollection.findOne({ 
-        slug: identifier,
-        draft: { $ne: true } // Only published posts
+        
+        seenIds.add(uniqueId);
+        return { ...post!, id: uniqueId };
       });
-    }
-    
-    if (!post) {
-      console.log(`📖 SINGLE POST: Post not found for identifier: ${identifier}`);
-      res.status(404).json({ message: 'Blog post not found' });
+      
+      console.log(`⭐ FEATURED: Returning ${uniquePosts.length} fallback posts`);
+      res.status(200).json(uniquePosts);
       return;
     }
     
-    console.log(`📖 SINGLE POST: Found post: ${post.title}`);
+    // Map documents to the expected format
+    const posts = docs.map(mapPostDocument).filter(Boolean);
     
-    const formattedPost = mapPostDocument(post);
+    // Ensure unique IDs
+    const seenIds = new Set<number>();
+    const uniquePosts = posts.filter(post => post !== null).map(post => {
+      let uniqueId = post!.id;
+      let counter = 1;
+      
+      while (seenIds.has(uniqueId)) {
+        uniqueId = post!.id + counter;
+        counter++;
+      }
+      
+      seenIds.add(uniqueId);
+      return { ...post!, id: uniqueId };
+    });
     
-    if (!formattedPost) {
-      res.status(500).json({ message: 'Failed to format post' });
-      return;
-    }
-    
-    res.status(200).json(formattedPost);
+    console.log(`⭐ FEATURED: Returning ${uniquePosts.length} featured posts`);
+    res.status(200).json(uniquePosts);
     
   } catch (error) {
-    console.error(`📖 SINGLE POST: Error fetching post ${identifier}:`, error);
+    console.error('⭐ FEATURED: Error fetching featured posts:', error);
     res.status(500).json({ 
-      message: 'Failed to fetch blog post',
+      message: 'Failed to fetch featured posts',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   } finally {

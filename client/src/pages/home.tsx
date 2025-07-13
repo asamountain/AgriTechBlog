@@ -32,9 +32,10 @@ export default function Home() {
         title="San's Agricultural Technology Blog - Innovation & Sustainable Farming"
         description="Discover cutting-edge agricultural technology, IoT solutions, and sustainable farming practices. Expert insights on precision agriculture, crop monitoring, and smart farming innovations for global agricultural transformation."
         keywords={keywords}
-        image="/api/og-image?title=AgriTech Innovation Hub&category=Agricultural Technology"
+        image="/api/og-image?title=AgriTech Innovation Hub&category=Agricultural Technology&author=San&excerpt=Cutting-edge agricultural technology and sustainable farming solutions"
         url={currentUrl}
         type="website"
+        author="San"
       />
       <Navigation />
       <HeroSection />

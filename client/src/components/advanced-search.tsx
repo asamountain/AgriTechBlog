@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Calendar, User, Tag, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { formatDate } from "@/lib/utils";
+import { markdownToText } from "@/lib/html-to-markdown";
 import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
 import type { BlogPostWithDetails } from "@shared/schema";
 
@@ -220,7 +221,7 @@ export default function AdvancedSearch() {
                     </h3>
                     
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {post.excerpt}
+                      {markdownToText(post.excerpt)}
                     </p>
 
                     {/* Tags */}

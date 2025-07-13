@@ -188,6 +188,31 @@ This ensures a consistent, professional user experience across the application w
 
 ---
 
+## Content Sanitization Standard
+
+**Rule: All blog post excerpts must display as clean text without HTML tags or markdown formatting.**
+
+### Implementation:
+- **Server-side**: All API endpoints use `generateCleanExcerpt()` for consistent excerpt generation
+- **Client-side**: All excerpt displays use `markdownToText()` for formatting protection
+- **Functions location**: `client/src/lib/html-to-markdown.ts`
+
+### Core Functions:
+```typescript
+generateCleanExcerpt(content: string, maxLength: number): string
+markdownToText(markdown: string): string
+stripHtmlTags(html: string): string
+```
+
+### Coverage:
+- All excerpt displays in blog-grid, featured-stories, search results, admin panels
+- All API endpoints: `/api/blog-posts`, `/api/blog-posts/featured`, `/api/blog-post`, `/api/admin/blog-posts`
+- MongoDB storage layer in `server/mongodb-storage-updated.ts`
+
+This ensures professional, readable text across all interfaces without HTML/markdown artifacts.
+
+---
+
 # San Blog Design Standards
 
 ## Color Scheme
@@ -330,6 +355,133 @@ All design components and spacing must follow the golden ratio for optimal visua
 - Test update operations immediately after any editor changes
 - This prevents "Failed to update post" errors and maintains data integrity
 
+## MongoDB Schema Standards
+**CRITICAL: All MongoDB CRUD operations must use consistent schema field names to prevent frontend-backend mismatches**
+
+### Required BlogPost Schema Fields:
+```typescript
+interface BlogPost {
+  id: number | string;           // Primary identifier
+  title: string;                 // Post title
+  slug: string;                  // URL-friendly identifier
+  excerpt: string;               // Short description
+  content: string;               // Full post content
+  featuredImage: string;         // Main image URL
+  authorId: number | string;     // Author reference
+  userId: string;                // User who created/owns the post
+  tags: string[];                // Array of tag strings
+  readTime: number;              // Estimated reading time in minutes
+  isFeatured: boolean;           // Featured post status
+  isPublished: boolean;          // Publication status
+  summary?: string;              // Optional AI-generated summary
+  createdAt: Date;               // Creation timestamp
+  updatedAt: Date;               // Last modification timestamp
+}
+```
+
+### MongoDB Storage Implementation Rules:
+1. **Use Schema Field Names**: Always use `isPublished`, `isFeatured`, `featuredImage`, `createdAt`, `updatedAt`
+2. **Backward Compatibility**: Store both schema fields AND legacy fields during transition:
+   - `isPublished: true` + `draft: false` (legacy)
+   - `isFeatured: true` + `featured: true` (legacy)
+   - `featuredImage: "url"` + `coverImage: "url"` (legacy)
+   - `createdAt: Date` + `date: Date` (legacy)
+   - `updatedAt: Date` + `lastModified: Date` (legacy)
+3. **Query Consistency**: Use schema fields in queries with fallback to legacy fields
+4. **API Responses**: Always return schema-compliant field names to frontend
+
+### CRUD Operation Standards:
+```typescript
+// ✅ CORRECT - Create with schema fields
+const postData = {
+  title: post.title,
+  isPublished: post.isPublished,     // Schema field
+  isFeatured: post.isFeatured,       // Schema field  
+  featuredImage: post.featuredImage, // Schema field
+  createdAt: new Date(),             // Schema field
+  updatedAt: new Date(),             // Schema field
+  // Legacy fields for backward compatibility
+  draft: !post.isPublished,
+  featured: post.isFeatured,
+  coverImage: post.featuredImage,
+  date: new Date(),
+  lastModified: new Date()
+};
+
+// ✅ CORRECT - Query with schema fields + fallback
+const query = {
+  $or: [
+    { isPublished: true },                           // Schema field
+    { isPublished: { $exists: false }, draft: { $ne: true } } // Legacy fallback
+  ]
+};
+
+// ❌ WRONG - Using only legacy fields
+const badQuery = { draft: { $ne: true } }; // Will miss posts with schema fields
+```
+
+### API Endpoint Consistency:
+- **Frontend sends**: Schema field names (`isPublished`, `isFeatured`, `featuredImage`)
+- **Backend stores**: Both schema and legacy fields for compatibility
+- **Backend returns**: Schema field names only
+- **Database queries**: Schema fields with legacy fallbacks
+
+### Field Name Migration Rules:
+- **NEVER remove legacy fields** until 100% of data is migrated
+- **ALWAYS add schema fields** to new documents
+- **UPDATE existing documents** to include schema fields during writes
+- **QUERY with OR conditions** to support both field naming conventions
+
+## API Route Consistency Standards
+**CRITICAL: Frontend and backend must use identical URL patterns and parameter formats**
+
+### Path Parameter Rules:
+- **ALWAYS use path parameters** for resource IDs: `/api/admin/blog-posts/{id}`
+- **NEVER mix path and query parameters** for the same endpoint
+- **Consistent across all CRUD operations**:
+  ```typescript
+  // ✅ CORRECT - Consistent path parameters
+  GET    /api/admin/blog-posts/{id}    // Get single post
+  PATCH  /api/admin/blog-posts/{id}    // Update post
+  DELETE /api/admin/blog-posts/{id}    // Delete post
+  
+  // ❌ WRONG - Mixed parameter styles
+  GET    /api/admin/blog-posts/{id}    // Path parameter
+  PATCH  /api/admin/blog-posts?id={id} // Query parameter - INCONSISTENT!
+  ```
+
+### Frontend-Backend Parameter Consistency:
+```typescript
+// ✅ CORRECT - Frontend matches backend route pattern
+// Backend route: app.patch("/api/admin/blog-posts/:id", ...)
+// Frontend call:
+fetch(`/api/admin/blog-posts/${postId}`, {
+  method: "PATCH",
+  body: JSON.stringify(updateData)
+});
+
+// ❌ WRONG - Frontend doesn't match backend route
+// Backend route: app.patch("/api/admin/blog-posts/:id", ...)  
+// Frontend call:
+fetch(`/api/admin/blog-posts?id=${postId}`, { // Query param instead of path!
+  method: "PATCH"
+});
+```
+
+### Route Pattern Standards:
+- **Public endpoints**: `/api/blog-posts` (no auth required)
+- **Admin endpoints**: `/api/admin/blog-posts` (auth required)
+- **Resource-specific**: Always use path parameters for IDs
+- **Filtering/pagination**: Use query parameters for filters
+- **Bulk operations**: Use request body for multiple IDs
+
+### API Error Prevention Checklist:
+1. ✅ **Frontend API calls match backend route patterns exactly**
+2. ✅ **Path parameters used consistently for resource IDs**  
+3. ✅ **Query parameters used only for filtering/pagination**
+4. ✅ **Request/response body uses schema field names**
+5. ✅ **Error responses return meaningful messages**
+
 ## Performance & Complexity Rules
 - **Avoid duplicating functionality** - One feature should serve one purpose
 - **Minimize Big O complexity** - Optimize for performance in all operations
@@ -468,6 +620,30 @@ This document ensures visual consistency, mathematical harmony, and optimal perf
 
 **⚠️ CRITICAL: All API endpoints must follow RESTful conventions and consistent error handling**
 
+### **🚨 CRITICAL: Path Parameter Consistency Rule**
+
+**ALL API endpoints MUST use path parameters for resource IDs, NOT query parameters.**
+
+```bash
+# ✅ CORRECT - Use path parameters
+GET    /api/admin/blog-posts/123
+PATCH  /api/admin/blog-posts/123
+DELETE /api/admin/blog-posts/123
+
+# ❌ INCORRECT - Do NOT use query parameters
+GET    /api/admin/blog-posts?id=123
+PATCH  /api/admin/blog-posts?id=123
+DELETE /api/admin/blog-posts?id=123
+```
+
+**Why This Matters:**
+- Ensures frontend and backend routes match exactly
+- Prevents 404 errors from route mismatches
+- Follows REST conventions for resource identification
+- Enables proper API proxy configuration in Vite
+
+**Enforcement:** All existing code has been updated to use path parameters. Any new API calls MUST follow this pattern.
+
 ### **Endpoint Naming Conventions:**
 ```bash
 # Blog Posts
@@ -489,6 +665,41 @@ POST   /api/ai-tagging/generate-tags      # Generate tags from content
 POST   /api/ai-tagging/generate-excerpt   # Generate excerpt from content
 GET    /api/ai-tagging/generate-excerpt/[id]  # Generate excerpt from existing post
 ```
+
+### **Enhanced Debug Tracking System**
+
+**⚠️ DEVELOPMENT FEATURE: Comprehensive console log interception and project-wide debug tracking**
+
+The debug tracker has been enhanced to capture ALL console statements across the project:
+
+```typescript
+// Debug tracker automatically captures:
+console.log("Any log message")    // Tracked as 'console_log'
+console.warn("Warning message")   // Tracked as 'console_warn'
+console.error("Error message")    // Tracked as 'console_error'
+console.info("Info message")      // Tracked as 'console_info'
+```
+
+**Features:**
+- **Console Interception**: All console.log, warn, error, info statements are tracked
+- **Stack Trace Capture**: Shows where each console statement originated
+- **Categorized Logging**: Different console levels have different colors in debug UI
+- **Project-wide Coverage**: Captures logs from all components, pages, and API calls
+- **Enhanced Filtering**: Filter debug events by console level (log/warn/error/info)
+
+**Access Methods:**
+```javascript
+// Get all console events
+debugTracker.getConsoleEvents()
+
+// Get specific console level
+debugTracker.getConsoleEventsByLevel('error')  // 'log', 'warn', 'error', 'info'
+
+// Access through debug visualizer
+// Press Ctrl+Shift+D or click purple "🔍 Debug Flow" button
+```
+
+**Admin Page Restriction**: Debug Flow Visualizer only appears on `/admin/` pages for focused development debugging.
 
 ### **Response Format Standards:**
 ```typescript
@@ -959,29 +1170,57 @@ graph TD
 
 ---
 
-## Edit Post Functionality - Complete Engineering Documentation
+## Edit Post Functionality - CRITICAL ID CONSISTENCY
 
-### 🚨 **CRITICAL ISSUE RESOLVED: Production API Endpoints for Individual Posts**
+### 🚨 **RESOLVED: ID Generation Inconsistency (Critical Bug)**
 
-**Problem:** The `/edit-post/[id]` functionality was not working in production on Vercel due to dynamic route deployment issues.
+**Problem:** Post editing failed because ID generation algorithms were inconsistent between display and API lookup.
 
-**Root Cause:** Vercel has specific requirements for dynamic API routes that weren't being met by the nested dynamic route structure `/api/admin/blog-posts/[id].ts`.
+**Root Cause:** Different parts of system used different ID generation from MongoDB ObjectId:
+- **mapPostDocument()**: `timestamp + sequence` (CORRECT)
+- **Admin API search**: Only `timestamp` (BROKEN)
 
-**Solution:** Switched from dynamic routes to query parameter approach for better Vercel compatibility.
+**Fix Applied:** All ID generation now uses consistent algorithm:
+```javascript
+const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+let generatedId = Math.abs(timestamp + sequence);
+```
+
+### 🏗️ **ID Generation Rules (MANDATORY)**
+
+**NEVER use different ID generation algorithms in the same system.**
+
+1. **Single Source of Truth**: All ID generation MUST use identical logic
+2. **Consistency Check**: When adding new endpoints, verify ID generation matches existing
+3. **Testing Protocol**: Always test edit functionality after API changes
+
+### 📋 **Files with ID Generation Logic**
+- `api/admin/blog-posts.ts` (5 instances - ALL FIXED)
+- `api/blog-post.ts` (mapPostDocument function)
+- `server/mongodb-storage-updated.ts`
+
+**Rule:** Any new ID generation MUST match the mapPostDocument algorithm exactly.
 
 ---
 
-### 🏗️ **Complete Architecture Overview**
+## Edit Post Workflow - Complete Architecture
 
-#### **Frontend Routes:**
-- **Local:** `http://localhost:5001/edit-post/[id]` ✅
-- **Production:** `https://tech-san.vercel.app/edit-post/[id]` ✅
+### **Frontend Routes:**
+- **Edit URL**: `/edit-post/[id]` ✅
+- **Component**: `client/src/pages/create-post.tsx` (handles both create and edit)
 
-#### **API Endpoints:**
-- **List Posts:** `GET /api/admin/blog-posts` ✅
-- **Individual Post:** `GET /api/admin/blog-posts?id=[id]` ✅
-- **Update Post:** `PATCH /api/admin/blog-posts?id=[id]` ✅
-- **Delete Post:** `DELETE /api/admin/blog-posts?id=[id]` ✅
+### **API Endpoints:**
+- **Fetch Post**: `GET /api/admin/blog-posts?id=[id]` ✅
+- **Update Post**: `PATCH /api/admin/blog-posts?id=[id]` ✅
+
+### **Critical Success Criteria:**
+1. ✅ Post loads correctly in edit interface
+2. ✅ All post data (title, content, tags, etc.) populated
+3. ✅ Updates save successfully
+4. ✅ Consistent ID matching between display and API
+
+**PREVENTION:** Test edit functionality immediately after any ID-related changes.
 
 ---
 

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDate } from "@/lib/utils";
+import { markdownToText } from "@/lib/html-to-markdown";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
@@ -93,7 +94,7 @@ export default function FeaturedStories() {
                       <p className={`text-gray-600 mb-6 leading-relaxed ${
                         isHero ? 'text-lg line-clamp-4' : 'text-base line-clamp-3'
                       }`}>
-                        {story.excerpt}
+                        {markdownToText(story.excerpt)}
                       </p>
                       
                       {/* Author & Read Time */}

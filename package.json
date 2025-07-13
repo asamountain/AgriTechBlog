@@ -1,10 +1,13 @@
 {
   "name": "rest-express",
   "version": "1.0.0",
+  "description": "AgriTech Blog - Run 'npm run dev' and open http://localhost:5173",
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev:backend": "NODE_ENV=development tsx server/index.ts",
+    "dev": "concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
+    "start:dev": "npm run dev",
     "dev:vercel": "vercel dev --listen 127.0.0.1:3000",
     "build": "vite build",
     "vercel-build": "vite build",
@@ -131,6 +134,7 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.0",
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",

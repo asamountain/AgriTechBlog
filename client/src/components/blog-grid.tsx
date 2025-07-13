@@ -7,6 +7,7 @@ import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
+import { markdownToText } from "@/lib/html-to-markdown";
 
 interface BlogGridProps {}
 
@@ -133,7 +134,7 @@ export default function BlogGrid({}: BlogGridProps) {
                           <p className={`text-gray-600 mb-4 leading-relaxed ${
                             isLarge ? 'text-lg line-clamp-3' : 'text-base line-clamp-2'
                           }`}>
-                            {post.excerpt}
+                            {markdownToText(post.excerpt)}
                           </p>
                           
                           {/* Tags */}

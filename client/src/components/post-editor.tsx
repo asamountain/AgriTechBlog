@@ -35,8 +35,8 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
   // Update post mutation
   const updatePostMutation = useMutation({
     mutationFn: async (updateData: any) => {
-      // Use admin endpoint with ID as query parameter for better Vercel compatibility
-      const response = await fetch(`/api/admin/blog-posts?id=${post.id}`, {
+      // Use admin endpoint with ID as path parameter for consistency
+      const response = await fetch(`/api/admin/blog-posts/${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),

@@ -1,12 +1,131 @@
 import { MongoClient, Db, Collection, ObjectId } from "mongodb";
+import { z } from 'zod';
+import { IStorage } from "./storage";
 import { 
   type User, type InsertUser,
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
-  type BlogPostWithDetails,
-  type Comment, type InsertComment
+  type Comment, type InsertComment,
+  type BlogPostWithDetails
 } from "@shared/schema";
-import { IStorage } from "./storage";
+
+// Comprehensive HTML tag removal with entity decoding
+function stripHtmlTags(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+
+  let text = content;
+  
+  // Remove script and style elements completely
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  
+  // Remove all HTML tags but preserve spacing
+  text = text.replace(/<[^>]*>/g, ' ');
+  
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  text = text.replace(/&apos;/g, "'");
+  
+  // Remove other HTML entities
+  text = text.replace(/&[#\w]+;/g, '');
+  
+  return text;
+}
+
+// Enhanced markdown to text conversion with HTML handling
+function markdownToText(markdownContent: string): string {
+  if (!markdownContent || typeof markdownContent !== 'string') {
+    return '';
+  }
+
+  let text = markdownContent;
+  
+  // First, strip any HTML tags that might be mixed in
+  text = stripHtmlTags(text);
+  
+  // Remove markdown headers (# ## ### etc.)
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  
+  // Remove bold and italic formatting
+  text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '$1'); // bold italic
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1'); // bold
+  text = text.replace(/\*([^*]+)\*/g, '$1'); // italic
+  text = text.replace(/___([^_]+)___/g, '$1'); // bold italic underscore
+  text = text.replace(/__([^_]+)__/g, '$1'); // bold underscore
+  text = text.replace(/_([^_]+)_/g, '$1'); // italic underscore
+  
+  // Remove strikethrough
+  text = text.replace(/~~([^~]+)~~/g, '$1');
+  
+  // Remove links but keep text [text](url) -> text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  
+  // Remove inline code
+  text = text.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove code blocks
+  text = text.replace(/```[\s\S]*?```/g, '');
+  text = text.replace(/~~~[\s\S]*?~~~/g, '');
+  
+  // Remove blockquotes
+  text = text.replace(/^>\s+/gm, '');
+  
+  // Remove horizontal rules
+  text = text.replace(/^[-*_]{3,}\s*$/gm, '');
+  
+  // Remove list markers
+  text = text.replace(/^[-*+]\s+/gm, '');
+  text = text.replace(/^\d+\.\s+/gm, '');
+  
+  // Remove table formatting
+  text = text.replace(/\|/g, ' ');
+  text = text.replace(/^[-:|\s]+$/gm, '');
+  
+  // Remove excessive whitespace and normalize line breaks
+  text = text.replace(/\n\s*\n/g, '\n\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  text = text.replace(/[ \t]+/g, ' ');
+  
+  // Clean up and trim
+  return text.trim();
+}
+
+function generateCleanExcerpt(content: string, maxLength: number = 150): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  // Convert to plain text (handles both HTML and markdown)
+  let plainText = markdownToText(content);
+  
+  // Additional cleanup for any remaining artifacts
+  plainText = plainText
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s.,!?;:()\-'"]/g, '')
+    .trim();
+  
+  // Truncate to desired length
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+  
+  // Find the last space before the limit to avoid cutting words
+  const truncated = plainText.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  if (lastSpace > maxLength * 0.8) { // Only use last space if it's not too far back
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  
+  return truncated + '...';
+}
 
 export class MongoStorage implements IStorage {
   private client: MongoClient;
@@ -64,8 +183,7 @@ export class MongoStorage implements IStorage {
   }
 
   private extractExcerpt(content: string): string {
-    const plainText = content.replace(/<[^>]*>/g, '');
-    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
+    return generateCleanExcerpt(content, 150);
   }
 
   private generateSlug(title: string): string {
@@ -229,25 +347,35 @@ export class MongoStorage implements IStorage {
     const { limit = 100, offset = 0, featured, includeDrafts = false, userId } = options;
     let query: any = {};
     
-    // Only show published posts by default (where draft is not true)
+    // Use correct schema field: isPublished instead of draft
     if (!includeDrafts) {
-      query.draft = { $ne: true };
+      query.$or = [
+        { isPublished: true },
+        { isPublished: { $exists: false }, draft: { $ne: true } } // Backward compatibility
+      ];
     }
     
     if (featured !== undefined) {
-      query.featured = featured;
+      // Support both schema field and legacy field for backward compatibility
+      query.$or = [
+        { isFeatured: featured },
+        { isFeatured: { $exists: false }, featured: featured }
+      ];
     }
     
     if (userId) {
-      query.$or = [
-        { userId: userId },
-        { userId: { $exists: false } }
-      ];
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { userId: userId },
+          { userId: { $exists: false } }
+        ]
+      });
     }
     
     const docs = await this.blogPostsCollection
       .find(query)
-      .sort({ date: -1 })
+      .sort({ createdAt: -1, date: -1 }) // Prefer schema field, fallback to legacy
       .skip(offset)
       .limit(limit)
       .toArray();
@@ -297,22 +425,43 @@ export class MongoStorage implements IStorage {
 
   async createBlogPost(insertPost: InsertBlogPost): Promise<BlogPost> {
     const now = new Date();
+    // Use correct schema field names for storage
     const postData = {
       title: insertPost.title,
       content: insertPost.content,
       excerpt: insertPost.excerpt,
       slug: insertPost.slug,
+      featuredImage: insertPost.featuredImage, // Use schema field name
+      createdAt: now,                         // Use schema field name
+      updatedAt: now,                         // Use schema field name
+      isPublished: insertPost.isPublished !== false, // Use schema field name
+      isFeatured: insertPost.isFeatured || false,     // Use schema field name
+      userId: insertPost.userId,
+      authorId: insertPost.authorId,
+      tags: insertPost.tags || [],
+      readTime: insertPost.readTime || this.calculateReadTime(insertPost.content),
+      
+      // Keep legacy fields for backward compatibility
       coverImage: insertPost.featuredImage,
       date: now,
       lastModified: now,
-      draft: false,
-      featured: insertPost.isFeatured || false,
-      userId: insertPost.userId
+      draft: !(insertPost.isPublished !== false),
+      featured: insertPost.isFeatured || false
     };
     
     const result = await this.blogPostsCollection.insertOne(postData);
+    
+    // Generate consistent ID
+    const generatedId = parseInt(result.insertedId.toString().substring(0, 8), 16);
+    
+    // Update document with the generated ID for consistency
+    await this.blogPostsCollection.updateOne(
+      { _id: result.insertedId },
+      { $set: { id: generatedId } }
+    );
+    
     return { 
-      id: parseInt(result.insertedId.toString().substring(0, 8), 16),
+      id: generatedId,
       userId: insertPost.userId,
       title: insertPost.title,
       slug: insertPost.slug,
@@ -321,7 +470,7 @@ export class MongoStorage implements IStorage {
       featuredImage: insertPost.featuredImage,
       authorId: insertPost.authorId,
       tags: insertPost.tags || [],
-      readTime: insertPost.readTime || 5,
+      readTime: insertPost.readTime || this.calculateReadTime(insertPost.content),
       isFeatured: insertPost.isFeatured || false,
       isPublished: insertPost.isPublished !== false,
       createdAt: now,
@@ -360,24 +509,25 @@ export class MongoStorage implements IStorage {
       // Use the actual _id from the found document for the update
       const query = { _id: targetDoc._id };
       
-      // Prepare update data
+      // Prepare update data using correct schema fields
       const updateDoc: any = {
         ...updateData,
-        lastModified: new Date()
+        updatedAt: new Date(), // Use schema field name
+        lastModified: new Date() // Keep legacy field for backward compatibility
       };
 
-      // Convert boolean fields properly
+      // Store both schema fields and legacy fields for backward compatibility
       if (updateData.isFeatured !== undefined) {
-        updateDoc.featured = updateData.isFeatured;
-        delete updateDoc.isFeatured;
+        updateDoc.isFeatured = updateData.isFeatured;  // Schema field
+        updateDoc.featured = updateData.isFeatured;    // Legacy field
       }
       if (updateData.isPublished !== undefined) {
-        updateDoc.draft = !updateData.isPublished;
-        delete updateDoc.isPublished;
+        updateDoc.isPublished = updateData.isPublished; // Schema field
+        updateDoc.draft = !updateData.isPublished;      // Legacy field (inverted)
       }
       if (updateData.featuredImage !== undefined) {
-        updateDoc.coverImage = updateData.featuredImage;
-        delete updateDoc.featuredImage;
+        updateDoc.featuredImage = updateData.featuredImage; // Schema field
+        updateDoc.coverImage = updateData.featuredImage;    // Legacy field
       }
 
       const result = await this.blogPostsCollection.updateOne(
@@ -402,24 +552,30 @@ export class MongoStorage implements IStorage {
   async searchBlogPosts(query: string, userId?: string): Promise<BlogPostWithDetails[]> {
     const searchTerm = { $regex: query, $options: 'i' };
     const searchQuery: any = {
-      draft: { $ne: true },
+      // Use correct schema field with backward compatibility
       $or: [
-        { title: searchTerm },
-        { content: searchTerm }
+        { isPublished: true },
+        { isPublished: { $exists: false }, draft: { $ne: true } }
+      ],
+      $and: [
+        {
+          $or: [
+            { title: searchTerm },
+            { content: searchTerm },
+            { excerpt: searchTerm }
+          ]
+        }
       ]
     };
 
     // Add user filtering if provided
     if (userId) {
-      searchQuery.$and = [
-        searchQuery,
-        {
-          $or: [
-            { userId: userId },
-            { userId: { $exists: false } }
-          ]
-        }
-      ];
+      searchQuery.$and.push({
+        $or: [
+          { userId: userId },
+          { userId: { $exists: false } }
+        ]
+      });
     }
 
     const docs = await this.blogPostsCollection.find(searchQuery).toArray();

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { formatDate } from "@/lib/utils";
+import { markdownToText } from "@/lib/html-to-markdown";
 import type { BlogPostWithDetails } from "@shared/schema";
 
 interface SearchOverlayProps {
@@ -85,7 +86,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         {post.title}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                        {post.excerpt}
+                        {markdownToText(post.excerpt)}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         {post.tags && post.tags.length > 0 && (

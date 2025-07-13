@@ -9,6 +9,7 @@ import { useState, useMemo } from "react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
+import { markdownToText } from "@/lib/html-to-markdown";
 
 export default function PostsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,8 +106,11 @@ export default function PostsPage() {
       <SEOHead
         title="All Posts | Agricultural Technology Blog"
         description="Explore our comprehensive collection of articles on agricultural technology, precision farming, and sustainable agriculture practices."
-        keywords={["agricultural technology", "precision farming", "sustainable agriculture", "blog posts", "farming innovation"]}
-        image="/api/og-image?title=All Posts"
+        keywords={["agricultural technology", "precision farming", "sustainable agriculture", "blog posts", "farming innovation", "AgriTech", "smart farming", "crop technology"]}
+        image="/api/og-image?title=All Blog Posts&category=Agricultural Technology&author=San&excerpt=Comprehensive collection of agricultural technology articles"
+        url={`${typeof window !== 'undefined' ? window.location.origin : ''}/posts`}
+        type="website"
+        author="San"
       />
 
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
@@ -212,7 +216,7 @@ export default function PostsPage() {
                             </Link>
                           </h3>
                           <p className="text-gray-600 text-sm line-clamp-3">
-                            {post.excerpt}
+                            {markdownToText(post.excerpt)}
                           </p>
                         </div>
 

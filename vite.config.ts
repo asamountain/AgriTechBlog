@@ -3,9 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -31,5 +29,17 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:5001",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
+  // SSR configuration (commented out for now)
+  // ssr: {
+  //   noExternal: ["react", "react-dom"],
+  // },
 });
+

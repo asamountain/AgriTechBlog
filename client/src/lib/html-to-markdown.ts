@@ -46,59 +46,133 @@ turndownService.addRule('preserveTargetBlank', {
 });
 
 /**
+ * Comprehensive HTML tag removal with entity decoding
+ * @param content - Content that may contain HTML
+ * @returns Plain text content
+ */
+function stripHtmlTags(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+
+  let text = content;
+  
+  // Remove script and style elements completely
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  
+  // Remove all HTML tags but preserve spacing
+  text = text.replace(/<[^>]*>/g, ' ');
+  
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  text = text.replace(/&apos;/g, "'");
+  
+  // Remove other HTML entities
+  text = text.replace(/&[#\w]+;/g, '');
+  
+  return text;
+}
+
+/**
  * Convert HTML content to markdown format
  * @param htmlContent - The HTML content to convert
- * @returns Cleaned markdown content
+ * @returns Markdown formatted content
  */
 export function htmlToMarkdown(htmlContent: string): string {
   if (!htmlContent || typeof htmlContent !== 'string') {
     return '';
   }
 
-  // If content doesn't contain HTML tags, return as is
-  if (!htmlContent.includes('<') || !htmlContent.includes('>')) {
-    return htmlContent;
-  }
-
   try {
-    // Convert HTML to markdown
-    let markdown = turndownService.turndown(htmlContent);
-    
-    // Clean up common issues
-    markdown = markdown
-      // Remove excessive line breaks (more than 2)
-      .replace(/\n{3,}/g, '\n\n')
-      // Fix heading spacing
-      .replace(/^(#{1,6})\s*/gm, '$1 ')
-      // Clean up list formatting
-      .replace(/^\s*[-*+]\s+/gm, '- ')
-      // Remove trailing whitespace
-      .replace(/[ \t]+$/gm, '')
-      // Ensure proper spacing around headings
-      .replace(/\n(#{1,6}\s)/g, '\n\n$1')
-      .replace(/(#{1,6}\s.*)\n/g, '$1\n\n')
-      // Clean up blockquotes
-      .replace(/^\s*>\s*/gm, '> ')
-      // Fix code block formatting
-      .replace(/```(\w+)?\n\n/g, '```$1\n')
-      .replace(/\n\n```/g, '\n```')
-      // Remove any remaining HTML entities
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
+    // Clean up common HTML issues before conversion
+    let cleanHtml = htmlContent
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<p[^>]*>/gi, '\n\n')
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
 
-    // Trim and ensure content ends with single newline
-    markdown = markdown.trim();
+    // Convert to markdown
+    const markdown = turndownService.turndown(cleanHtml);
     
-    return markdown;
+    // Clean up excessive whitespace
+    return markdown
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]+/g, ' ')
+      .trim();
   } catch (error) {
-    console.error('Error converting HTML to markdown:', error);
-    // Fallback: strip HTML tags manually
-    return htmlContent.replace(/<[^>]*>/g, '').trim();
+    console.warn('HTML to markdown conversion failed:', error);
+    // Fallback to simple HTML tag removal
+    return stripHtmlTags(htmlContent);
   }
+}
+
+/**
+ * Enhanced markdown to text conversion with HTML handling
+ * @param markdownContent - The markdown content to convert
+ * @returns Plain text content
+ */
+export function markdownToText(markdownContent: string): string {
+  if (!markdownContent || typeof markdownContent !== 'string') {
+    return '';
+  }
+
+  let text = markdownContent;
+  
+  // First, strip any HTML tags that might be mixed in
+  text = stripHtmlTags(text);
+  
+  // Remove markdown headers (# ## ### etc.)
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  
+  // Remove bold and italic formatting
+  text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '$1'); // bold italic
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1'); // bold
+  text = text.replace(/\*([^*]+)\*/g, '$1'); // italic
+  text = text.replace(/___([^_]+)___/g, '$1'); // bold italic underscore
+  text = text.replace(/__([^_]+)__/g, '$1'); // bold underscore
+  text = text.replace(/_([^_]+)_/g, '$1'); // italic underscore
+  
+  // Remove strikethrough
+  text = text.replace(/~~([^~]+)~~/g, '$1');
+  
+  // Remove links but keep text [text](url) -> text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  
+  // Remove inline code
+  text = text.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove code blocks
+  text = text.replace(/```[\s\S]*?```/g, '');
+  text = text.replace(/~~~[\s\S]*?~~~/g, '');
+  
+  // Remove blockquotes
+  text = text.replace(/^>\s+/gm, '');
+  
+  // Remove horizontal rules
+  text = text.replace(/^[-*_]{3,}\s*$/gm, '');
+  
+  // Remove list markers
+  text = text.replace(/^[-*+]\s+/gm, '');
+  text = text.replace(/^\d+\.\s+/gm, '');
+  
+  // Remove table formatting
+  text = text.replace(/\|/g, ' ');
+  text = text.replace(/^[-:|\s]+$/gm, '');
+  
+  // Remove excessive whitespace and normalize line breaks
+  text = text.replace(/\n\s*\n/g, '\n\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  text = text.replace(/[ \t]+/g, ' ');
+  
+  // Clean up and trim
+  return text.trim();
 }
 
 /**
@@ -125,5 +199,59 @@ export function ensureMarkdown(content: string): string {
   if (containsHtml(content)) {
     return htmlToMarkdown(content);
   }
+  return content;
+}
+
+/**
+ * Generate a clean plain text excerpt from any content type (HTML, Markdown, or plain text)
+ * @param content - The content to extract excerpt from
+ * @param maxLength - Maximum length of the excerpt (default: 150)
+ * @returns Clean plain text excerpt
+ */
+export function generateCleanExcerpt(content: string, maxLength: number = 150): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  // Convert to plain text (handles both HTML and markdown)
+  let plainText = markdownToText(content);
+  
+  // Additional cleanup for any remaining artifacts
+  plainText = plainText
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s.,!?;:()\-'"]/g, '')
+    .trim();
+  
+  // Truncate to desired length
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+  
+  // Find the last space before the limit to avoid cutting words
+  const truncated = plainText.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  if (lastSpace > maxLength * 0.8) { // Only use last space if it's not too far back
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  
+  return truncated + '...';
+}
+
+/**
+ * Sanitize content for safe storage - removes HTML but preserves markdown
+ * @param content - Raw content that may contain HTML
+ * @returns Sanitized content
+ */
+export function sanitizeContent(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  // If it contains HTML, convert to markdown first
+  if (containsHtml(content)) {
+    return htmlToMarkdown(content);
+  }
+  
   return content;
 } 

@@ -4,6 +4,7 @@ import { Clock, Calendar, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { markdownToText } from "@/lib/html-to-markdown";
 import type { BlogPostWithDetails } from "@shared/schema";
 
 interface RelatedPostsByTagsProps {
@@ -83,7 +84,7 @@ export default function RelatedPostsByTags({ currentPostId, currentPostTags }: R
                     </h3>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {post.excerpt}
+                      {markdownToText(post.excerpt)}
                     </p>
 
                     {/* Matching Tags */}

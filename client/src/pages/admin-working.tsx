@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
+import { markdownToText } from "@/lib/html-to-markdown";
 import { 
   Plus, 
   Edit, 
@@ -198,6 +199,51 @@ function PostManagement() {
     queryClient.refetchQueries({ queryKey: ["/api/admin/blog-posts"] });
   };
 
+  // Publish all posts mutation
+  const publishAllPostsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/publish-all-posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to publish posts');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: `Published ${data.publishedCount} posts! Your blog should now show all posts.`,
+        duration: 5000,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to publish posts",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePublishAllPosts = () => {
+    const draftPostsCount = posts.filter(post => !post.isPublished).length;
+    if (draftPostsCount === 0) {
+      toast({
+        title: "No drafts found",
+        description: "All posts are already published!",
+      });
+      return;
+    }
+    
+    if (confirm(`This will publish ${draftPostsCount} draft posts. Are you sure?`)) {
+      publishAllPostsMutation.mutate();
+    }
+  };
+
   // Bulk operations mutations
   const bulkPublishMutation = useMutation({
     mutationFn: async ({ postIds, isPublished }: { postIds: number[]; isPublished: boolean }) => {
@@ -270,7 +316,7 @@ function PostManagement() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (postIds: number[]) => {
-      const promises = postIds.map(id => apiRequest(`/api/admin/blog-posts/${id}`, "DELETE"));
+      const promises = postIds.map(id => apiRequest("DELETE", `/api/admin/blog-posts/${id}`));
       return Promise.all(promises);
     },
     onSuccess: (_, postIds) => {
@@ -292,7 +338,7 @@ function PostManagement() {
   });
 
   const deletePostMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/admin/blog-posts/${id}`, "DELETE"),
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/blog-posts/${id}`),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -454,6 +500,10 @@ function PostManagement() {
         <div className="flex gap-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             🔄 Refresh Posts
+          </Button>
+          <Button onClick={handlePublishAllPosts} variant="outline" size="sm" disabled={publishAllPostsMutation.isPending}>
+            <Sparkles className="w-4 h-4 mr-1" />
+            Publish All Drafts
           </Button>
         </div>
       </div>
@@ -633,7 +683,7 @@ function PostManagement() {
                   </Badge>
                 </div>
                 <CardDescription className="line-clamp-3 mt-2">
-                  {post.excerpt}
+                  {markdownToText(post.excerpt)}
                 </CardDescription>
               </CardHeader>
               

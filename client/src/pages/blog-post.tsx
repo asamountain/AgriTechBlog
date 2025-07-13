@@ -25,6 +25,7 @@ import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
 import { ensureMarkdown } from '@/lib/html-to-markdown';
+import { markdownToText } from "@/lib/html-to-markdown";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -119,24 +120,35 @@ export default function BlogPost() {
   const keywords = [
     ...(post.tags || []),
     post.title.toLowerCase(),
+    'agricultural technology',
+    'precision farming',
+    'smart agriculture'
   ];
 
-  // Generate OG image URL
+  // Generate enhanced OG image URL with post-specific data
   const ogImageUrl = post ? 
-    `/api/og-image?title=${encodeURIComponent(post.title)}` :
+    `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(authorName)}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}` :
     '/api/og-image?title=Blog Post';
+
+  // Use featured image if available, otherwise use generated OG image
+  const socialImage = post?.featuredImage && post.featuredImage.trim() !== '' 
+    ? post.featuredImage 
+    : ogImageUrl;
 
   return (
     <>
       <SEOHead
-        title={post?.title || "Blog Post"}
-        description={post?.excerpt || "Read this blog post"}
-        keywords={[
-          ...(post?.tags || []),
-          post.title.toLowerCase(),
-        ]}
+        title={`${post?.title} | San's Agricultural Technology Blog`}
+        description={post?.excerpt || "Discover innovative agricultural technology and sustainable farming practices"}
+        keywords={keywords}
         publishedTime={post?.createdAt instanceof Date ? post.createdAt.toISOString() : post?.createdAt}
-        image={ogImageUrl}
+        modifiedTime={post?.updatedAt instanceof Date ? post.updatedAt.toISOString() : post?.updatedAt}
+        image={socialImage}
+        url={currentUrl}
+        type="article"
+        author={authorName}
+        tags={post?.tags || []}
+        category={post?.tags?.[0] || 'Agricultural Technology'}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
@@ -180,8 +192,31 @@ export default function BlogPost() {
 
                   {/* Excerpt */}
                   <p className="text-xl text-gray-700 leading-relaxed mb-8">
-                    {post.excerpt}
+                    {markdownToText(post.excerpt)}
                   </p>
+
+                  {/* Article Summary Box */}
+                  {post.summary && (
+                    <div className="bg-gradient-to-r from-sage-50 to-fresh-lime-50 border-l-4 border-forest-green rounded-lg p-6 mb-8">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-forest-green rounded-full flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-forest-green mb-2">
+                            Article Summary
+                          </h3>
+                          <p className="text-gray-700 leading-relaxed">
+                            {post.summary}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </header>
 
                 {/* Featured Image */}

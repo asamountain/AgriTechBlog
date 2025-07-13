@@ -1,5 +1,123 @@
 import type { BlogPostWithDetails } from "@shared/schema";
 
+// Comprehensive HTML tag removal with entity decoding
+function stripHtmlTags(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+
+  let text = content;
+  
+  // Remove script and style elements completely
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  
+  // Remove all HTML tags but preserve spacing
+  text = text.replace(/<[^>]*>/g, ' ');
+  
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  text = text.replace(/&apos;/g, "'");
+  
+  // Remove other HTML entities
+  text = text.replace(/&[#\w]+;/g, '');
+  
+  return text;
+}
+
+// Enhanced markdown to text conversion with HTML handling
+function markdownToText(markdownContent: string): string {
+  if (!markdownContent || typeof markdownContent !== 'string') {
+    return '';
+  }
+
+  let text = markdownContent;
+  
+  // First, strip any HTML tags that might be mixed in
+  text = stripHtmlTags(text);
+  
+  // Remove markdown headers (# ## ### etc.)
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  
+  // Remove bold and italic formatting
+  text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '$1'); // bold italic
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1'); // bold
+  text = text.replace(/\*([^*]+)\*/g, '$1'); // italic
+  text = text.replace(/___([^_]+)___/g, '$1'); // bold italic underscore
+  text = text.replace(/__([^_]+)__/g, '$1'); // bold underscore
+  text = text.replace(/_([^_]+)_/g, '$1'); // italic underscore
+  
+  // Remove strikethrough
+  text = text.replace(/~~([^~]+)~~/g, '$1');
+  
+  // Remove links but keep text [text](url) -> text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  
+  // Remove inline code
+  text = text.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove code blocks
+  text = text.replace(/```[\s\S]*?```/g, '');
+  text = text.replace(/~~~[\s\S]*?~~~/g, '');
+  
+  // Remove blockquotes
+  text = text.replace(/^>\s+/gm, '');
+  
+  // Remove horizontal rules
+  text = text.replace(/^[-*_]{3,}\s*$/gm, '');
+  
+  // Remove list markers
+  text = text.replace(/^[-*+]\s+/gm, '');
+  text = text.replace(/^\d+\.\s+/gm, '');
+  
+  // Remove table formatting
+  text = text.replace(/\|/g, ' ');
+  text = text.replace(/^[-:|\s]+$/gm, '');
+  
+  // Remove excessive whitespace and normalize line breaks
+  text = text.replace(/\n\s*\n/g, '\n\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  text = text.replace(/[ \t]+/g, ' ');
+  
+  // Clean up and trim
+  return text.trim();
+}
+
+function generateCleanExcerpt(content: string, maxLength: number = 150): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  // Convert to plain text (handles both HTML and markdown)
+  let plainText = markdownToText(content);
+  
+  // Additional cleanup for any remaining artifacts
+  plainText = plainText
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s.,!?;:()\-'"]/g, '')
+    .trim();
+  
+  // Truncate to desired length
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+  
+  // Find the last space before the limit to avoid cutting words
+  const truncated = plainText.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  if (lastSpace > maxLength * 0.8) { // Only use last space if it's not too far back
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  
+  return truncated + '...';
+}
+
 interface PerplexityResponse {
   id: string;
   model: string;
@@ -36,8 +154,8 @@ interface ExcerptResult {
 }
 
 export class AITaggingService {
-  private apiKey: string;
-  private apiUrl: string;
+  private apiKey: string | undefined;
+  private apiUrl: string = 'https://api.perplexity.ai/chat/completions';
 
   constructor() {
     this.apiKey = process.env.PERPLEXITY_API_KEY || '';
@@ -223,48 +341,16 @@ Respond with a JSON object:
   }
 
   private getFallbackExcerpt(title: string, content: string): ExcerptResult {
-    const fallbackExcerpt = this.extractExcerpt(title, content);
+    const fallbackExcerpt = generateCleanExcerpt(content, 150);
     
     return {
       excerpt: fallbackExcerpt,
-      reasoning: 'Generated using excerpt extraction as fallback method'
+      reasoning: 'Generated using clean text extraction as fallback method'
     };
   }
 
   private extractExcerpt(title: string, content: string): string {
-    // Remove HTML tags and clean up the content
-    const cleanContent = content.replace(/<[^>]*>/g, ' ')
-                               .replace(/\s+/g, ' ')
-                               .trim();
-    
-    // Look for the first paragraph or meaningful sentence
-    const sentences = cleanContent.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    
-    if (sentences.length > 0) {
-      const firstSentence = sentences[0].trim();
-      
-      // Create engaging excerpts with action words
-      const actionWords = ['discover', 'explore', 'learn', 'revolutionize', 'transform', 'boost', 'enhance', 'optimize', 'maximize'];
-      const hasActionWord = actionWords.some(word => firstSentence.toLowerCase().includes(word));
-      
-      if (hasActionWord && firstSentence.length <= 150) {
-        return firstSentence + '.';
-      }
-      
-      if (firstSentence.length <= 120) {
-        return firstSentence + '.';
-      }
-      
-      // Truncate smartly at word boundary
-      const truncated = firstSentence.substring(0, 120);
-      const lastSpace = truncated.lastIndexOf(' ');
-      return lastSpace > 80 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
-    }
-    
-    // Fallback to first 120 characters
-    return cleanContent.length > 120 ? 
-      cleanContent.substring(0, 120).trim() + '...' : 
-      cleanContent;
+    return generateCleanExcerpt(content, 150);
   }
 }
 

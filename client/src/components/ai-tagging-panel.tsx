@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sparkles, Brain, Target, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { markdownToText } from "@/lib/html-to-markdown";
 
 interface TaggingResult {
   suggestedTags: string[];
@@ -182,7 +183,7 @@ export function AITaggingPanel() {
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <h4 className="font-semibold">{selectedPost.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{selectedPost.excerpt}</p>
+                <p className="text-sm text-gray-600 mt-1">{markdownToText(selectedPost.excerpt)}</p>
                 {selectedPost.tags && selectedPost.tags.length > 0 && (
                   <div className="mt-2">
                     <span className="text-sm font-medium">Current tags: </span>

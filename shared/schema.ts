@@ -58,6 +58,7 @@ export interface BlogPost {
   readTime: number;
   isFeatured: boolean;
   isPublished: boolean;
+  summary?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +75,7 @@ export interface InsertBlogPost {
   readTime?: number;
   isFeatured?: boolean;
   isPublished?: boolean;
+  summary?: string;
 }
 
 // Comment interfaces
@@ -133,6 +135,7 @@ export const insertBlogPostSchema = z.object({
   readTime: z.number().positive().default(5),
   isFeatured: z.boolean().default(false),
   isPublished: z.boolean().default(true),
+  summary: z.string().optional(),
 });
 
 export const insertCommentSchema = z.object({

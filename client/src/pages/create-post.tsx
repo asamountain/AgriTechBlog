@@ -18,8 +18,8 @@ export default function CreatePost() {
     queryKey: ['/api/admin/blog-posts', id],
     queryFn: async () => {
       if (!id) throw new Error('No post ID provided');
-      // Use admin endpoint with ID as query parameter for better Vercel compatibility
-      const response = await fetch(`/api/admin/blog-posts?id=${id}`);
+      // Use path parameter format to match server route
+      const response = await fetch(`/api/admin/blog-posts/${id}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch post: ${response.status}`);
       }
@@ -49,8 +49,8 @@ export default function CreatePost() {
         isPublished: isEditing ? data.isPublished : false, // Always save as draft for auto-save on new posts
       };
 
-      // Use query parameter format for better Vercel compatibility
-      const url = isEditing ? `/api/admin/blog-posts?id=${id}` : '/api/admin/blog-posts';
+      // Use path parameter format for updates, regular endpoint for new posts
+      const url = isEditing ? `/api/admin/blog-posts/${id}` : '/api/admin/blog-posts';
       const method = isEditing ? 'PATCH' : 'POST';
       
       const response = await fetch(url, {
@@ -107,12 +107,15 @@ export default function CreatePost() {
       };
 
       if (isEditing) {
-        // Use query parameter format for better Vercel compatibility
-        const response = await fetch(`/api/admin/blog-posts?id=${id}`, {
+        // Use path parameter format to match backend route
+        const response = await fetch(`/api/admin/blog-posts/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
+        if (!response.ok) {
+          throw new Error(`Failed to update post: ${response.status}`);
+        }
         return response.json();
       } else {
         const response = await fetch('/api/admin/blog-posts', {
@@ -120,6 +123,9 @@ export default function CreatePost() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
+        if (!response.ok) {
+          throw new Error(`Failed to create post: ${response.status}`);
+        }
         return response.json();
       }
     },

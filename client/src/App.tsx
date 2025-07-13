@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,9 +13,12 @@ import OpenGraphTester from "@/pages/og-tester";
 import TaggedPosts from "@/pages/tagged-posts";
 import AuthCallback from "@/pages/auth-callback";
 import NotFound from "@/pages/not-found";
+import DebugFlowVisualizer from "@/components/debug-flow-visualizer";
 import { useEffect } from "react";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
+import { debugTracker } from "./lib/debug-tracker";
+import "./lib/crash-detector"; // Initialize crash detector
 
 function Router() {
   // Track page views when routes change
@@ -39,7 +42,9 @@ function Router() {
 }
 
 function App() {
-  // Initialize Google Analytics when app loads
+  const [location] = useLocation();
+  
+  // Initialize Google Analytics and Debug Tracker when app loads
   useEffect(() => {
     // Verify required environment variable is present
     if (!import.meta.env.VITE_GA_MEASUREMENT_ID) {
@@ -47,13 +52,36 @@ function App() {
     } else {
       initGA();
     }
-  }, []);
+
+    // Initialize debug tracker (development only)
+    if (import.meta.env.DEV) {
+      console.log('🔍 Debug Tracker available - Use debugTracker.showDebugOverlay() in console');
+      
+      // Add keyboard shortcut for debug overlay (Ctrl+Shift+D) - only on admin pages
+      const handleKeyPress = (event: KeyboardEvent) => {
+        if (event.ctrlKey && event.shiftKey && event.key === 'D' && location.startsWith('/admin')) {
+          debugTracker.showDebugOverlay();
+        }
+      };
+      
+      document.addEventListener('keydown', handleKeyPress);
+      return () => document.removeEventListener('keydown', handleKeyPress);
+    }
+  }, [location]);
+
+  // Check if current page is an admin page
+  const isAdminPage = location.startsWith('/admin') || location.startsWith('/create-post') || location.startsWith('/edit-post');
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
+        {import.meta.env.DEV && isAdminPage && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 max-h-96 overflow-y-auto bg-white shadow-2xl border-t-4 border-blue-500">
+            <DebugFlowVisualizer />
+          </div>
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );

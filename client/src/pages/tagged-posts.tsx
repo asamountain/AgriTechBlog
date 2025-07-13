@@ -7,6 +7,7 @@ import { Hash, Clock, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { trackEvent } from "@/lib/analytics";
 import { ContentSkeleton } from "@/components/loading-animations";
+import { markdownToText } from "@/lib/html-to-markdown";
 
 interface BlogPostWithDetails {
   id: number;
@@ -252,7 +253,7 @@ export default function TaggedPosts() {
                       </h2>
                       
                       <p className="text-gray-600 mb-4 line-clamp-3">
-                        {post.excerpt}
+                        {markdownToText(post.excerpt)}
                       </p>
                       
                       {/* Meta Information */}
