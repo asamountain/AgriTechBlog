@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # AgriTech Blog Deployment Script
-# Usage: ./deploy.sh [production|preview|local]
+# Usage: ./deploy.sh [production|preview|local] [custom-commit-message]
 
 set -e  # Exit on any error
 
@@ -27,6 +27,113 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Generate intelligent commit message based on changes
+generate_commit_message() {
+    local changes=$(git diff --name-only HEAD 2>/dev/null || git diff --name-only --cached 2>/dev/null || echo "")
+    local stats=$(git diff --stat HEAD 2>/dev/null || git diff --stat --cached 2>/dev/null || echo "")
+    
+    if [ -z "$changes" ]; then
+        echo "chore: prepare deployment $(date '+%Y-%m-%d')"
+        return
+    fi
+    
+    # Count changes by type
+    local frontend_changes=$(echo "$changes" | grep -E "client/|src/|components/|pages/" | wc -l | tr -d ' ')
+    local backend_changes=$(echo "$changes" | grep -E "server/|api/|routes" | wc -l | tr -d ' ')
+    local config_changes=$(echo "$changes" | grep -E "package\.json|tsconfig|vite\.config|tailwind|vercel\.json" | wc -l | tr -d ' ')
+    local doc_changes=$(echo "$changes" | grep -E "\.md$|README|GUIDE" | wc -l | tr -d ' ')
+    local schema_changes=$(echo "$changes" | grep -E "schema|types|interface" | wc -l | tr -d ' ')
+    
+    # Analyze specific file patterns for more context
+    local has_new_features=$(echo "$changes" | grep -E "new-|add-|create-" | wc -l | tr -d ' ')
+    local has_bug_fixes=$(echo "$changes" | grep -E "fix|bug|error|crash" | wc -l | tr -d ' ')
+    local has_ui_changes=$(echo "$changes" | grep -E "components/|\.css|\.tsx$" | wc -l | tr -d ' ')
+    local has_api_changes=$(echo "$changes" | grep -E "api/|routes|server/" | wc -l | tr -d ' ')
+    
+    # Get file count and line changes
+    local files_changed=$(echo "$changes" | wc -l | tr -d ' ')
+    local insertions=$(echo "$stats" | grep -o '[0-9]\+ insertion' | grep -o '[0-9]\+' | head -1)
+    local deletions=$(echo "$stats" | grep -o '[0-9]\+ deletion' | grep -o '[0-9]\+' | head -1)
+    
+    # Default values if grep doesn't find anything
+    insertions=${insertions:-0}
+    deletions=${deletions:-0}
+    
+    # Determine commit type and scope
+    local commit_type="feat"
+    local scope=""
+    local description=""
+    
+    # Determine primary type of changes
+    if [ "$config_changes" -gt 0 ] && [ "$files_changed" -le 3 ]; then
+        commit_type="chore"
+        scope="config"
+        description="update project configuration"
+    elif [ "$doc_changes" -gt 0 ] && [ "$((frontend_changes + backend_changes))" -eq 0 ]; then
+        commit_type="docs"
+        description="update documentation"
+    elif [ "$schema_changes" -gt 0 ]; then
+        commit_type="refactor"
+        scope="types"
+        description="update schema definitions and types"
+    elif [ "$backend_changes" -gt "$frontend_changes" ]; then
+        if [ "$has_api_changes" -gt 0 ]; then
+            commit_type="feat"
+            scope="api"
+            description="enhance API endpoints and server functionality"
+        else
+            commit_type="refactor"
+            scope="backend"
+            description="improve server-side implementation"
+        fi
+    elif [ "$frontend_changes" -gt 0 ]; then
+        if [ "$has_ui_changes" -gt 0 ]; then
+            commit_type="feat"
+            scope="ui"
+            description="improve user interface and components"
+        else
+            commit_type="refactor"
+            scope="frontend"
+            description="refactor client-side code"
+        fi
+    elif [ "$has_bug_fixes" -gt 0 ]; then
+        commit_type="fix"
+        description="resolve application issues and bugs"
+    else
+        commit_type="feat"
+        description="implement new features and improvements"
+    fi
+    
+    # Add scope if determined
+    local scope_text=""
+    if [ -n "$scope" ]; then
+        scope_text="($scope)"
+    fi
+    
+    # Generate more specific descriptions based on file analysis
+    if [ "$files_changed" -gt 10 ]; then
+        description="$description across multiple modules"
+    elif [ "$insertions" -gt 200 ]; then
+        description="$description with significant additions"
+    elif [ "$deletions" -gt 100 ]; then
+        description="$description and code cleanup"
+    fi
+    
+    # Add deployment context
+    local deploy_suffix=""
+    case $1 in
+        "production"|"prod")
+            deploy_suffix=" - production ready"
+            ;;
+        "preview"|"staging")
+            deploy_suffix=" - staging deployment"
+            ;;
+    esac
+    
+    # Final commit message
+    echo "${commit_type}${scope_text}: ${description}${deploy_suffix}"
 }
 
 # Default to preview if no argument provided
@@ -75,11 +182,13 @@ if ! git diff-index --quiet HEAD --; then
     print_warning "You have uncommitted changes. Committing them now..."
     git add .
     
-    # Get commit message from user or use default
+    # Get commit message from user or generate intelligent one
     if [ -n "$2" ]; then
         COMMIT_MSG="$2"
+        print_status "Using custom commit message: $COMMIT_MSG"
     else
-        COMMIT_MSG="Deploy: $(date '+%Y-%m-%d %H:%M:%S')"
+        COMMIT_MSG=$(generate_commit_message "$DEPLOY_ENV")
+        print_status "Generated commit message: $COMMIT_MSG"
     fi
     
     git commit -m "$COMMIT_MSG"
@@ -127,7 +236,7 @@ case $DEPLOY_ENV in
         ;;
     *)
         print_error "Invalid deployment environment: $DEPLOY_ENV"
-        print_status "Usage: ./deploy.sh [production|preview|local]"
+        print_status "Usage: ./deploy.sh [production|preview|local] [custom-commit-message]"
         exit 1
         ;;
 esac
