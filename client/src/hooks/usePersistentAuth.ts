@@ -126,7 +126,7 @@ export function usePersistentAuth() {
   // Check if user has admin privileges
   const isAdminUser = (userEmail?: string) => {
     const adminEmails = [
-      'admin@hopeinvest.com',
+              'admin@agritech.com',
       'seungjinyoun@gmail.com',
       // Add more admin emails as needed
     ];

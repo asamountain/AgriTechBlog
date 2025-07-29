@@ -190,10 +190,6 @@ export default function BlogPost() {
                     <span>{post.readTime} min read</span>
                   </div>
 
-                  {/* Excerpt */}
-                  <p className="text-xl text-gray-700 leading-relaxed mb-8">
-                    {markdownToText(post.excerpt)}
-                  </p>
 
                   {/* Article Summary Box */}
                   {post.summary && (
@@ -222,11 +218,31 @@ export default function BlogPost() {
                 {/* Featured Image */}
                 {post.featuredImage && (
                   <div className="mb-8">
-                    <img 
-                      src={post.featuredImage} 
-                      alt={post.title}
-                      className="w-full h-96 object-cover rounded-xl shadow-lg"
-                    />
+                    <div className="relative rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                      <img 
+                        src={post.featuredImage} 
+                        alt={post.title}
+                        className="w-full h-auto max-h-[32rem] md:max-h-[40rem] lg:max-h-[48rem] object-cover object-center hover:scale-105 transition-transform duration-500 mx-auto block"
+                        style={{
+                          aspectRatio: 'auto',
+                          maxWidth: '100%',
+                          height: 'auto'
+                        }}
+                        onLoad={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          const aspectRatio = img.naturalWidth / img.naturalHeight;
+                          
+                          // If image is portrait (height > width)
+                          if (aspectRatio < 1) {
+                            img.style.objectFit = 'contain';
+                            img.style.maxHeight = '48rem';
+                          } else {
+                            // Landscape images
+                            img.style.objectFit = 'cover';
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
 
