@@ -28,8 +28,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await client.close();
     
     const baseUrl = 'https://tech-san.vercel.app';
+    const timestamp = new Date().toISOString();
     
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated at ${timestamp} with ${posts.length} posts -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -40,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- Homepage -->
   <url>
     <loc>${baseUrl}/</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${timestamp}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -48,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- Blog Posts Page -->
   <url>
     <loc>${baseUrl}/posts</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${timestamp}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
@@ -70,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- About Page -->
   <url>
     <loc>${baseUrl}/about</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${timestamp}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -78,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- Contact Page -->
   <url>
     <loc>${baseUrl}/contact</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${timestamp}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -86,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- Admin Page -->
   <url>
     <loc>${baseUrl}/admin</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${timestamp}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
