@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const response = await fetch(url, { method: 'GET' });
         return { url, status: response.status, success: response.ok };
       } catch (error) {
-        return { url, status: 'error', success: false, error: error.message };
+        return { url, status: 'error', success: false, error: (error as Error).message };
       }
     });
 
@@ -49,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const response = await fetch(url, { method: 'GET' });
         return { url, status: response.status, success: response.ok };
       } catch (error) {
-        return { url, status: 'error', success: false, error: error.message };
+        return { url, status: 'error', success: false, error: (error as Error).message };
       }
     });
 

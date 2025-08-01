@@ -140,7 +140,7 @@ function mapPostDocument(doc: any) {
     numericId = Math.abs(timestamp + sequence);
     
     if (numericId === 0 || numericId > Number.MAX_SAFE_INTEGER) {
-      numericId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+      numericId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
         return acc + char.charCodeAt(0);
       }, 0) * 1000 + Date.now() % 1000);
     }

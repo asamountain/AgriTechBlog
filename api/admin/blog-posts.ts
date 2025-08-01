@@ -140,7 +140,7 @@ function mapPostDocument(doc: any) {
     numericId = Math.abs(timestamp + sequence);
     
     if (numericId === 0 || numericId > Number.MAX_SAFE_INTEGER) {
-      numericId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+      numericId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
         return acc + char.charCodeAt(0);
       }, 0) * 1000 + Date.now() % 1000);
     }
@@ -326,7 +326,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             
             // Apply the same fallback logic as mapPostDocument
             if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
-              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
                 return acc + char.charCodeAt(0);
               }, 0) * 1000 + Date.now() % 1000);
             }
@@ -366,7 +366,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             let generatedId = Math.abs(timestamp + sequence);
             
             if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
-              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
                 return acc + char.charCodeAt(0);
               }, 0) * 1000 + Date.now() % 1000);
             }
@@ -440,7 +440,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             
             // Apply the same fallback logic as mapPostDocument
             if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
-              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
                 return acc + char.charCodeAt(0);
               }, 0) * 1000 + Date.now() % 1000);
             }
@@ -492,7 +492,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             let generatedId = Math.abs(timestamp + sequence);
             
             if (generatedId === 0 || generatedId > Number.MAX_SAFE_INTEGER) {
-              generatedId = Math.abs(objectIdStr.split('').reduce((acc, char) => {
+              generatedId = Math.abs(objectIdStr.split('').reduce((acc: number, char: string) => {
                 return acc + char.charCodeAt(0);
               }, 0) * 1000 + Date.now() % 1000);
             }
