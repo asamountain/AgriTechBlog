@@ -65,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <description><![CDATA[${post.excerpt || post.content.substring(0, 300)}...]]></description>
       <content:encoded><![CDATA[${post.content}]]></content:encoded>
       <slash:comments>0</slash:comments>
-      ${post.tags ? post.tags.map(tag => `<category>${tag}</category>`).join('') : ''}
+      ${post.tags ? post.tags.map((tag: string) => `<category>${tag}</category>`).join('') : ''}
     </item>
     `).join('')}
     
