@@ -17,9 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
     
-    // Fetch all published posts - use isPublished: true instead of draft: { $ne: true }
+    // Fetch all published posts - use same logic as working blog-posts API
     const posts = await postsCollection
-      .find({ isPublished: true }) // Only published posts
+      .find({ draft: { $ne: true } }) // Only published posts (same as blog-posts API)
       .sort({ date: -1 })
       .toArray();
     
