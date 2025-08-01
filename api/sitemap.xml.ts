@@ -17,11 +17,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
     
-    // Fetch all published posts - use same logic as working blog-posts API
+    // Fetch all published posts using the correct field
     const posts = await postsCollection
-      .find({ draft: { $ne: true } }) // Only published posts (same as blog-posts API)
+      .find({ isPublished: true }) // Use the actual field from database
       .sort({ date: -1 })
       .toArray();
+    
+    console.log(`Sitemap: Found ${posts.length} published posts`);
     
     await client.close();
     
