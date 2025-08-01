@@ -2,7 +2,6 @@ import Navigation from "@/components/navigation";
 import HeroSection from "@/components/hero-section";
 import FeaturedStories from "@/components/featured-stories";
 import BlogGrid from "@/components/blog-grid";
-import NewsletterSection from "@/components/newsletter-section";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
 
@@ -41,7 +40,6 @@ export default function Home() {
       <HeroSection />
       <FeaturedStories />
       <BlogGrid />
-      <NewsletterSection />
       <Footer />
     </div>
   );

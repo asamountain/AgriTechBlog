@@ -28,6 +28,55 @@
 
 ---
 
+## 🛡️ CRITICAL: ENVIRONMENT FILE PROTECTION RULES
+
+**🚨 ABSOLUTE RESTRICTION: NEVER MODIFY .env FILES DIRECTLY**
+
+### Why This Is Critical:
+- `.env` files contain sensitive production credentials
+- Protected by `.cursorignore` for security reasons
+- Unauthorized changes can break production deployments
+- User's MongoDB Atlas database contains valuable blog post data
+- Changes can cause data loss or service disruption
+
+### Environment File Protection Rules:
+1. **NEVER use `edit_file` or `search_replace` on `.env` files**
+2. **NEVER suggest direct `.env` modifications** without user explicit request
+3. **ALWAYS ask user** to provide credentials rather than guessing/creating them
+4. **RESPECT `.cursorignore` protection** - these files are intentionally protected
+5. **ONLY provide guidance** on what credentials are needed, never create them
+
+### When Environment Issues Occur:
+1. **IDENTIFY the problem** (missing credentials, wrong format, etc.)
+2. **EXPLAIN what credentials are needed** (MongoDB Atlas URI, API tokens, etc.)
+3. **PROVIDE guidance** on where to find the credentials
+4. **WAIT for user to provide** the actual credentials
+5. **NEVER create placeholder or fake credentials**
+
+### MongoDB Atlas Connection Protection:
+- **NEVER change MongoDB URI** to localhost without explicit user request
+- **PRESERVE existing Atlas connections** that contain user's blog post data
+- **ALWAYS ask** before suggesting database changes
+- **RESPECT user's existing data** and production setup
+
+### Figma Integration Protection:
+- **NEVER create fake Figma tokens** or file keys
+- **ALWAYS ask user** to provide real Figma credentials
+- **EXPLAIN the process** of getting Figma API tokens and file keys
+- **WAIT for user input** before proceeding with integration
+
+### Emergency Recovery:
+If environment files are accidentally modified:
+1. **STOP all development servers immediately**
+2. **ASK user** for their original credentials
+3. **HELP user restore** their original `.env` configuration
+4. **VERIFY connection** to their existing databases
+5. **TEST thoroughly** before proceeding
+
+**Remember: User's data and production setup are more important than "fixing" configuration issues.**
+
+---
+
 ## Rule #1: Simplicity Over Complexity
 
 **CRITICAL: Always choose the simplest solution that works. Complexity is the enemy of maintainability.**
