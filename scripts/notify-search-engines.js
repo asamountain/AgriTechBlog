@@ -7,8 +7,8 @@
  * Usage: node scripts/notify-search-engines.js [post-slug]
  */
 
-const https = require('https');
-const http = require('http');
+import https from 'https';
+import http from 'http';
 
 const BASE_URL = 'https://tech-san.vercel.app';
 
@@ -120,7 +120,7 @@ async function notifySearchEngines() {
 }
 
 // Run the script
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const postSlug = process.argv[2];
   
   if (postSlug) {
@@ -140,4 +140,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { notifySearchEngines }; 
+export { notifySearchEngines }; 
