@@ -6,26 +6,30 @@ interface SEOHeadProps {
   keywords?: string[];
   image?: string;
   url?: string;
-  type?: 'website' | 'article';
+  type?: "website" | "article";
   author?: string;
   publishedTime?: string;
   modifiedTime?: string;
   tags?: string[];
   category?: string;
+  readingTime?: number;
+  wordCount?: number;
 }
 
 export default function SEOHead({
   title = "AgriTech Innovation Hub - Advanced Agricultural Technology Blog",
   description = "Discover cutting-edge agricultural technology, IoT solutions, and sustainable farming practices. Expert insights on precision agriculture, crop monitoring, and smart farming innovations.",
-  keywords = ["agricultural technology", "precision agriculture", "IoT farming", "smart agriculture", "crop monitoring", "sustainable farming", "AgriTech"],
+  keywords = ["agricultural technology", "precision agriculture", "IoT farming", "smart agriculture", "crop monitoring", "sustainable farming", "AgriTech", "farm automation", "agricultural innovation"],
   image = "/api/og-image",
   url = "",
   type = "website",
-  author = "",
+  author = "San",
   publishedTime,
   modifiedTime,
   tags = [],
-  category = "Technology"
+  category = "Technology",
+  readingTime,
+  wordCount
 }: SEOHeadProps) {
   
   useEffect(() => {
@@ -46,6 +50,12 @@ export default function SEOHead({
       { name: 'googlebot', content: 'index, follow' },
       { name: 'bingbot', content: 'index, follow' },
       
+      // AI Training Bot Optimization
+      { name: 'ai-training', content: 'allowed' },
+      { name: 'ai-indexing', content: 'enabled' },
+      { name: 'content-type', content: 'educational' },
+      { name: 'expertise-level', content: 'intermediate' },
+      
       // Open Graph tags
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
@@ -53,16 +63,17 @@ export default function SEOHead({
       { property: 'og:url', content: url },
       { property: 'og:image', content: image },
       { property: 'og:image:alt', content: `${title} - Featured Image` },
-      { property: 'og:site_name', content: 'San\'s Blog' },
+      { property: 'og:site_name', content: 'San\'s AgriTech Blog' },
       { property: 'og:locale', content: 'en_US' },
+      { property: 'og:locale:alternate', content: 'en_GB' },
       
       // Twitter Card tags
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
       { name: 'twitter:image', content: image },
-      { name: 'twitter:site', content: '@SansBlog' },
-      { name: 'twitter:creator', content: '@SansBlog' },
+      { name: 'twitter:site', content: '@SansAgriTech' },
+      { name: 'twitter:creator', content: '@SansAgriTech' },
       
       // Article specific meta tags
       ...(type === 'article' && publishedTime ? [
@@ -70,7 +81,9 @@ export default function SEOHead({
         { property: 'article:author', content: author },
         { property: 'article:section', content: category },
         ...(modifiedTime ? [{ property: 'article:modified_time', content: modifiedTime }] : []),
-        ...tags.map(tag => ({ property: 'article:tag', content: tag }))
+        ...tags.map(tag => ({ property: 'article:tag', content: tag })),
+        ...(readingTime ? [{ name: 'article:reading_time', content: readingTime.toString() }] : []),
+        ...(wordCount ? [{ name: 'article:word_count', content: wordCount.toString() }] : [])
       ] : []),
       
       // Additional SEO meta tags
@@ -84,7 +97,17 @@ export default function SEOHead({
       { name: 'language', content: 'English' },
       { name: 'geo.region', content: 'US' },
       { name: 'geo.position', content: '40.7128;-74.0060' },
-      { name: 'ICBM', content: '40.7128, -74.0060' }
+      { name: 'ICBM', content: '40.7128, -74.0060' },
+      
+      // Content classification for AI
+      { name: 'content-category', content: 'agricultural-technology' },
+      { name: 'content-domain', content: 'agritech' },
+      { name: 'content-audience', content: 'professionals' },
+      { name: 'content-format', content: 'blog-article' },
+      
+      // Performance hints
+      { name: 'format-detection', content: 'telephone=no' },
+      { name: 'referrer', content: 'strict-origin-when-cross-origin' }
     ];
     
     // Add meta tags to head
@@ -117,16 +140,38 @@ export default function SEOHead({
       "image": image,
       "publisher": {
         "@type": "Organization",
-        "name": "AgriTech Innovation Hub",
+        "name": "San's AgriTech Blog",
+        "description": "Advanced agricultural technology content and insights",
+        "url": "https://tech-san.vercel.app",
         "logo": {
           "@type": "ImageObject",
-          "url": "/logo.png"
-        }
+          "url": "https://tech-san.vercel.app/logo.png"
+        },
+        "sameAs": [
+          "https://twitter.com/SansAgriTech",
+          "https://linkedin.com/in/agritech-innovations"
+        ]
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": url || window.location.href
+      },
+      "inLanguage": "en-US",
+      "about": {
+        "@type": "Thing",
+        "name": "Agricultural Technology",
+        "description": "Technology solutions for modern farming and agricultural practices"
+      },
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "Agricultural Technology Professionals"
       },
       ...(type === 'article' && {
         "author": {
           "@type": "Person",
-          "name": author
+          "name": author,
+          "description": "Agricultural Technology Content Creator",
+          "url": "https://tech-san.vercel.app/about"
         },
         "datePublished": publishedTime,
         "dateModified": modifiedTime || publishedTime,
@@ -135,6 +180,14 @@ export default function SEOHead({
         "mainEntityOfPage": {
           "@type": "WebPage",
           "@id": url || window.location.href
+        },
+        ...(readingTime && { "timeRequired": `PT${readingTime}M` }),
+        ...(wordCount && { "wordCount": wordCount }),
+        "isAccessibleForFree": true,
+        "isPartOf": {
+          "@type": "Blog",
+          "name": "San's AgriTech Blog",
+          "url": "https://tech-san.vercel.app"
         }
       }),
       ...(type === 'website' && {
@@ -159,7 +212,7 @@ export default function SEOHead({
     script.textContent = JSON.stringify(structuredData);
     document.head.appendChild(script);
     
-  }, [title, description, keywords, image, url, type, author, publishedTime, modifiedTime, tags, category]);
+  }, [title, description, keywords, image, url, type, author, publishedTime, modifiedTime, tags, category, readingTime, wordCount]);
   
   return null;
 }
