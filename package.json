@@ -32,7 +32,9 @@
     "figma:watch": "node scripts/figma-integration-direct.js watch",
     "figma:enhanced": "node scripts/figma-integration-enhanced.js sync",
     "figma:enhanced:init": "node scripts/figma-integration-enhanced.js init",
-    "dev:figma": "concurrently \"npm run dev\" \"npm run figma:watch\" --names \"🚀Dev,🎨Figma\" --prefix-colors \"blue,magenta\""
+    "dev:figma": "concurrently \"npm run dev\" \"npm run figma:watch\" --names \"🚀Dev,🎨Figma\" --prefix-colors \"blue,magenta\"",
+    "seo:notify": "node scripts/notify-search-engines.js",
+    "seo:ping": "curl -X POST https://tech-san.vercel.app/api/update-sitemap"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

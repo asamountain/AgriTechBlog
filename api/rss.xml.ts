@@ -1,7 +1,31 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { MongoClient } from 'mongodb';
+
+const uri = process.env.MONGODB_URI;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!uri) {
+    console.error('MONGODB_URI environment variable is not set');
+    res.status(500).json({ error: 'Database configuration error' });
+    return;
+  }
+
   try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    
+    const db = client.db('blog_database');
+    const postsCollection = db.collection('posts');
+    
+    // Fetch all published posts
+    const posts = await postsCollection
+      .find({ draft: { $ne: true } }) // Only published posts
+      .sort({ date: -1 })
+      .limit(50) // Limit to latest 50 posts
+      .toArray();
+    
+    await client.close();
+    
     const baseUrl = 'https://tech-san.vercel.app';
     
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -28,17 +52,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <category>Agriculture</category>
     <category>Innovation</category>
     
+    ${posts.map(post => `
     <item>
-      <title>Welcome to San's Agricultural Technology Blog</title>
-      <link>${baseUrl}/</link>
-      <pubDate>${new Date().toUTCString()}</pubDate>
-      <dc:creator>San</dc:creator>
-      <category>Technology</category>
-      <guid isPermaLink="true">${baseUrl}/</guid>
-      <description><![CDATA[Discover cutting-edge agricultural technology, IoT solutions, and sustainable farming practices. Expert insights on precision agriculture, crop monitoring, and smart farming innovations.]]></description>
-      <content:encoded><![CDATA[<p>Welcome to San's Agricultural Technology Blog - your source for the latest insights in agricultural technology, precision farming, and sustainable agriculture solutions.</p><p>Our blog covers topics including:</p><ul><li>Precision Agriculture Technologies</li><li>IoT Farming Solutions</li><li>Smart Agriculture Systems</li><li>Crop Monitoring Technology</li><li>Sustainable Farming Practices</li><li>Agricultural Innovation</li></ul>]]></content:encoded>
+      <title>${post.title}</title>
+      <link>${baseUrl}/post/${post.slug}</link>
+      <pubDate>${new Date(post.date || post.createdAt).toUTCString()}</pubDate>
+      <dc:creator>${post.author || 'San'}</dc:creator>
+      <category>${post.category || post.tags?.[0] || 'Technology'}</category>
+      <guid isPermaLink="true">${baseUrl}/post/${post.slug}</guid>
+      <description><![CDATA[${post.excerpt || post.content.substring(0, 300)}...]]></description>
+      <content:encoded><![CDATA[${post.content}]]></content:encoded>
       <slash:comments>0</slash:comments>
+      ${post.tags ? post.tags.map(tag => `<category>${tag}</category>`).join('') : ''}
     </item>
+    `).join('')}
     
   </channel>
 </rss>`;

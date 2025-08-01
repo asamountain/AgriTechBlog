@@ -1,7 +1,30 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { MongoClient } from 'mongodb';
+
+const uri = process.env.MONGODB_URI;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!uri) {
+    console.error('MONGODB_URI environment variable is not set');
+    res.status(500).json({ error: 'Database configuration error' });
+    return;
+  }
+
   try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    
+    const db = client.db('blog_database');
+    const postsCollection = db.collection('posts');
+    
+    // Fetch all published posts
+    const posts = await postsCollection
+      .find({ draft: { $ne: true } }) // Only published posts
+      .sort({ date: -1 })
+      .toArray();
+    
+    await client.close();
+    
     const baseUrl = 'https://tech-san.vercel.app';
     
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -27,6 +50,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  
+  <!-- Individual Blog Posts -->
+  ${posts.map(post => `
+  <url>
+    <loc>${baseUrl}/post/${post.slug}</loc>
+    <lastmod>${new Date(post.updatedAt || post.date || post.createdAt).toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>${baseUrl}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.category || post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author || 'San')}&excerpt=${encodeURIComponent(post.excerpt || '')}</image:loc>
+      <image:title>${post.title}</image:title>
+    </image:image>
+  </url>
+  `).join('')}
   
   <!-- About Page -->
   <url>
