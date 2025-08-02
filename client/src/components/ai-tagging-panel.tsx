@@ -40,20 +40,13 @@ export function AITaggingPanel() {
     }
   });
 
-  // Tag analysis mutation
+  // Tag analysis mutation - Disabled due to Vercel function limit
   const analyzePostMutation = useMutation({
     mutationFn: async (postId: number) => {
-      const response = await fetch(`/api/ai-tagging/analyze/${postId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to analyze post');
-      return response.json();
+      // API temporarily disabled to stay under Vercel function limit
+      throw new Error('AI tagging feature is temporarily disabled');
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Analysis Complete",
         description: `Generated ${data.suggestedTags?.length || 0} tags`,
@@ -61,27 +54,20 @@ export function AITaggingPanel() {
     },
     onError: (error) => {
       toast({
-        title: "Analysis Failed",
-        description: "Failed to analyze post. Please try again.",
+        title: "AI Tagging Disabled",
+        description: "AI tagging is temporarily disabled to stay under Vercel function limit.",
         variant: "destructive",
       });
     }
   });
 
-  // Bulk analysis mutation
+  // Bulk analysis mutation - Disabled due to Vercel function limit
   const bulkAnalyzeMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/ai-tagging/bulk-analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to perform bulk analysis');
-      return response.json();
+      // API temporarily disabled to stay under Vercel function limit
+      throw new Error('Bulk AI tagging feature is temporarily disabled');
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Bulk Analysis Complete",
         description: `Analyzed ${data.results?.length || 0} posts`,
@@ -89,16 +75,16 @@ export function AITaggingPanel() {
     },
     onError: (error) => {
       toast({
-        title: "Bulk Analysis Failed",
-        description: "Failed to perform bulk analysis. Please try again.",
+        title: "AI Tagging Disabled",
+        description: "AI tagging is temporarily disabled to stay under Vercel function limit.",
         variant: "destructive",
       });
     }
   });
 
   const selectedPost = posts.find((post: any) => post.id === selectedPostId);
-  const analysisData = analyzePostMutation.data;
-  const bulkResults = bulkAnalyzeMutation.data?.results || [];
+  const analysisData = analyzePostMutation.data as any;
+  const bulkResults = (bulkAnalyzeMutation.data as any)?.results || [];
 
   if (postsLoading) {
     return (
