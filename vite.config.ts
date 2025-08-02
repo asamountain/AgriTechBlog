@@ -1,13 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath, URL } from 'node:url';
+
+// Force unique build timestamp
+const timestamp = Date.now();
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './client/src'),
-      '@shared': path.resolve(__dirname, './shared'),
+      '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './client/src'),
+      '@shared': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './shared'),
     },
   },
   root: './client',
@@ -15,12 +19,12 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    // Force different file names to bypass cache
+    // Force different file names to bypass cache with timestamp
     rollupOptions: {
       output: {
-        assetFileNames: 'assets/[name].[hash].[ext]',
-        chunkFileNames: 'assets/[name].[hash].js',
-        entryFileNames: 'assets/[name].[hash].js',
+        assetFileNames: `assets/[name].${timestamp}.[ext]`,
+        chunkFileNames: `assets/[name].${timestamp}.js`,
+        entryFileNames: `assets/[name].${timestamp}.js`,
       },
     },
     minify: 'terser',
