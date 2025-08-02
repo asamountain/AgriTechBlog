@@ -17,9 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db('blog_database');
     const postsCollection = db.collection('posts');
     
-    // Fetch all published posts using the correct field
+    // Fetch all published posts using the same logic as working blog-posts API
     const posts = await postsCollection
-      .find({ isPublished: true }) // Use the actual field from database
+      .find({ draft: { $ne: true } }) // Use same logic as working blog-posts API
       .sort({ date: -1 })
       .limit(50) // Limit to latest 50 posts
       .toArray();
