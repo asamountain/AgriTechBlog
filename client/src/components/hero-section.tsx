@@ -1,6 +1,6 @@
 import { ChevronDown, ExternalLink, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { trackEvent } from "@/lib/analytics";
+// import { trackEvent } from "@/lib/analytics"; // DISABLED
 import { useEffect, useRef, useState } from "react";
 
 export default function HeroSection() {
@@ -10,11 +10,11 @@ export default function HeroSection() {
   const scrollToContent = () => {
     const element = document.getElementById("featured-stories");
     element?.scrollIntoView({ behavior: "smooth" });
-    trackEvent("scroll_to_content", "navigation", "hero_scroll");
+    // trackEvent("scroll_to_content", "navigation", "hero_scroll"); // DISABLED
   };
 
   const openPortfolio = () => {
-    trackEvent("portfolio_click", "external_link", "photography_portfolio");
+    // trackEvent("portfolio_click", "external_link", "photography_portfolio"); // DISABLED
     window.open("https://asamountain.myportfolio.com/", "_blank");
   };
 

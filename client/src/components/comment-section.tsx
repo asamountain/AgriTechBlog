@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageCircle, Send, User } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
-import { trackEvent } from "@/lib/analytics";
+// import { trackEvent } from "@/lib/analytics"; // DISABLED
 import { useToast } from "@/hooks/use-toast";
 import type { Comment } from "@shared/schema";
 
@@ -41,7 +41,7 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
     },
     onSuccess: () => {
       // Track comment submission
-      trackEvent('comment_submit', 'engagement', postTitle);
+      // trackEvent('comment_submit', 'engagement', postTitle); // DISABLED
       
       toast({
         title: "Comment submitted!",

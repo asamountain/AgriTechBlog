@@ -2,19 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn, Github } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
-import { trackEvent } from "@/lib/analytics";
+// import { trackEvent } from "@/lib/analytics"; // DISABLED
 import { usePersistentAuth } from "@/hooks/usePersistentAuth";
 
 export default function AdminLogin() {
   const { login } = usePersistentAuth();
 
   const handleGoogleLogin = () => {
-    trackEvent('admin_login_attempt', 'authentication', 'google');
+    // trackEvent('admin_login_attempt', 'authentication', 'google'); // DISABLED
     login('google');
   };
 
   const handleGithubLogin = () => {
-    trackEvent('admin_login_attempt', 'authentication', 'github');
+    // trackEvent('admin_login_attempt', 'authentication', 'github'); // DISABLED
     login('github');
   };
 

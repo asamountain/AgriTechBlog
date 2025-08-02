@@ -15,7 +15,7 @@ import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { trackEvent } from "@/lib/analytics";
+
 import { useEffect } from "react";
 import TagDisplay from "@/components/tag-display";
 import { ContentSkeleton } from "@/components/loading-animations";
@@ -61,7 +61,7 @@ export default function BlogPost() {
   // Track blog post view when post loads
   useEffect(() => {
     if (post) {
-      trackEvent("page_view", "blog_post", post.title, post.readTime);
+      // trackEvent("page_view", "blog_post", post.title, post.readTime);
     }
   }, [post]);
 

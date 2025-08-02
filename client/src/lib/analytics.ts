@@ -6,8 +6,9 @@ declare global {
   }
 }
 
-// Initialize Google Analytics
+// Initialize Google Analytics - COMPLETELY DISABLED
 export const initGA = () => {
+  return; // DISABLED - exit immediately
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
   // Don't initialize GA for sitemap URLs or API endpoints
@@ -39,6 +40,7 @@ export const initGA = () => {
 
 // Track page views - useful for single-page applications
 export const trackPageView = (url: string) => {
+  return; // DISABLED
   if (typeof window === 'undefined' || !window.gtag) return;
   
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
@@ -56,6 +58,7 @@ export const trackEvent = (
   label?: string, 
   value?: number
 ) => {
+  return; // DISABLED
   if (typeof window === 'undefined' || !window.gtag) return;
   
   window.gtag('event', action, {

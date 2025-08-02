@@ -44,7 +44,7 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { useAuth } from "@/hooks/useAuth";
 import { usePersistentAuth } from "@/hooks/usePersistentAuth";
-import { trackEvent } from "@/lib/analytics";
+
 import AdminLoginSimple from "@/components/admin-login-simple";
 import MigrationPanel from "@/components/migration-panel";
 import CommentManagement from "@/components/comment-management";
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     logout();
-    trackEvent('admin_logout', user.id);
+    // trackEvent('admin_logout', user.id);
   };
 
   return (

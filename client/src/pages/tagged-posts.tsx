@@ -5,7 +5,7 @@ import Navigation from "@/components/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Hash, Clock, Calendar } from "lucide-react";
 import { Link } from "wouter";
-import { trackEvent } from "@/lib/analytics";
+
 import { ContentSkeleton } from "@/components/loading-animations";
 import { markdownToText } from "@/lib/html-to-markdown";
 
@@ -87,7 +87,7 @@ function trackTagClick(tag: string) {
   tagClicks[tag] = (tagClicks[tag] || 0) + 1;
   
   updateVisitorInteractions({ tagClicks });
-  trackEvent('tag_click', 'navigation', tag);
+  // trackEvent('tag_click', 'navigation', tag);
 }
 
 function trackPostView(postId: string) {
