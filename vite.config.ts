@@ -29,9 +29,12 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './client/src'),
       '@shared': path.resolve(__dirname, './shared'),
+      // Explicit React aliases to prevent duplication
+      'react': path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
     },
     // Ensure single React instance
-    dedupe: ['react', 'react-dom']
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime']
   },
   root: './client',
   publicDir: 'public',
@@ -41,25 +44,33 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000, // Increase to 1MB to suppress warnings
     rollupOptions: {
       output: {
-        // Simplified chunking to prevent React duplication
+        // More aggressive chunking to isolate potential issues
         manualChunks: (id: string) => {
-          // Keep React ecosystem in main bundle to prevent duplication
-          if (id.includes('react') || id.includes('react-dom') || id.includes('@tanstack/react-query')) {
+          // Absolutely keep React in main bundle
+          if (id.includes('/react/') || 
+              id.includes('/react-dom/') || 
+              id.includes('react/jsx-runtime') ||
+              id.includes('@tanstack/react-query')) {
             return undefined;
           }
           
-          // Split only the largest vendor libraries
+          // Split vendor libraries more carefully
           if (id.includes('node_modules')) {
-            if (id.includes('lucide-react') || id.includes('@radix-ui')) {
-              return 'ui-vendor';
+            // Large UI libraries
+            if (id.includes('@radix-ui')) {
+              return 'radix-vendor';
+            }
+            if (id.includes('lucide-react')) {
+              return 'icons-vendor';
             }
             if (id.includes('wouter')) {
               return 'router-vendor';
             }
+            // Everything else
             return 'vendor';
           }
           
-          // Keep everything else in main bundle to avoid constructor issues
+          // Keep everything else in main bundle
           return undefined;
         },
         assetFileNames: 'assets/[name].[hash].[ext]',
@@ -78,8 +89,8 @@ export default defineConfig({
     sourcemap: false,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
-    // Force single React instance
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
+    // Force rebuild to ensure clean dependencies
     force: true
   },
 });
