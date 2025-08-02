@@ -8,51 +8,73 @@ function getTurndownService(): TurndownService {
   // Only initialize if not already done and if we're in a browser environment
   if (!_turndownService && typeof window !== 'undefined' && !_isInitialized) {
     _isInitialized = true;
-    _turndownService = new TurndownService({
-      headingStyle: 'atx', // Use # for headings
-      hr: '---',
-      bulletListMarker: '-',
-      codeBlockStyle: 'fenced',
-      fence: '```',
-      emDelimiter: '*',
-      strongDelimiter: '**',
-      linkStyle: 'inlined',
-      linkReferenceStyle: 'full'
-    });
+    
+    try {
+      _turndownService = new TurndownService({
+        headingStyle: 'atx', // Use # for headings
+        hr: '---',
+        bulletListMarker: '-',
+        codeBlockStyle: 'fenced',
+        fence: '```',
+        emDelimiter: '*',
+        strongDelimiter: '**',
+        linkStyle: 'inlined',
+        linkReferenceStyle: 'full'
+      });
 
-    // Add custom rules for better conversion
-    _turndownService.addRule('lineBreaks', {
-      filter: 'br',
-      replacement: function () {
-        return '\n\n';
-      }
-    });
+      // Add custom rules for better conversion
+      _turndownService.addRule('lineBreaks', {
+        filter: 'br',
+        replacement: function () {
+          return '\n\n';
+        }
+      });
 
-    _turndownService.addRule('paragraphs', {
-      filter: 'p',
-      replacement: function (content: string) {
-        return '\n\n' + content + '\n\n';
-      }
-    });
+      _turndownService.addRule('paragraphs', {
+        filter: 'p',
+        replacement: function (content: string) {
+          return '\n\n' + content + '\n\n';
+        }
+      });
 
-    _turndownService.addRule('preserveTargetBlank', {
-      filter: function (node: any) {
-        return (
-          node.nodeName === 'A' &&
-          node.getAttribute('target') === '_blank'
-        );
-      },
-      replacement: function (content: string, node: any) {
-        const href = node.getAttribute('href');
-        const rel = node.getAttribute('rel');
-        if (rel && rel.includes('noopener') && rel.includes('noreferrer')) {
+      _turndownService.addRule('preserveTargetBlank', {
+        filter: function (node: any) {
+          return (
+            node.nodeName === 'A' &&
+            node.getAttribute('target') === '_blank'
+          );
+        },
+        replacement: function (content: string, node: any) {
+          const href = node.getAttribute('href');
+          const rel = node.getAttribute('rel');
+          if (rel && rel.includes('noopener') && rel.includes('noreferrer')) {
+            return `[${content}](${href})`;
+          }
           return `[${content}](${href})`;
         }
-        return `[${content}](${href})`;
-      }
-    });
+      });
+    } catch (error) {
+      console.warn('TurndownService initialization failed:', error);
+      // Return a minimal fallback service
+      _turndownService = {
+        turndown: (html: string) => {
+          // Simple HTML tag removal as fallback
+          return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+      } as TurndownService;
+    }
   }
-  return _turndownService!;
+  
+  // Return a safe fallback if still not available
+  if (!_turndownService) {
+    return {
+      turndown: (html: string) => {
+        return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+    } as TurndownService;
+  }
+  
+  return _turndownService;
 }
 
 /**

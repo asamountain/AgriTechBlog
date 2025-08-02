@@ -76,7 +76,7 @@ class DebugTracker {
   private currentPostId: string | null = null;
   private postFetchAttempts = 0;
   private postUpdateAttempts = 0;
-  private postFetchDiagnostics: Map<string, PostFetchDiagnostics> = new Map();
+  private postFetchDiagnostics: Map<string, PostFetchDiagnostics>;
   
   // Store original console methods
   private originalConsole = {
@@ -88,6 +88,7 @@ class DebugTracker {
 
   constructor() {
     this.isEnabled = import.meta.env.DEV; // Only enable in development
+    this.postFetchDiagnostics = new Map();
     this.session = this.initializeSession();
     
     if (this.isEnabled) {
