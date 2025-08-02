@@ -71,7 +71,7 @@ function App() {
       // Add keyboard shortcut for debug overlay (Ctrl+Shift+D) - only on admin pages
       const handleKeyPress = (event: KeyboardEvent) => {
         if (event.ctrlKey && event.shiftKey && event.key === 'D' && location.startsWith('/admin')) {
-          debugTracker.showDebugOverlay();
+          debugTracker.instance.showDebugOverlay();
         }
       };
       

@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { debugTracker, type DebugEvent } from '@/lib/debug-tracker';
+import { debugTracker } from '@/lib/debug-tracker';
 import { flowDiagramGenerator } from '@/lib/flow-diagram';
+import type { DebugEvent } from '@/lib/debug-tracker';
 import { Download, Play, Pause, RefreshCw, Database, FileText, AlertTriangle, CheckCircle, Bug, Settings, FileCode, HelpCircle } from 'lucide-react';
 
 interface FlowNode {
@@ -32,15 +33,15 @@ export default function DebugFlowVisualizer() {
   useEffect(() => {
     const updateEvents = () => {
       if (isTracking) {
-        const recentEvents = debugTracker.getRecentEvents(100);
+        const recentEvents = debugTracker.instance.getRecentEvents(100);
         setEvents(recentEvents);
         
         // Get post-specific summary
-        const summary = debugTracker.getCurrentPostSummary();
+        const summary = debugTracker.instance.getCurrentPostSummary();
         setPostSummary(summary);
         
         // Convert events to flow nodes
-        const nodes: FlowNode[] = recentEvents.map(event => ({
+        const nodes: FlowNode[] = recentEvents.map((event: DebugEvent) => ({
           id: event.id,
           type: event.type === 'db_interaction' ? 'db_interaction' : 
                 event.type === 'api_call' ? 'api' :
@@ -78,7 +79,7 @@ export default function DebugFlowVisualizer() {
   };
 
   const clearEvents = () => {
-    debugTracker.clear();
+    debugTracker.instance.clear();
     setEvents([]);
     setFlowNodes([]);
     setPostSummary(null);
@@ -94,7 +95,7 @@ export default function DebugFlowVisualizer() {
         data: e.data,
         metadata: e.metadata
       })),
-             mermaidDiagram: flowDiagramGenerator.generateUserJourneyDiagram()
+             mermaidDiagram: flowDiagramGenerator.instance.generateUserJourneyDiagram()
     };
     
     const blob = new Blob([JSON.stringify(flowData, null, 2)], { type: 'application/json' });
@@ -127,7 +128,7 @@ export default function DebugFlowVisualizer() {
 
   const dbInteractions = events.filter(e => e.type === 'db_interaction');
   const postEvents = events.filter(e => e.metadata?.post || e.data?.postId);
-  const metrics = debugTracker.getPerformanceMetrics();
+  const metrics = debugTracker.instance.getPerformanceMetrics();
 
   return (
     <Card className="w-full border-0 shadow-none">
@@ -526,7 +527,7 @@ export default function DebugFlowVisualizer() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
-                                  const guide = debugTracker.getDetailedTroubleshootingGuide();
+                                  const guide = debugTracker.instance.getDetailedTroubleshootingGuide();
                                   console.log('📖 Detailed Troubleshooting Guide:', guide);
                                 }}
                                 className="text-xs"
