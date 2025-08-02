@@ -17,12 +17,12 @@ interface SEOHeadProps {
 }
 
 export default function SEOHead({
-  title = "AgriTech Innovation Hub - Advanced Agricultural Technology Blog",
-  description = "Discover cutting-edge agricultural technology, IoT solutions, and sustainable farming practices. Expert insights on precision agriculture, crop monitoring, and smart farming innovations.",
-  keywords = ["agricultural technology", "precision agriculture", "IoT farming", "smart agriculture", "crop monitoring", "sustainable farming", "AgriTech", "farm automation", "agricultural innovation"],
+  title = "Tech-San Blog - AgriTech IoT Engineering Insights",
+  description = "Smart farming technology, IoT engineering insights, and agricultural innovation from an IoT engineer's perspective. RS485, Modbus, and embedded systems expertise.",
+  keywords = ["AgriTech", "IoT", "Smart Farming", "RS485", "Modbus RTU", "Agricultural Technology", "Embedded Systems", "Sensor Networks", "Precision Agriculture", "Farm Automation"],
   image = "/api/og-image",
   url = "",
-  type = "website",
+  type = "website", 
   author = "San",
   publishedTime,
   modifiedTime,
