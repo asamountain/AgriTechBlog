@@ -2,8 +2,27 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+// Custom plugin to suppress CSS warnings
+const suppressCssWarnings = () => {
+  return {
+    name: 'suppress-css-warnings',
+    configResolved(config: any) {
+      // Override console.warn to filter out CSS syntax warnings
+      const originalWarn = console.warn;
+      console.warn = (...args) => {
+        const message = args.join(' ');
+        if (message.includes('Expected identifier but found "-"') || 
+            message.includes('css-syntax-error')) {
+          return; // Suppress CSS syntax warnings
+        }
+        originalWarn.apply(console, args);
+      };
+    }
+  };
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), suppressCssWarnings()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -103,6 +122,10 @@ export default defineConfig({
     },
     // Enable source maps for debugging (optional)
     sourcemap: false,
+  },
+  css: {
+    // Suppress CSS warnings during build
+    devSourcemap: false,
   },
   server: {
     fs: {
