@@ -1,77 +1,164 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { MongoClient } from 'mongodb';
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { mongoConnectionManager } from '../server/mongodb-connection-manager';
 
 const uri = process.env.MONGODB_URI;
 
+// XML Entity escaping function according to sitemaps.org standards
+function escapeXmlEntities(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+// URL encoding according to RFC-3986 standards
+function encodeUrl(url: string): string {
+  try {
+    return new URL(url).href;
+  } catch (error) {
+    // Fallback for invalid URLs
+    return url.replace(/[^\w\-._~:/?#[\]@!$&'()*+,;=]/g, (char) => 
+      encodeURIComponent(char)
+    );
+  }
+}
+
+// Date formatting according to W3C DateTime format (ISO 8601)
+function formatXmlDate(date: string | Date): string {
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) {
+      return new Date().toISOString();
+    }
+    return d.toISOString();
+  } catch (error) {
+    return new Date().toISOString();
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Add test mode for debugging
+  // Set proper headers first
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  res.setHeader('X-Robots-Tag', 'noindex');
+
+  // Handle test mode for debugging
   if (req.query.test === 'true') {
     const testSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://tech-san.vercel.app/</loc><lastmod>2025-08-02T08:12:56.092Z</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+<url>
+<loc>https://tech-san.vercel.app/</loc>
+<lastmod>${formatXmlDate(new Date())}</lastmod>
+<changefreq>daily</changefreq>
+<priority>1.0</priority>
+</url>
 </urlset>`;
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.status(200).end(testSitemap);
-    return;
+    return res.status(200).end(testSitemap);
   }
 
   if (!uri) {
     console.error('MONGODB_URI environment variable is not set');
-    res.status(500).json({ error: 'Database configuration error' });
-    return;
+    const errorXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>https://tech-san.vercel.app/</loc>
+<lastmod>${formatXmlDate(new Date())}</lastmod>
+<changefreq>daily</changefreq>
+<priority>1.0</priority>
+</url>
+</urlset>`;
+    return res.status(200).end(errorXml);
   }
 
   try {
-    const client = new MongoClient(uri);
-    await client.connect();
+    const db = await mongoConnectionManager.getDatabase();
     
-    const db = client.db('blog_database');
-    const postsCollection = db.collection('posts');
-    
-    // Fetch all published posts using the same logic as working blog-posts API
-    const posts = await postsCollection
-      .find({ draft: { $ne: true } }) // Use same logic as working blog-posts API
-      .sort({ date: -1 })
+    // Fetch only published posts (not drafts)
+    const posts = await db.collection('posts')
+      .find({ 
+        draft: { $ne: true },
+        isPublished: { $ne: false }
+      })
+      .sort({ createdAt: -1 })
+      .limit(50000) // Sitemap limit according to sitemaps.org
       .toArray();
-    
-    console.log(`Sitemap: Found ${posts.length} published posts`);
-    
-    await client.close();
-    
+
     const baseUrl = 'https://tech-san.vercel.app';
-    const timestamp = new Date().toISOString();
-    
-    // Helper function to escape XML entities
-    const escapeXml = (unsafe: string): string => {
-      if (!unsafe) return '';
-      return unsafe
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
-    };
+    const currentDate = formatXmlDate(new Date());
 
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>${baseUrl}/</loc><lastmod>${timestamp}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
-<url><loc>${baseUrl}/posts</loc><lastmod>${timestamp}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-${posts.map(post => {
-  const safeSlug = post.slug || '';
-  const lastmod = new Date(post.updatedAt || post.date || post.createdAt).toISOString();
-  
-  return `<url><loc>${baseUrl}/post/${safeSlug}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
-}).join('')}
-<url><loc>${baseUrl}/about</loc><lastmod>${timestamp}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
-<url><loc>${baseUrl}/contact</loc><lastmod>${timestamp}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
-</urlset>`;
+    // Build sitemap according to official sitemaps.org protocol
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+    const urlsetOpen = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    const urlsetClose = '</urlset>';
 
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-    res.setHeader('X-Robots-Tag', 'noindex'); // Prevent indexing of sitemap itself
-    res.status(200).end(sitemap);
+    // Required pages with proper priority and changefreq
+    const staticUrls = [
+      {
+        loc: baseUrl + '/',
+        lastmod: currentDate,
+        changefreq: 'daily',
+        priority: '1.0'
+      },
+      {
+        loc: baseUrl + '/posts',
+        lastmod: currentDate,
+        changefreq: 'daily',
+        priority: '0.8'
+      },
+      {
+        loc: baseUrl + '/about',
+        lastmod: currentDate,
+        changefreq: 'monthly',
+        priority: '0.5'
+      },
+      {
+        loc: baseUrl + '/contact',
+        lastmod: currentDate,
+        changefreq: 'monthly',
+        priority: '0.5'
+      }
+    ];
+
+    // Generate URL entries
+    let urlEntries = '';
+
+    // Add static URLs
+    for (const urlData of staticUrls) {
+      urlEntries += `<url><loc>${escapeXmlEntities(encodeUrl(urlData.loc))}</loc><lastmod>${urlData.lastmod}</lastmod><changefreq>${urlData.changefreq}</changefreq><priority>${urlData.priority}</priority></url>`;
+    }
+
+    // Add blog post URLs
+    for (const post of posts) {
+      if (post.slug) {
+        const postUrl = `${baseUrl}/post/${escapeXmlEntities(post.slug)}`;
+        const lastmod = formatXmlDate(post.updatedAt || post.date || post.createdAt || new Date());
+        
+        urlEntries += `<url><loc>${encodeUrl(postUrl)}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+      }
+    }
+
+    // Construct final sitemap
+    const sitemap = xmlDeclaration + '\n' + urlsetOpen + '\n' + urlEntries + '\n' + urlsetClose;
+
+    return res.status(200).end(sitemap);
+
   } catch (error) {
     console.error('Error generating sitemap:', error);
-    res.status(500).json({ error: 'Error generating sitemap' });
+    
+    // Return minimal valid sitemap on error
+    const fallbackSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>https://tech-san.vercel.app/</loc>
+<lastmod>${formatXmlDate(new Date())}</lastmod>
+<changefreq>daily</changefreq>
+<priority>1.0</priority>
+</url>
+</urlset>`;
+    
+    return res.status(200).end(fallbackSitemap);
   }
 } 
