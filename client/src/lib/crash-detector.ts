@@ -174,7 +174,7 @@ class CrashDetector {
   private checkForCrashes() {
     if (!this.isEnabled) return;
 
-    const recentEvents = debugTracker.getRecentEvents(100);
+    const recentEvents = debugTracker.instance.getRecentEvents(100);
     
     for (const pattern of this.patterns) {
       if (pattern.detector(recentEvents)) {
@@ -205,7 +205,7 @@ class CrashDetector {
     }
 
     // Track the crash pattern detection
-    debugTracker.trackCustomEvent('crash_pattern_detected', {
+    debugTracker.instance.trackCustomEvent('crash_pattern_detected', {
       patternId: pattern.id,
       severity: pattern.severity,
       timestamp: Date.now()
@@ -313,7 +313,7 @@ class CrashDetector {
   }
 
   public getDetectedIssues() {
-    const events = debugTracker.getRecentEvents(100);
+    const events = debugTracker.instance.getRecentEvents(100);
     const issues = [];
 
     for (const pattern of this.patterns) {
@@ -331,7 +331,7 @@ class CrashDetector {
   }
 
   public generateHealthReport() {
-    const metrics = debugTracker.getPerformanceMetrics();
+    const metrics = debugTracker.instance.getPerformanceMetrics();
     const issues = this.getDetectedIssues();
     
     return {
@@ -375,12 +375,21 @@ class CrashDetector {
   }
 }
 
-// Create global instance
-export const crashDetector = new CrashDetector();
+// Create lazy instance
+let _crashDetector: CrashDetector | null = null;
+
+export const crashDetector = {
+  get instance() {
+    if (!_crashDetector) {
+      _crashDetector = new CrashDetector();
+    }
+    return _crashDetector;
+  }
+};
 
 // Add to window for console access
 if (typeof window !== 'undefined') {
-  (window as any).crashDetector = crashDetector;
+  (window as any).crashDetector = crashDetector.instance;
 }
 
 export default crashDetector; 

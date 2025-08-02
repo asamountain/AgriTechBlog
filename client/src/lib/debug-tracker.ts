@@ -1161,8 +1161,19 @@ class DebugTracker {
   }
 }
 
-// Create global instance
-export const debugTracker = new DebugTracker();
+// Create lazy instance
+let _debugTracker: DebugTracker | null = null;
+
+export const debugTracker = {
+  get instance() {
+    if (!_debugTracker) {
+      _debugTracker = new DebugTracker();
+    }
+    return _debugTracker;
+  }
+};
 
 // Make it available globally for console access
-(window as any).debugTracker = debugTracker; 
+if (typeof window !== 'undefined') {
+  (window as any).debugTracker = debugTracker.instance;
+} 

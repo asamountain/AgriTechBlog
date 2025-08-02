@@ -25,18 +25,24 @@ class FlowDiagramGenerator {
   private connections: DiagramConnection[] = [];
 
   public generateUserJourneyDiagram(): string {
-    const events = debugTracker.getRecentEvents(50);
+    const events = debugTracker.instance.getRecentEvents(50);
     this.createUserJourneyFromEvents(events);
     return this.exportAsMermaid();
   }
 
   public generateCrashFlowDiagram(): string {
-    const events = debugTracker.getEventsByType('error');
+    const events = debugTracker.instance.getEventsByType('error');
     this.createCrashFlowFromEvents(events);
     return this.exportAsMermaid();
   }
 
   private createUserJourneyFromEvents(events: any[]) {
+    // Track the diagram generation
+    debugTracker.instance.trackCustomEvent('flow_diagram_generated', {
+      type: 'user_journey',
+      eventCount: events.length
+    });
+
     this.nodes = [];
     this.connections = [];
 
@@ -126,6 +132,12 @@ class FlowDiagramGenerator {
   }
 
   private createCrashFlowFromEvents(errorEvents: any[]) {
+    // Track the crash flow generation
+    debugTracker.instance.trackCustomEvent('flow_diagram_generated', {
+      type: 'crash_flow',
+      eventCount: errorEvents.length
+    });
+
     this.nodes = [];
     this.connections = [];
 
@@ -372,5 +384,16 @@ class FlowDiagramGenerator {
   }
 }
 
-export const flowDiagramGenerator = new FlowDiagramGenerator();
+// Create lazy instance
+let _flowDiagramGenerator: FlowDiagramGenerator | null = null;
+
+export const flowDiagramGenerator = {
+  get instance() {
+    if (!_flowDiagramGenerator) {
+      _flowDiagramGenerator = new FlowDiagramGenerator();
+    }
+    return _flowDiagramGenerator;
+  }
+};
+
 export default flowDiagramGenerator; 
