@@ -54,20 +54,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <category>Agriculture</category>
     <category>Innovation</category>
     
-    ${posts.map(post => `
-    <item>
-      <title>${post.title}</title>
-      <link>${baseUrl}/post/${post.slug}</link>
-      <pubDate>${new Date(post.date || post.createdAt).toUTCString()}</pubDate>
-      <dc:creator>${post.author || 'San'}</dc:creator>
-      <category>${post.category || post.tags?.[0] || 'Technology'}</category>
-      <guid isPermaLink="true">${baseUrl}/post/${post.slug}</guid>
-      <description><![CDATA[${post.excerpt || post.content.substring(0, 300)}...]]></description>
-      <content:encoded><![CDATA[${post.content}]]></content:encoded>
-      <slash:comments>0</slash:comments>
-      ${post.tags ? post.tags.map((tag: string) => `<category>${tag}</category>`).join('') : ''}
-    </item>
-    `).join('')}
+    ${posts.map(post => {
+      const safeTitle = (post.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const safeExcerpt = (post.excerpt || post.content.substring(0, 300)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const safeContent = (post.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      return `<item><title>${safeTitle}</title><link>${baseUrl}/post/${post.slug}</link><pubDate>${new Date(post.date || post.createdAt).toUTCString()}</pubDate><dc:creator>${post.author || 'San'}</dc:creator><category>${post.category || post.tags?.[0] || 'Technology'}</category><guid isPermaLink="true">${baseUrl}/post/${post.slug}</guid><description><![CDATA[${safeExcerpt}...]]></description><content:encoded><![CDATA[${safeContent}]]></content:encoded><slash:comments>0</slash:comments>${post.tags ? post.tags.map((tag: string) => `<category>${tag}</category>`).join('') : ''}</item>`;
+    }).join('')}
     
   </channel>
 </rss>`;
