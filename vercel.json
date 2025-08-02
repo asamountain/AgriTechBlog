@@ -1,8 +1,25 @@
 {
   "version": 2,
   "outputDirectory": "dist",
-  "devCommand": "npm run dev",
   "routes": [
+    {
+      "src": "/assets/(.*\\.js)$",
+      "dest": "/assets/$1",
+      "headers": {
+        "Content-Type": "application/javascript"
+      }
+    },
+    {
+      "src": "/assets/(.*\\.css)$",
+      "dest": "/assets/$1", 
+      "headers": {
+        "Content-Type": "text/css"
+      }
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
