@@ -36,12 +36,6 @@
     "seo:notify": "node scripts/notify-search-engines.js",
     "seo:ping": "curl -X POST https://tech-san.vercel.app/api/update-sitemap"
   },
-  "config": {
-    "cache": "~/.npm",
-    "prefer-offline": true,
-    "audit": false,
-    "fund": false
-  },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
