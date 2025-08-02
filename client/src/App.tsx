@@ -30,8 +30,8 @@ const PageLoader = () => (
 );
 
 function Router() {
-  // Track page views when routes change
-  useAnalytics();
+  // Analytics DISABLED to fix sitemap XML interference
+  // useAnalytics(); // DISABLED
   
   return (
     <Suspense fallback={<PageLoader />}>
@@ -55,13 +55,14 @@ function Router() {
 function App() {
   const [location] = useLocation();
   
-  // Initialize Google Analytics and Debug Tracker when app loads
+  // Google Analytics DISABLED to fix sitemap XML interference
   useEffect(() => {
     // Verify required environment variable is present
     if (!import.meta.env.VITE_GA_MEASUREMENT_ID) {
       console.warn('Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID');
     } else {
-      initGA();
+      // initGA(); // DISABLED - was causing data-google-analytics-opt-out attribute
+      console.log('Google Analytics disabled to fix sitemap XML parsing');
     }
 
     // Initialize debug tracker (development only)
