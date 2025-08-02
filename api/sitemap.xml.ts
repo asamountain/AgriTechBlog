@@ -4,6 +4,17 @@ import { MongoClient } from 'mongodb';
 const uri = process.env.MONGODB_URI;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Add test mode for debugging
+  if (req.query.test === 'true') {
+    const testSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://tech-san.vercel.app/</loc><lastmod>2025-08-02T08:12:56.092Z</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+</urlset>`;
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.status(200).end(testSitemap);
+    return;
+  }
+
   if (!uri) {
     console.error('MONGODB_URI environment variable is not set');
     res.status(500).json({ error: 'Database configuration error' });
@@ -55,9 +66,10 @@ ${posts.map(post => {
 <url><loc>${baseUrl}/contact</loc><lastmod>${timestamp}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>`;
 
-    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-    res.status(200).send(sitemap);
+    res.setHeader('X-Robots-Tag', 'noindex'); // Prevent indexing of sitemap itself
+    res.status(200).end(sitemap);
   } catch (error) {
     console.error('Error generating sitemap:', error);
     res.status(500).json({ error: 'Error generating sitemap' });
