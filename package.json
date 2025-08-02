@@ -10,7 +10,6 @@
     "start:dev": "npm run dev",
     "dev:vercel": "vercel dev --listen 127.0.0.1:3000",
     "build": "vite build",
-    "vercel-build": "vite build",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "deploy": "./deploy.sh production",
