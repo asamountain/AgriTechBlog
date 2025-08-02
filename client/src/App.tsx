@@ -4,8 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, lazy, Suspense } from "react";
-import { initGA } from "./lib/analytics";
-import { useAnalytics } from "./hooks/use-analytics";
+// import { initGA } from "./lib/analytics"; // DISABLED
+// import { useAnalytics } from "./hooks/use-analytics"; // DISABLED
 import { debugTracker } from "./lib/debug-tracker";
 import "./lib/crash-detector"; // Initialize crash detector
 
