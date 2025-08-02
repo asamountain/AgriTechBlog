@@ -40,7 +40,7 @@ export default defineConfig({
       output: {
         // Manual chunk splitting to reduce bundle sizes
         manualChunks: (id) => {
-          // Vendor chunks - separate large libraries
+          // Keep React and React-DOM together in main bundle to prevent useState errors
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
