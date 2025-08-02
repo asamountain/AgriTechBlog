@@ -10,8 +10,13 @@ declare global {
 export const initGA = () => {
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
-  if (!measurementId) {
-    console.warn('Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID');
+  // Don't initialize GA for sitemap URLs or API endpoints
+  if (!measurementId || 
+      window.location.pathname.includes('sitemap') || 
+      window.location.pathname.startsWith('/api/')) {
+    if (!measurementId) {
+      console.warn('Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID');
+    }
     return;
   }
 
