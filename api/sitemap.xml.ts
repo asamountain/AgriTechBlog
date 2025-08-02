@@ -30,69 +30,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const baseUrl = 'https://tech-san.vercel.app';
     const timestamp = new Date().toISOString();
     
+    // Helper function to escape XML entities
+    const escapeXml = (unsafe: string): string => {
+      if (!unsafe) return '';
+      return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    };
+
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated at ${timestamp} with ${posts.length} posts -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-  
-  <!-- Homepage -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>${baseUrl}/</loc>
     <lastmod>${timestamp}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  
-  <!-- Blog Posts Page -->
   <url>
     <loc>${baseUrl}/posts</loc>
     <lastmod>${timestamp}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+${posts.map(post => {
+  const safeTitle = escapeXml(post.title || '');
+  const safeSlug = post.slug || '';
+  const lastmod = new Date(post.updatedAt || post.date || post.createdAt).toISOString();
   
-  <!-- Individual Blog Posts -->
-  ${posts.map(post => `
-  <url>
-    <loc>${baseUrl}/post/${post.slug}</loc>
-    <lastmod>${new Date(post.updatedAt || post.date || post.createdAt).toISOString()}</lastmod>
+  return `  <url>
+    <loc>${baseUrl}/post/${safeSlug}</loc>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-    <image:image>
-      <image:loc>${baseUrl}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.category || post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author || 'San')}&excerpt=${encodeURIComponent(post.excerpt || '')}</image:loc>
-      <image:title>${post.title}</image:title>
-    </image:image>
-  </url>
-  `).join('')}
-  
-  <!-- About Page -->
+  </url>`;
+}).join('\n')}
   <url>
     <loc>${baseUrl}/about</loc>
     <lastmod>${timestamp}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-  
-  <!-- Contact Page -->
   <url>
     <loc>${baseUrl}/contact</loc>
     <lastmod>${timestamp}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-  
-  <!-- Admin Page -->
-  <url>
-    <loc>${baseUrl}/admin</loc>
-    <lastmod>${timestamp}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  
 </urlset>`;
 
     res.setHeader('Content-Type', 'application/xml');
