@@ -1,49 +1,56 @@
 import TurndownService from 'turndown';
 
-// Configure turndown for optimal markdown conversion
-const turndownService = new TurndownService({
-  headingStyle: 'atx', // Use # for headings
-  hr: '---',
-  bulletListMarker: '-',
-  codeBlockStyle: 'fenced',
-  fence: '```',
-  emDelimiter: '*',
-  strongDelimiter: '**',
-  linkStyle: 'inlined',
-  linkReferenceStyle: 'full'
-});
+// Lazy-loaded turndown service
+let _turndownService: TurndownService | null = null;
 
-// Add custom rules for better conversion
-turndownService.addRule('lineBreaks', {
-  filter: 'br',
-  replacement: function () {
-    return '\n\n';
-  }
-});
+function getTurndownService(): TurndownService {
+  if (!_turndownService) {
+    _turndownService = new TurndownService({
+      headingStyle: 'atx', // Use # for headings
+      hr: '---',
+      bulletListMarker: '-',
+      codeBlockStyle: 'fenced',
+      fence: '```',
+      emDelimiter: '*',
+      strongDelimiter: '**',
+      linkStyle: 'inlined',
+      linkReferenceStyle: 'full'
+    });
 
-turndownService.addRule('paragraphs', {
-  filter: 'p',
-  replacement: function (content: string) {
-    return '\n\n' + content + '\n\n';
-  }
-});
+    // Add custom rules for better conversion
+    _turndownService.addRule('lineBreaks', {
+      filter: 'br',
+      replacement: function () {
+        return '\n\n';
+      }
+    });
 
-turndownService.addRule('preserveTargetBlank', {
-  filter: function (node: any) {
-    return (
-      node.nodeName === 'A' &&
-      node.getAttribute('target') === '_blank'
-    );
-  },
-  replacement: function (content: string, node: any) {
-    const href = node.getAttribute('href');
-    const rel = node.getAttribute('rel');
-    if (rel && rel.includes('noopener') && rel.includes('noreferrer')) {
-      return `[${content}](${href})`;
-    }
-    return `[${content}](${href})`;
+    _turndownService.addRule('paragraphs', {
+      filter: 'p',
+      replacement: function (content: string) {
+        return '\n\n' + content + '\n\n';
+      }
+    });
+
+    _turndownService.addRule('preserveTargetBlank', {
+      filter: function (node: any) {
+        return (
+          node.nodeName === 'A' &&
+          node.getAttribute('target') === '_blank'
+        );
+      },
+      replacement: function (content: string, node: any) {
+        const href = node.getAttribute('href');
+        const rel = node.getAttribute('rel');
+        if (rel && rel.includes('noopener') && rel.includes('noreferrer')) {
+          return `[${content}](${href})`;
+        }
+        return `[${content}](${href})`;
+      }
+    });
   }
-});
+  return _turndownService;
+}
 
 /**
  * Comprehensive HTML tag removal with entity decoding
@@ -99,6 +106,7 @@ export function htmlToMarkdown(htmlContent: string): string {
       .trim();
 
     // Convert to markdown
+    const turndownService = getTurndownService();
     const markdown = turndownService.turndown(cleanHtml);
     
     // Clean up excessive whitespace
