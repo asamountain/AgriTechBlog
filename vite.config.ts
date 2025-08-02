@@ -1,111 +1,64 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// Custom plugin to suppress CSS warnings
-const suppressCssWarnings = () => {
+// Custom Vite plugin to suppress specific CSS warnings
+function suppressCssWarnings() {
   return {
     name: 'suppress-css-warnings',
     configResolved(config: any) {
-      // Override console.warn to filter out CSS syntax warnings
-      const originalWarn = console.warn;
-      console.warn = (...args) => {
-        const message = args.join(' ');
-        if (message.includes('Expected identifier but found "-"') || 
-            message.includes('css-syntax-error')) {
-          return; // Suppress CSS syntax warnings
+      const originalWarn = config.logger.warn;
+      config.logger.warn = (msg: string, options: any) => {
+        // Suppress specific CSS syntax warnings
+        if (msg.includes('Expected identifier but found "-"') || 
+            msg.includes('css-syntax-error')) {
+          return;
         }
-        originalWarn.apply(console, args);
+        originalWarn(msg, options);
       };
-    }
+    },
   };
-};
+}
 
 export default defineConfig({
-  plugins: [react(), suppressCssWarnings()],
+  plugins: [
+    react(),
+    suppressCssWarnings()
+  ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      '@': path.resolve(__dirname, './client/src'),
+      '@shared': path.resolve(__dirname, './shared'),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: './client',
+  publicDir: 'public',
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist"),
+    outDir: '../dist',
     emptyOutDir: true,
-    // Increase chunk size warning limit to 800KB for better control
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
-        // Manual chunk splitting to reduce bundle sizes
-        manualChunks: (id) => {
-          // Keep React and React-DOM in main bundle to prevent useState errors
+        // Simplified chunking to avoid module loading issues
+        manualChunks: (id: string) => {
+          // Keep React in main bundle to prevent useState errors
+          if (id.includes('react') || id.includes('react-dom')) {
+            return undefined;
+          }
+          
+          // Only split large vendor libraries
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              // Return undefined to keep React in main bundle
-              return undefined;
-            }
-            if (id.includes('@radix-ui')) {
+            if (id.includes('lucide-react') || id.includes('@radix-ui')) {
               return 'ui-vendor';
             }
-            if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
-              return 'utils-vendor';
-            }
-            if (id.includes('lucide-react')) {
-              return 'icons-vendor';
-            }
-            if (id.includes('@tanstack/react-query')) {
+            if (id.includes('react-query') || id.includes('wouter')) {
               return 'query-vendor';
             }
-            if (id.includes('framer-motion')) {
-              return 'animation-vendor';
-            }
-            if (id.includes('@tiptap')) {
-              return 'editor-vendor';
-            }
-            // Other node_modules go to vendor chunk
             return 'vendor';
           }
           
-          // Split pages into individual chunks
-          if (id.includes('/pages/')) {
-            if (id.includes('admin-seo-dashboard')) {
-              return 'admin-seo';
-            }
-            if (id.includes('admin-working')) {
-              return 'admin-working';
-            }
-            if (id.includes('create-post')) {
-              return 'create-post';
-            }
-            if (id.includes('blog-post')) {
-              return 'blog-post';
-            }
-            if (id.includes('home')) {
-              return 'home';
-            }
-            if (id.includes('posts')) {
-              return 'posts';
-            }
-            return 'pages';
-          }
-          
-          // Split components
-          if (id.includes('/components/')) {
-            if (id.includes('debug-flow-visualizer')) {
-              return 'debug-components';
-            }
-            if (id.includes('/ui/')) {
-              return 'ui-components';
-            }
-            return 'components';
-          }
-          
-          // Split hooks and libs
-          if (id.includes('/hooks/') || id.includes('/lib/')) {
-            return 'utils';
-          }
+          // Keep everything else in main bundle to avoid constructor issues
+          return undefined;
         },
         assetFileNames: 'assets/[name].[hash].[ext]',
         chunkFileNames: 'assets/[name].[hash].js',
@@ -118,41 +71,12 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
       },
     },
-    // Enable source maps for debugging (optional)
     sourcemap: false,
   },
-  css: {
-    // Suppress CSS warnings during build
-    devSourcemap: false,
-  },
-  server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
-    proxy: {
-      "/api": {
-        target: "http://127.0.0.1:5001",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
-  // Optimize dependencies
   optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'lucide-react',
-      'date-fns',
-      'clsx',
-      'tailwind-merge',
-      '@tanstack/react-query',
-      'framer-motion',
-    ],
+    include: ['react', 'react-dom', 'lucide-react', '@tanstack/react-query'],
   },
 });
 
