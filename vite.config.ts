@@ -30,29 +30,31 @@ export default defineConfig({
       '@': path.resolve(__dirname, './client/src'),
       '@shared': path.resolve(__dirname, './shared'),
     },
+    // Ensure single React instance
+    dedupe: ['react', 'react-dom']
   },
   root: './client',
   publicDir: 'public',
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 1000, // Increase to 1MB to suppress warnings
     rollupOptions: {
       output: {
-        // Simplified chunking to avoid module loading issues
+        // Simplified chunking to prevent React duplication
         manualChunks: (id: string) => {
-          // Keep React in main bundle to prevent useState errors
-          if (id.includes('react') || id.includes('react-dom')) {
+          // Keep React ecosystem in main bundle to prevent duplication
+          if (id.includes('react') || id.includes('react-dom') || id.includes('@tanstack/react-query')) {
             return undefined;
           }
           
-          // Only split large vendor libraries
+          // Split only the largest vendor libraries
           if (id.includes('node_modules')) {
             if (id.includes('lucide-react') || id.includes('@radix-ui')) {
               return 'ui-vendor';
             }
-            if (id.includes('react-query') || id.includes('wouter')) {
-              return 'query-vendor';
+            if (id.includes('wouter')) {
+              return 'router-vendor';
             }
             return 'vendor';
           }
@@ -76,7 +78,9 @@ export default defineConfig({
     sourcemap: false,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'lucide-react', '@tanstack/react-query'],
+    include: ['react', 'react-dom'],
+    // Force single React instance
+    force: true
   },
 });
 
