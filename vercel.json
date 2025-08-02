@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "_comment": "Updated config to eliminate builds warning - no builds section needed",
   "headers": [
     {
       "source": "/assets/(.*)",
