@@ -41,7 +41,7 @@ export function usePersistentAuth() {
           const userData = JSON.parse(storedAuth);
           
           // Verify session is still valid
-          const response = await fetch('/api/admin/verify-session', {
+          const response = await fetch('/api/auth/user', {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -50,8 +50,8 @@ export function usePersistentAuth() {
           });
           
           if (response.ok) {
-            const sessionData = await response.json();
-            setUser(sessionData.user || userData);
+            const userData = await response.json();
+            setUser(userData);
             setIsAuthenticated(true);
           } else {
             // Session expired, clear storage
