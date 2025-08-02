@@ -2,9 +2,12 @@ import TurndownService from 'turndown';
 
 // Lazy-loaded turndown service
 let _turndownService: TurndownService | null = null;
+let _isInitialized = false;
 
 function getTurndownService(): TurndownService {
-  if (!_turndownService) {
+  // Only initialize if not already done and if we're in a browser environment
+  if (!_turndownService && typeof window !== 'undefined' && !_isInitialized) {
+    _isInitialized = true;
     _turndownService = new TurndownService({
       headingStyle: 'atx', // Use # for headings
       hr: '---',
@@ -49,7 +52,7 @@ function getTurndownService(): TurndownService {
       }
     });
   }
-  return _turndownService;
+  return _turndownService!;
 }
 
 /**
@@ -105,7 +108,7 @@ export function htmlToMarkdown(htmlContent: string): string {
       .replace(/\n\s*\n\s*\n/g, '\n\n')
       .trim();
 
-    // Convert to markdown
+    // Convert to markdown - only instantiate when actually needed
     const turndownService = getTurndownService();
     const markdown = turndownService.turndown(cleanHtml);
     
