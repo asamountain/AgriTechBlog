@@ -162,9 +162,6 @@ export default function Footer({ variant = "simple" }: FooterProps) {
                 <a href="/terms" className="hover:text-forest-green transition-colors duration-300">
                   Terms of Service
                 </a>
-                <a href="/contact" className="hover:text-forest-green transition-colors duration-300">
-                  Contact Us
-                </a>
               </div>
             </div>
           </div>
@@ -236,9 +233,6 @@ export default function Footer({ variant = "simple" }: FooterProps) {
               </a>
               <a href="/terms" className="hover:text-forest-green transition-colors duration-300">
                 Terms of Service
-              </a>
-              <a href="/contact" className="hover:text-forest-green transition-colors duration-300">
-                Contact
               </a>
             </div>
           </div>

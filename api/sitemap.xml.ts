@@ -108,19 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         changefreq: 'daily',
         priority: '0.8'
       },
-      {
-        loc: baseUrl + '/about',
-        lastmod: currentDate,
-        changefreq: 'monthly',
-        priority: '0.5'
-      },
-      {
-        loc: baseUrl + '/contact',
-        lastmod: currentDate,
-        changefreq: 'monthly',
-        priority: '0.5'
-      }
-    ];
+         ];
 
     // Generate URL entries
     let urlEntries = '';

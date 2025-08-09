@@ -14,7 +14,6 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/posts", label: "Posts" },
-    { href: "/contact", label: "Contact" },
   ];
 
   useEffect(() => {
