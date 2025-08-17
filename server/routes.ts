@@ -1599,6 +1599,94 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     res.send(svg);
   });
 
+  // Social media crawler detection utility
+  function isSocialMediaCrawler(userAgent: string): boolean {
+    const crawlers = [
+      'facebookexternalhit', 'twitterbot', 'linkedinbot', 'whatsapp',
+      'telegrambot', 'slackbot', 'discordbot', 'pinterestbot',
+      'SkypeUriPreview', 'GoogleBot', 'bingbot'
+    ];
+    return crawlers.some(crawler => 
+      userAgent.toLowerCase().includes(crawler.toLowerCase())
+    );
+  }
+
+  // Blog post route with crawler detection for Open Graph
+  app.get('/blog/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const userAgent = req.get('User-Agent') || '';
+      
+      // Check if it's a social media crawler
+      if (isSocialMediaCrawler(userAgent)) {
+        // Serve Open Graph optimized page for crawlers
+        const post = await activeStorage.getBlogPostBySlug(slug);
+        
+        if (!post || post.draft) {
+          return res.status(404).send('Post not found');
+        }
+
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const currentUrl = `${baseUrl}/blog/${post.slug}`;
+        const ogImageUrl = post.featuredImage || 
+          `${baseUrl}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author?.name || 'San')}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}`;
+        
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${post.title} | San's Agricultural Technology Blog</title>
+  <meta name="description" content="${post.excerpt}">
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="${post.title}">
+  <meta property="og:description" content="${post.excerpt}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="${currentUrl}">
+  <meta property="og:site_name" content="San's Agricultural Technology Blog">
+  <meta property="og:image" content="${ogImageUrl}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${post.title} - Featured Image">
+  
+  <!-- Article Meta Tags -->
+  <meta property="article:author" content="${post.author?.name || 'San'}">
+  <meta property="article:published_time" content="${post.createdAt}">
+  <meta property="article:modified_time" content="${post.updatedAt}">
+  <meta property="article:section" content="${post.tags?.[0] || 'Technology'}">
+  ${post.tags?.map(tag => `<meta property="article:tag" content="${tag}">`).join('\n  ')}
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${post.title}">
+  <meta name="twitter:description" content="${post.excerpt}">
+  <meta name="twitter:image" content="${ogImageUrl}">
+  <meta name="twitter:site" content="@SansAgriTech">
+  <meta name="twitter:creator" content="@SansAgriTech">
+  
+  <!-- Keywords -->
+  <meta name="keywords" content="${post.tags?.join(', ')}, agricultural technology, precision farming, smart agriculture">
+</head>
+<body>
+  <h1>${post.title}</h1>
+  <p>${post.excerpt}</p>
+  <p><a href="${currentUrl}">Read full article</a></p>
+</body>
+</html>`;
+
+        return res.send(html);
+      } else {
+        // For regular users, serve the React app
+        // This will be handled by the client-side routing
+        return res.redirect(`/#/blog/${slug}`);
+      }
+    } catch (error) {
+      console.error('Blog post route error:', error);
+      return res.status(500).send('Server error');
+    }
+  });
+
   // JSON-LD structured data for enhanced AI understanding
   app.get('/api/structured-data', async (req, res) => {
     try {

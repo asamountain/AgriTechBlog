@@ -6,7 +6,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       title = 'Agricultural Technology Blog', 
       category = 'Technology',
       author = 'San\'s Blog',
-      excerpt = ''
+      excerpt = '',
+      geoLocation = 'US',
+      readingTime = '',
+      tags = ''
     } = req.query;
 
     // Set headers for image response
@@ -14,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 
     // Generate dynamic HTML that will be converted to image by social platforms
-    // This creates a visually appealing Open Graph image
+    // This creates a visually appealing Open Graph image with geo-targeting
     const html = `
       <!DOCTYPE html>
       <html>
@@ -27,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               padding: 0;
               width: 1200px;
               height: 630px;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
               background: linear-gradient(135deg, #2D5016 0%, #4F7942 50%, #8BC34A 100%);
               display: flex;
               flex-direction: column;
@@ -47,6 +50,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 radial-gradient(circle at 25% 25%, white 2px, transparent 2px),
                 radial-gradient(circle at 75% 75%, white 2px, transparent 2px);
               background-size: 50px 50px;
+            }
+            
+            .geo-badge {
+              position: absolute;
+              top: 20px;
+              right: 20px;
+              background: rgba(255, 255, 255, 0.9);
+              color: #2D5016;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-size: 14px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              backdrop-filter: blur(10px);
+              border: 2px solid rgba(255, 255, 255, 0.3);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
             
             .content {
@@ -93,6 +113,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               max-width: 800px;
             }
             
+            .meta-info {
+              display: flex;
+              gap: 20px;
+              align-items: center;
+              margin-bottom: 30px;
+              flex-wrap: wrap;
+            }
+            
+            .meta-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: rgba(255, 255, 255, 0.8);
+              font-size: 16px;
+              font-weight: 500;
+            }
+            
+            .meta-icon {
+              width: 20px;
+              height: 20px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+              color: white;
+            }
+            
             .footer {
               display: flex;
               justify-content: space-between;
@@ -124,6 +173,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               align-items: center;
               justify-content: center;
               font-size: 20px;
+              color: #2D5016;
+            }
+            
+            .tags {
+              display: flex;
+              gap: 8px;
+              flex-wrap: wrap;
+              margin-top: 20px;
+            }
+            
+            .tag {
+              background: rgba(255, 255, 255, 0.15);
+              color: white;
+              padding: 6px 12px;
+              border-radius: 15px;
+              font-size: 12px;
+              font-weight: 500;
+              border: 1px solid rgba(255, 255, 255, 0.2);
             }
             
             /* Responsive text sizing */
@@ -137,57 +204,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               font-size: 40px;
               line-height: 1.1;
             }
+            
+            .title.very-long {
+              font-size: 36px;
+              line-height: 1.1;
+            }
           </style>
         </head>
         <body>
           <div class="pattern"></div>
+          <div class="geo-badge">📍 ${geoLocation}</div>
           <div class="content">
             <div class="category">${category}</div>
-            <h1 class="title ${(title as string).length > 60 ? 'long' : ''}">${title}</h1>
+            <h1 class="title ${title.length > 60 ? title.length > 80 ? 'very-long' : 'long' : ''}">${title}</h1>
             ${excerpt ? `<p class="excerpt">${excerpt}</p>` : ''}
-            <div class="footer">
-              <div class="author">by ${author}</div>
-              <div class="logo">
-                <div class="icon">🌱</div>
-                San's Agricultural Technology Blog
-              </div>
+            
+            <div class="meta-info">
+              ${readingTime ? `<div class="meta-item"><div class="meta-icon">⏱</div>${readingTime} min read</div>` : ''}
+              ${tags ? `<div class="meta-item"><div class="meta-icon">🏷</div>${tags.split(',').slice(0, 3).join(', ')}</div>` : ''}
+            </div>
+            
+            ${tags ? `<div class="tags">${tags.split(',').slice(0, 5).map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}</div>` : ''}
+          </div>
+          
+          <div class="footer">
+            <div class="author">By ${author}</div>
+            <div class="logo">
+              <div class="icon">🌱</div>
+              AgriTech Blog
             </div>
           </div>
         </body>
       </html>
     `;
 
-    res.status(200).send(html);
-  } catch (error) {
-    console.error('OG Image generation error:', error);
+    res.send(html);
     
-    // Fallback to a simple HTML response
-    res.setHeader('Content-Type', 'text/html');
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Agricultural Technology Blog</title>
-        </head>
-        <body style="
-          margin: 0; 
-          padding: 60px; 
-          width: 1200px; 
-          height: 630px; 
-          background: linear-gradient(135deg, #2D5016, #4F7942); 
-          color: white; 
-          font-family: system-ui; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center;
-          text-align: center;
-        ">
-          <div>
-            <h1 style="font-size: 48px; margin-bottom: 20px;">🌱 Agricultural Technology Blog</h1>
-            <p style="font-size: 24px; opacity: 0.9;">Innovative Farming Solutions & Technology</p>
-          </div>
-        </body>
-      </html>
-    `);
+  } catch (error) {
+    console.error('Error generating OG image:', error);
+    res.status(500).json({ error: 'Failed to generate Open Graph image' });
   }
 } 

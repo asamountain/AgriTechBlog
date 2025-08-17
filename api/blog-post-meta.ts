@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Generate Open Graph HTML
     const currentUrl = `https://tech-san.vercel.app/blog/${post.slug}`;
     const ogImageUrl = post.featuredImage || 
-      `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author?.name || 'San')}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}`;
+      `https://tech-san.vercel.app/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author?.name || 'San')}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}`;
     
     const html = `
 <!DOCTYPE html>

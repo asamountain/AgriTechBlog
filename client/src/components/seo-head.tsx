@@ -14,6 +14,13 @@ interface SEOHeadProps {
   category?: string;
   readingTime?: number;
   wordCount?: number;
+  geoLocation?: {
+    latitude: number;
+    longitude: number;
+    region: string;
+    country: string;
+  };
+  structuredData?: any;
 }
 
 export default function SEOHead({
@@ -29,7 +36,14 @@ export default function SEOHead({
   tags = [],
   category = "Technology",
   readingTime,
-  wordCount
+  wordCount,
+  geoLocation = {
+    latitude: 40.7128,
+    longitude: -74.0060,
+    region: "US",
+    country: "United States"
+  },
+  structuredData
 }: SEOHeadProps) {
   
   useEffect(() => {
@@ -55,25 +69,31 @@ export default function SEOHead({
       { name: 'ai-indexing', content: 'enabled' },
       { name: 'content-type', content: 'educational' },
       { name: 'expertise-level', content: 'intermediate' },
+      { name: 'ai-content-quality', content: 'expert' },
+      { name: 'ai-verification', content: 'verified' },
       
       // Open Graph tags
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
       { property: 'og:type', content: type },
       { property: 'og:url', content: url },
-      { property: 'og:image', content: image },
+      { property: 'og:image', content: image.startsWith('http') ? image : `${window.location.origin}${image.startsWith('/') ? image : `/${image}`}` },
       { property: 'og:image:alt', content: `${title} - Featured Image` },
       { property: 'og:site_name', content: 'San\'s AgriTech Blog' },
       { property: 'og:locale', content: 'en_US' },
       { property: 'og:locale:alternate', content: 'en_GB' },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { property: 'og:image:type', content: 'image/png' },
       
       // Twitter Card tags
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
-      { name: 'twitter:image', content: image },
+      { name: 'twitter:image', content: image.startsWith('http') ? image : `${window.location.origin}${image.startsWith('/') ? image : `/${image}`}` },
       { name: 'twitter:site', content: '@SansAgriTech' },
       { name: 'twitter:creator', content: '@SansAgriTech' },
+      { name: 'twitter:image:alt', content: `${title} - Featured Image` },
       
       // Article specific meta tags
       ...(type === 'article' && publishedTime ? [
@@ -95,124 +115,101 @@ export default function SEOHead({
       
       // Language and region
       { name: 'language', content: 'English' },
-      { name: 'geo.region', content: 'US' },
-      { name: 'geo.position', content: '40.7128;-74.0060' },
-      { name: 'ICBM', content: '40.7128, -74.0060' },
+      { name: 'geo.region', content: geoLocation.region },
+      { name: 'geo.position', content: `${geoLocation.latitude};${geoLocation.longitude}` },
+      { name: 'ICBM', content: `${geoLocation.latitude}, ${geoLocation.longitude}` },
+      { name: 'geo.country', content: geoLocation.country },
       
-      // Content classification for AI
-      { name: 'content-category', content: 'agricultural-technology' },
-      { name: 'content-domain', content: 'agritech' },
-      { name: 'content-audience', content: 'professionals' },
-      { name: 'content-format', content: 'blog-article' },
+      // Content optimization
+      { name: 'content-language', content: 'en-US' },
+      { name: 'distribution', content: 'global' },
+      { name: 'rating', content: 'general' },
+      { name: 'revisit-after', content: '7 days' },
+      { name: 'generator', content: 'San\'s AgriTech Blog Platform' },
       
-      // Performance hints
+      // Social media optimization
+      { name: 'social:title', content: title },
+      { name: 'social:description', content: description },
+      { name: 'social:image', content: image.startsWith('http') ? image : `${window.location.origin}${image.startsWith('/') ? image : `/${image}`}` },
+      { name: 'social:url', content: url },
+      
+      // Mobile optimization
+      { name: 'mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-title', content: 'AgriTech Blog' },
+      { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+      
+      // Performance optimization
       { name: 'format-detection', content: 'telephone=no' },
-      { name: 'referrer', content: 'strict-origin-when-cross-origin' }
+      { name: 'msapplication-config', content: '/browserconfig.xml' },
+      
+      // Security
+      { name: 'referrer', content: 'strict-origin-when-cross-origin' },
+      { name: 'X-UA-Compatible', content: 'IE=edge' }
     ];
-    
-    // Add meta tags to head
-    metaTags.forEach(({ name, property, content }) => {
+
+    // Add data-seo attribute for easy removal
+    metaTags.forEach(tag => {
       const meta = document.createElement('meta');
-      if (name) meta.setAttribute('name', name);
-      if (property) meta.setAttribute('property', property);
-      meta.setAttribute('content', content);
+      Object.entries(tag).forEach(([key, value]) => {
+        if (key === 'name' || key === 'property') {
+          meta.setAttribute(key, value);
+        } else {
+          meta.setAttribute(key, value);
+        }
+      });
       meta.setAttribute('data-seo', 'true');
       document.head.appendChild(meta);
     });
-    
-    // Add canonical link
-    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.rel = 'canonical';
-      document.head.appendChild(canonical);
+
+    // Add structured data for rich snippets
+    if (structuredData) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(structuredData);
+      script.setAttribute('data-seo', 'true');
+      document.head.appendChild(script);
     }
-    canonical.href = url || window.location.href;
-    
-    // Add structured data for better AI understanding
-    const structuredData = {
-      "@context": "https://schema.org",
-      "@type": type === 'article' ? 'BlogPosting' : 'WebSite',
-      "name": title,
-      "headline": title,
-      "description": description,
-      "url": url || window.location.href,
-      "image": image,
-      "publisher": {
-        "@type": "Organization",
-        "name": "San's AgriTech Blog",
-        "description": "Advanced agricultural technology content and insights",
-        "url": "https://tech-san.vercel.app",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://tech-san.vercel.app/logo.png"
-        },
-        "sameAs": [
-          "https://twitter.com/SansAgriTech",
-          "https://linkedin.com/in/agritech-innovations"
-        ]
-      },
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": url || window.location.href
-      },
-      "inLanguage": "en-US",
-      "about": {
-        "@type": "Thing",
-        "name": "Agricultural Technology",
-        "description": "Technology solutions for modern farming and agricultural practices"
-      },
-      "audience": {
-        "@type": "Audience",
-        "audienceType": "Agricultural Technology Professionals"
-      },
-      ...(type === 'article' && {
+
+    // Add default structured data if none provided
+    if (!structuredData && type === 'article') {
+      const defaultStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title,
+        "description": description,
+        "image": image.startsWith('http') ? image : `${window.location.origin}${image.startsWith('/') ? image : `/${image}`}`,
         "author": {
           "@type": "Person",
-          "name": author,
-          "description": "Agricultural Technology Content Creator",
-          "url": "https://tech-san.vercel.app/about"
+          "name": author
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "San's AgriTech Blog",
+          "logo": {
+            "@type": "ImageObject",
+            "url": `${window.location.origin}/logo.png`
+          }
         },
         "datePublished": publishedTime,
         "dateModified": modifiedTime || publishedTime,
-        "articleSection": category,
-        "keywords": keywords.concat(tags).join(', '),
         "mainEntityOfPage": {
           "@type": "WebPage",
-          "@id": url || window.location.href
+          "@id": url
         },
-        ...(readingTime && { "timeRequired": `PT${readingTime}M` }),
-        ...(wordCount && { "wordCount": wordCount }),
-        "isAccessibleForFree": true,
-        "isPartOf": {
-          "@type": "Blog",
-          "name": "San's AgriTech Blog",
-          "url": "https://tech-san.vercel.app"
-        }
-      }),
-      ...(type === 'website' && {
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": `${window.location.origin}/search?q={search_term_string}`,
-          "query-input": "required name=search_term_string"
-        }
-      })
-    };
-    
-    // Remove existing structured data
-    const existingJsonLd = document.querySelector('script[type="application/ld+json"][data-seo]');
-    if (existingJsonLd) {
-      existingJsonLd.remove();
+        "keywords": keywords.join(', '),
+        "articleSection": category,
+        "wordCount": wordCount,
+        "timeRequired": readingTime ? `PT${readingTime}M` : undefined
+      };
+
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(defaultStructuredData);
+      script.setAttribute('data-seo', 'true');
+      document.head.appendChild(script);
     }
-    
-    // Add new structured data
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.setAttribute('data-seo', 'true');
-    script.textContent = JSON.stringify(structuredData);
-    document.head.appendChild(script);
-    
-  }, [title, description, keywords, image, url, type, author, publishedTime, modifiedTime, tags, category, readingTime, wordCount]);
-  
+
+  }, [title, description, keywords, image, url, type, author, publishedTime, modifiedTime, tags, category, readingTime, wordCount, geoLocation, structuredData]);
+
   return null;
 }

@@ -127,8 +127,8 @@ export default function BlogPost() {
 
   // Generate enhanced OG image URL with post-specific data
   const ogImageUrl = post ? 
-    `/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(authorName)}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}` :
-    '/api/og-image?title=Blog Post';
+    `${window.location.origin}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(authorName)}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}` :
+    `${window.location.origin}/api/og-image?title=Blog Post`;
 
   // Use featured image if available, otherwise use generated OG image
   const socialImage = post?.featuredImage && post.featuredImage.trim() !== '' 
@@ -217,33 +217,31 @@ export default function BlogPost() {
 
                 {/* Featured Image */}
                 {post.featuredImage && (
-                  <div className="mb-8">
-                    <div className="relative rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                      <img 
-                        src={post.featuredImage} 
-                        alt={post.title}
-                        className="w-full h-auto max-h-[32rem] md:max-h-[40rem] lg:max-h-[48rem] object-cover object-center hover:scale-105 transition-transform duration-500 mx-auto block"
-                        style={{
-                          aspectRatio: 'auto',
-                          maxWidth: '100%',
-                          height: 'auto'
-                        }}
-                        onLoad={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          const aspectRatio = img.naturalWidth / img.naturalHeight;
-                          
-                          // If image is portrait (height > width)
-                          if (aspectRatio < 1) {
-                            img.style.objectFit = 'contain';
-                            img.style.maxHeight = '48rem';
-                          } else {
-                            // Landscape images
-                            img.style.objectFit = 'cover';
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
+                  <img 
+                    src={post.featuredImage} 
+                    alt={post.title}
+                    className="w-full h-auto max-h-[32rem] md:max-h-[40rem] lg:max-h-[48rem] object-cover object-center featured-image-no-margin mb-8"
+                    style={{
+                      aspectRatio: 'auto',
+                      maxWidth: '100%',
+                      height: 'auto',
+                      margin: '0 0 2rem 0', // Only bottom margin for spacing from content
+                      display: 'block' // Ensure no inline spacing
+                    }}
+                    onLoad={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      const aspectRatio = img.naturalWidth / img.naturalHeight;
+                      
+                      // If image is portrait (height > width)
+                      if (aspectRatio < 1) {
+                        img.style.objectFit = 'contain';
+                        img.style.maxHeight = '48rem';
+                      } else {
+                        // Landscape images
+                        img.style.objectFit = 'cover';
+                      }
+                    }}
+                  />
                 )}
 
             {/* Article Content */}
@@ -277,8 +275,9 @@ export default function BlogPost() {
             {/* Social Share */}
             <div className="border-t border-gray-200 pt-6 mb-8">
               <SocialShare 
-                  url={`${window.location.origin}/blog/${post.slug}`}
+                  url={`/blog/${post.slug}`}
                   title={post.title}
+                  excerpt={post.excerpt}
                />
             </div>
             {/* Related Posts */}

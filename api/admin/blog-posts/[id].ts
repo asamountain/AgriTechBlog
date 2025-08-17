@@ -25,6 +25,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: 'Invalid post ID format' });
     }
 
+    if (req.method === 'GET') {
+      // Fetch single post
+      const post = await postsCollection.findOne({ id: postId });
+      
+      await client.close();
+      
+      if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+      
+      return res.status(200).json(post);
+    }
+
     if (req.method === 'PATCH') {
       // Update post
       const updateData = req.body;

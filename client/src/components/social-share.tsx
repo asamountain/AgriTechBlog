@@ -22,9 +22,11 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
   const [showShareMenu, setShowShareMenu] = useState(false);
   const { toast } = useToast();
 
+  // Ensure absolute URL for sharing
+  const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}${url.startsWith('/') ? url : `/${url}`}`;
   const shareText = excerpt ? `${title} - ${excerpt}` : title;
   const encodedTitle = encodeURIComponent(title);
-  const encodedUrl = encodeURIComponent(url);
+  const encodedUrl = encodeURIComponent(absoluteUrl);
   const encodedText = encodeURIComponent(shareText);
 
   const shareLinks = {
@@ -45,7 +47,7 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(absoluteUrl);
       toast({
         title: "Link copied!",
         description: "The article link has been copied to your clipboard.",
@@ -66,7 +68,7 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
         await navigator.share({
           title: title,
           text: excerpt,
-          url: url,
+          url: absoluteUrl,
         });
         setShowShareMenu(false);
       } catch (error) {

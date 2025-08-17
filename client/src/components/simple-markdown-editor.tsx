@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,8 @@ import { useMutation } from '@tanstack/react-query';
 import { 
   Bold, Italic, Heading1, Heading2, Heading3,
   List, Quote, Image as ImageIcon, Eye, EyeOff, 
-  Save, Clock, CheckCircle, AlertCircle, Wand2, Loader2
+  Save, Clock, CheckCircle, AlertCircle, Wand2, Loader2,
+  Tag, FileText, Image, Settings
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -52,7 +53,7 @@ export default function SimpleMarkdownEditor({
 }: SimpleMarkdownEditorProps) {
   const { toast } = useToast();
   const [title, setTitle] = useState(initialTitle);
-  const [content, setContent] = useState(() => ensureMarkdown(initialContent));
+  const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
   const [featuredImage, setFeaturedImage] = useState(initialFeaturedImage);
   const [tags, setTags] = useState<string[]>(initialTags);
@@ -61,54 +62,29 @@ export default function SimpleMarkdownEditor({
   const [showPreview, setShowPreview] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [htmlDetected, setHtmlDetected] = useState(containsHtml(initialContent));
-  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+  const [htmlDetected, setHtmlDetected] = useState(false);
 
-  // AI excerpt generation mutation
-  const generateExcerptMutation = useMutation({
-    mutationFn: async () => {
-      if (postId) {
-        // Use existing post endpoint for saved posts
-        const response = await fetch(`/api/ai-tagging/generate-excerpt/${postId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include'
-        });
-        if (!response.ok) throw new Error('Failed to generate excerpt');
-        return response.json();
-      } else {
-        // Use content-based endpoint for new posts
-        if (!title.trim() || !content.trim()) {
-          throw new Error('Please add a title and content before generating an excerpt');
-        }
-        const response = await fetch('/api/ai-tagging/generate-excerpt-from-content', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content })
-        });
-        if (!response.ok) throw new Error('Failed to generate excerpt');
-        return response.json();
-      }
-    },
-    onSuccess: (data: any) => {
-      if (data.excerpt) {
-        setExcerpt(data.excerpt);
-        toast({
-          title: "AI Excerpt Generated",
-          description: "Created an engaging excerpt for your post",
-        });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "AI Excerpt Failed",
-        description: error.message || "Could not generate excerpt. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Debug logging for field values
+  useEffect(() => {
+    console.log('SimpleMarkdownEditor - Field Values:', {
+      title,
+      content: content.substring(0, 100) + '...',
+      excerpt,
+      featuredImage,
+      tags,
+      published,
+      postId
+    });
+  }, [title, content, excerpt, featuredImage, tags, published, postId]);
 
-  // Auto-save functionality
+  // Refs to prevent unnecessary re-renders and track changes
+  const lastSavedContent = useRef<string>('');
+  const lastSavedTitle = useRef<string>('');
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoSaveIntervalRef = useRef<NodeJS.Timeout>();
+  const isInitialized = useRef(false);
+
+  // Memoized data getter to prevent unnecessary object creation
   const getCurrentData = useCallback(() => ({
     title,
     content,
@@ -118,25 +94,43 @@ export default function SimpleMarkdownEditor({
     isPublished: published,
   }), [title, content, excerpt, featuredImage, tags, published]);
 
-  const autoSave = useCallback(async () => {
+  // Check if content has actually changed
+  const hasContentChanged = useCallback(() => {
+    const currentData = getCurrentData();
+    return (
+      currentData.title !== lastSavedTitle.current ||
+      currentData.content !== lastSavedContent.current
+    );
+  }, [getCurrentData]);
+
+  // Optimized auto-save function with change detection
+  const autoSave = useCallback(async (force = false) => {
     if (!onAutoSave || saveStatus === 'saving') return;
+    
+    // Only save if content has changed or forced
+    if (!force && !hasContentChanged()) return;
 
     try {
       setSaveStatus('saving');
       const data = getCurrentData();
       
-      // Data persists only in MongoDB - no local storage backup
-
       await onAutoSave(data);
+      
+      // Update last saved content to prevent unnecessary saves
+      lastSavedContent.current = data.content;
+      lastSavedTitle.current = data.title;
+      
       setSaveStatus('saved');
       setLastSaved(new Date());
       
-      // Show success toast
-      toast({
-        title: "Draft saved",
-        description: "Your changes have been automatically saved.",
-        duration: 2000,
-      });
+      // Show success toast only for forced saves or significant changes
+      if (force) {
+        toast({
+          title: "Draft saved",
+          description: "Your changes have been automatically saved.",
+          duration: 2000,
+        });
+      }
       
       // Reset status after 3 seconds
       setTimeout(() => setSaveStatus('idle'), 3000);
@@ -144,32 +138,66 @@ export default function SimpleMarkdownEditor({
       console.error('Auto-save failed:', error);
       setSaveStatus('error');
       
-      // Show error toast
-      toast({
-        title: "Auto-save failed",
-        description: "Your changes could not be saved automatically. Please save manually.",
-        variant: "destructive",
-        duration: 4000,
-      });
+      // Show error toast only for forced saves
+      if (force) {
+        toast({
+          title: "Auto-save failed",
+          description: "Your changes could not be saved automatically. Please save manually.",
+          variant: "destructive",
+          duration: 4000,
+        });
+      }
       
       setTimeout(() => setSaveStatus('idle'), 4000);
     }
-  }, [onAutoSave, getCurrentData, saveStatus]);
+  }, [onAutoSave, getCurrentData, saveStatus, hasContentChanged, toast]);
 
-  // Auto-save every 10 seconds when content changes
+  // Debounced auto-save on content change
   useEffect(() => {
-    const interval = setInterval(autoSave, 10000);
-    return () => clearInterval(interval);
-  }, [autoSave]);
-
-  // Auto-save on content change (debounced)
-  useEffect(() => {
-    // Only auto-save if there's actual content
-    if (title.trim() || content.trim()) {
-      const timer = setTimeout(autoSave, 3000); // Increased to 3 seconds for better UX
-      return () => clearTimeout(timer);
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
     }
+
+    // Only auto-save if there's actual content and it's not the initial load
+    if (isInitialized.current && (title.trim() || content.trim())) {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        autoSave();
+      }, 3000); // 3 second debounce
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
   }, [title, content, excerpt, featuredImage, tags, autoSave]);
+
+  // Periodic auto-save (every 30 seconds) - only when content exists
+  useEffect(() => {
+    if (isInitialized.current && (title.trim() || content.trim())) {
+      autoSaveIntervalRef.current = setInterval(() => {
+        if (hasContentChanged()) {
+          autoSave();
+        }
+      }, 30000); // 30 seconds
+    }
+
+    return () => {
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+      }
+    };
+  }, [autoSave, hasContentChanged]);
+
+  // Initialize content tracking after component mounts
+  useEffect(() => {
+    if (!isInitialized.current) {
+      lastSavedContent.current = content;
+      lastSavedTitle.current = title;
+      isInitialized.current = true;
+    }
+  }, [content, title]);
 
   // Convert HTML content when initialContent changes
   useEffect(() => {
@@ -180,21 +208,42 @@ export default function SimpleMarkdownEditor({
     }
   }, [initialContent]);
 
-  // Load draft from localStorage on mount
+  // Update state when initial values change (for editing existing posts)
   useEffect(() => {
-    const savedDraft = localStorage.getItem('blog-draft');
-    if (savedDraft && !initialTitle && !initialContent) {
-      try {
-        const draft = JSON.parse(savedDraft);
-        setTitle(draft.title || '');
-        const draftContent = draft.content || '';
-        setContent(containsHtml(draftContent) ? ensureMarkdown(draftContent) : draftContent);
-        setExcerpt(draft.excerpt || '');
-        setFeaturedImage(draft.featuredImage || '');
-        setTags(draft.tags || []);
-        setPublished(draft.isPublished || false);
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+    if (initialTitle && initialTitle !== title) {
+      setTitle(initialTitle);
+    }
+    if (initialContent && initialContent !== content) {
+      setContent(initialContent);
+    }
+    if (initialExcerpt && initialExcerpt !== excerpt) {
+      setExcerpt(initialExcerpt);
+    }
+    if (initialFeaturedImage && initialFeaturedImage !== featuredImage) {
+      setFeaturedImage(initialFeaturedImage);
+    }
+    if (initialTags && initialTags.length > 0 && JSON.stringify(initialTags) !== JSON.stringify(tags)) {
+      setTags(initialTags);
+    }
+  }, [initialTitle, initialContent, initialExcerpt, initialFeaturedImage, initialTags]);
+
+  // Load draft from localStorage on mount (only for new posts)
+  useEffect(() => {
+    if (!initialTitle && !initialContent) {
+      const savedDraft = localStorage.getItem('blog-draft');
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setTitle(draft.title || '');
+          const draftContent = draft.content || '';
+          setContent(containsHtml(draftContent) ? ensureMarkdown(draftContent) : draftContent);
+          setExcerpt(draft.excerpt || '');
+          setFeaturedImage(draft.featuredImage || '');
+          setTags(draft.tags || []);
+          setPublished(draft.isPublished || false);
+        } catch (error) {
+          console.error('Failed to load draft:', error);
+        }
       }
     }
   }, [initialTitle, initialContent]);
@@ -208,6 +257,10 @@ export default function SimpleMarkdownEditor({
       await onSave(data);
       setSaveStatus('saved');
       setLastSaved(new Date());
+      
+      // Update last saved content after manual save
+      lastSavedContent.current = data.content;
+      lastSavedTitle.current = data.title;
       
       // Clear localStorage draft after successful save
       localStorage.removeItem('blog-draft');
@@ -231,350 +284,306 @@ export default function SimpleMarkdownEditor({
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleGenerateExcerpt = async () => {
-    if (!title.trim() || !content.trim()) {
-      toast({
-        title: "Content Required",
-        description: "Please add a title and content before generating an excerpt.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsGeneratingExcerpt(true);
-    await generateExcerptMutation.mutateAsync();
-    setIsGeneratingExcerpt(false);
-  };
-
-  const insertMarkdown = (before: string, after: string = '') => {
-    const textarea = document.getElementById('content-editor') as HTMLTextAreaElement;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
-    
-    setContent(newText);
-    
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
-    }, 0);
-  };
-
-  const getSaveStatusIcon = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return <Clock className="w-4 h-4 animate-spin text-blue-600" />;
-      case 'saved':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-600" />;
-      default:
-        return <Save className="w-4 h-4 text-gray-400" />;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.metaKey) {
+      e.preventDefault();
+      handleSave();
     }
   };
 
-  const getSaveStatusText = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return 'Auto-saving...';
-      case 'saved':
-        return lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : 'Auto-saved';
-      case 'error':
-        return 'Save failed';
-      default:
-        return 'Waiting for changes';
-    }
-  };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header with save status */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-forest-green">Create New Post</h1>
-        <div className="flex items-center gap-4">
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-300 ${
-            saveStatus === 'saving' ? 'bg-blue-50 border-blue-200' :
-            saveStatus === 'saved' ? 'bg-green-50 border-green-200' :
-            saveStatus === 'error' ? 'bg-red-50 border-red-200' :
-            'bg-gray-50 border-gray-200'
-          }`}>
-            {getSaveStatusIcon()}
-            <span className="text-sm font-medium">
-              {getSaveStatusText()}
-            </span>
-          </div>
-          <Button
-            onClick={() => setShowPreview(!showPreview)}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showPreview ? 'Edit' : 'Preview'}
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saveStatus === 'saving'}
-            className="flex items-center gap-2 bg-forest-green hover:bg-forest-green/90"
-          >
-            <Save className="w-4 h-4" />
-            {published ? 'Publish' : 'Save Draft'}
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Editor */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader className="pb-4">
-              <div className="space-y-4">
-                <Input
-                  placeholder="Post title..."
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="text-2xl font-bold border-none p-0 focus:ring-0 placeholder:text-gray-400"
-                />
+    <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+      <div className="container mx-auto px-6 py-8">
+        <Card className="shadow-xl">
+          <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold text-forest-green flex items-center gap-2">
+                {postId ? (
+                  <>
+                    <Settings className="h-6 w-6" />
+                    Edit Post #{postId}
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-6 w-6" />
+                    Create New Post
+                  </>
+                )}
+              </CardTitle>
+              <div className="flex items-center gap-4">
+                {/* Save Status Indicator */}
+                <div className="flex items-center gap-2 text-sm">
+                  {saveStatus === 'saving' && (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      <span className="text-blue-600">Saving...</span>
+                    </>
+                  )}
+                  {saveStatus === 'saved' && (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Saved</span>
+                    </>
+                  )}
+                  {saveStatus === 'error' && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <span className="text-red-600">Save failed</span>
+                    </>
+                  )}
+                  {saveStatus === 'idle' && lastSaved && (
+                    <>
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-500">
+                        Last saved: {lastSaved.toLocaleTimeString()}
+                      </span>
+                    </>
+                  )}
+                </div>
                 
-                {htmlDetected && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
-                    📝 HTML content detected and converted to markdown format for better editing.
+                <Button
+                  onClick={() => setShowPreview(!showPreview)}
+                  variant="outline"
+                  size="sm"
+                >
+                  {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                  {showPreview ? 'Hide Preview' : 'Show Preview'}
+                </Button>
+                
+                <Button onClick={handleSave} className="bg-forest-green hover:bg-forest-green/90">
+                  <Save className="h-4 w-4 mr-2" />
+                  {published ? 'Publish' : 'Save Draft'}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-6">
+            {!showPreview ? (
+              <div className="space-y-6">
+                {/* Debug Header for Development */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h4 className="text-sm font-medium text-yellow-800 mb-2">🔍 Development Debug Info:</h4>
+                    <div className="text-xs text-yellow-700 space-y-1">
+                      <div>Post ID: {postId || 'New Post'}</div>
+                      <div>Initial Title: {initialTitle ? `"${initialTitle}"` : 'Not set'}</div>
+                      <div>Initial Content: {initialContent ? `${initialContent.length} chars` : 'Not set'}</div>
+                      <div>Initial Excerpt: {initialExcerpt ? `"${initialExcerpt}"` : 'Not set'}</div>
+                      <div>Initial Tags: {initialTags?.length ? initialTags.join(', ') : 'Not set'}</div>
+                      <div>Initial Featured Image: {initialFeaturedImage ? 'Set' : 'Not set'}</div>
+                    </div>
                   </div>
                 )}
-                
-                {/* Markdown Toolbar */}
-                <div className="flex flex-wrap gap-2 border-b pb-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('# ', '')}
-                    title="Heading 1"
-                  >
-                    <Heading1 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('## ', '')}
-                    title="Heading 2"
-                  >
-                    <Heading2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('### ', '')}
-                    title="Heading 3"
-                  >
-                    <Heading3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('**', '**')}
-                    title="Bold"
-                  >
-                    <Bold className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('*', '*')}
-                    title="Italic"
-                  >
-                    <Italic className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('- ', '')}
-                    title="List"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('> ', '')}
-                    title="Quote"
-                  >
-                    <Quote className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertMarkdown('![alt text](', ')')}
-                    title="Image"
-                  >
-                    <ImageIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {showPreview ? (
-                <div className="prose prose-lg max-w-none min-h-[400px] p-4 border rounded-md">
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeSlug]}
-                  >
-                    {content || '*No content yet. Start typing in edit mode!*'}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <textarea
-                  id="content-editor"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Start writing your post... Use # for headings, **bold**, *italic*, and more!"
-                  className="w-full min-h-[400px] p-4 border rounded-md resize-none focus:ring-2 focus:ring-forest-green focus:border-transparent"
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Post Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Post Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="published"
-                  checked={published}
-                  onChange={(e) => setPublished(e.target.checked)}
-                  className="rounded"
-                />
-                <label htmlFor="published" className="text-sm font-medium">
-                  Published
-                </label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Excerpt */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Excerpt</CardTitle>
-                <Button
-                  onClick={handleGenerateExcerpt}
-                  disabled={isGeneratingExcerpt || (!title.trim() || !content.trim())}
-                  size="sm"
-                  className="bg-forest-green text-white hover:opacity-80"
-                >
-                  {isGeneratingExcerpt ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Wand2 className="h-4 w-4 mr-2" />
-                  )}
-                  AI Generate
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <textarea
-                placeholder="Write an engaging summary that captures readers' attention..."
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                className="w-full p-3 border rounded-md resize-none h-24"
-              />
-              <p className="text-xs text-gray-500">
-                Create an attractive excerpt that hooks readers and encourages them to read the full post. Add a title and content, then use AI Generate for compelling suggestions.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Featured Image */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Featured Image (Thumbnail)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={featuredImage}
-                onChange={(e) => setFeaturedImage(e.target.value)}
-              />
-              {featuredImage && (
-                <div className="mt-2">
-                  <img
-                    src={featuredImage}
-                    alt="Featured image preview"
-                    className="w-full h-32 object-cover rounded-md border"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
-                    }}
+                {/* Title Input */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Heading1 className="h-4 w-4" />
+                    Title *
+                  </label>
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Enter your post title..."
+                    className="text-lg font-semibold"
+                    onKeyDown={handleKeyDown}
                   />
-                  <p className="text-xs text-gray-600 mt-1">
-                    Preview of how the thumbnail will appear on the blog
+                  <p className="text-xs text-gray-500 mt-1">
+                    Current length: {title.length} characters
                   </p>
                 </div>
-              )}
-              <p className="text-xs text-gray-500">
-                Enter a URL for the post thumbnail. This image will be displayed in blog listings, social shares, and as the featured image.
-              </p>
-            </CardContent>
-          </Card>
 
-          {/* Tags */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Tags</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add tag..."
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                  className="flex-1"
-                />
-                <Button onClick={addTag} size="sm">
-                  Add
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="cursor-pointer"
-                    onClick={() => removeTag(tag)}
-                  >
-                    {tag} ×
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                {/* Content Editor */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Content *
+                  </label>
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your post content in Markdown..."
+                    className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                    onKeyDown={handleKeyDown}
+                  />
+                  {htmlDetected && (
+                    <p className="text-sm text-blue-600 mt-2">
+                      HTML content detected and converted to Markdown
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Current length: {content.length} characters
+                  </p>
+                </div>
 
-          {/* Markdown Help */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Markdown Guide</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <div><code># Heading 1</code></div>
-              <div><code>## Heading 2</code></div>
-              <div><code>**Bold text**</code></div>
-              <div><code>*Italic text*</code></div>
-              <div><code>- List item</code></div>
-              <div><code>&gt; Quote</code></div>
-              <div><code>![image](url)</code></div>
-              <div><code>[link](url)</code></div>
-            </CardContent>
-          </Card>
-        </div>
+                {/* Excerpt Input */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Excerpt
+                  </label>
+                  <textarea
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    placeholder="Brief description of your post..."
+                    className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will appear in blog previews and social media shares. Current length: {excerpt.length} characters
+                  </p>
+                </div>
+
+                {/* Featured Image */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    Featured Image URL (Thumbnail)
+                  </label>
+                  <Input
+                    value={featuredImage}
+                    onChange={(e) => setFeaturedImage(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  {featuredImage && (
+                    <div className="mt-3">
+                      <img
+                        src={featuredImage}
+                        alt="Featured image preview"
+                        className="w-32 h-20 object-cover rounded-lg border shadow-sm"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Preview of your thumbnail (1200x630px recommended)
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    This image will appear in blog listings and social media shares
+                  </p>
+                </div>
+
+                {/* Tags */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    Tags
+                  </label>
+                  <div className="flex gap-2 mb-2 flex-wrap">
+                    {tags.map((tag, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="bg-forest-green/10 text-forest-green border-forest-green/20"
+                      >
+                        {tag}
+                        <button
+                          onClick={() => removeTag(tag)}
+                          className="ml-2 text-forest-green/60 hover:text-forest-green"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      placeholder="Add a tag..."
+                      onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                    />
+                    <Button onClick={addTag} variant="outline" size="sm">
+                      Add Tag
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tags help readers find your content and improve SEO. Current tags: {tags.length}
+                  </p>
+                </div>
+
+                {/* Publish Toggle */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="published"
+                      checked={published}
+                      onChange={(e) => setPublished(e.target.checked)}
+                      className="rounded border-gray-300 text-forest-green focus:ring-forest-green"
+                    />
+                    <label htmlFor="published" className="text-sm font-medium text-gray-700">
+                      Publish immediately (uncheck to save as draft)
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Current status: {published ? 'Will be published' : 'Will be saved as draft'}
+                  </p>
+                </div>
+
+                {/* Debug Info (Development Only) */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2">🔧 Current State Debug Info:</h4>
+                    <div className="text-xs text-blue-700 space-y-1">
+                      <div>Post ID: {postId || 'New Post'}</div>
+                      <div>Title Length: {title.length}</div>
+                      <div>Content Length: {content.length}</div>
+                      <div>Excerpt Length: {excerpt.length}</div>
+                      <div>Tags Count: {tags.length}</div>
+                      <div>Featured Image: {featuredImage ? 'Set' : 'Not set'}</div>
+                      <div>Published: {published ? 'Yes' : 'No'}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="prose prose-lg max-w-none">
+                <h1>{title || 'Untitled Post'}</h1>
+                {excerpt && <p className="text-gray-600 italic">{excerpt}</p>}
+                {featuredImage && (
+                  <div className="my-4">
+                    <img
+                      src={featuredImage}
+                      alt="Featured image"
+                      className="w-full max-w-2xl h-auto rounded-lg shadow-md"
+                    />
+                  </div>
+                )}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeSlug]}
+                  className="prose-headings:text-forest-green prose-a:text-blue-600 prose-strong:text-forest-green"
+                >
+                  {content || 'No content yet...'}
+                </ReactMarkdown>
+                {tags.length > 0 && (
+                  <div className="flex gap-2 mt-6">
+                    {tags.map((tag, index) => (
+                      <Badge key={index} variant="outline">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export default function CreatePost() {
   const isEditing = Boolean(id);
 
   // Fetch existing post if editing
-  const { data: post, isLoading } = useQuery({
+  const { data: post, isLoading, error } = useQuery({
     queryKey: ['/api/admin/blog-posts', id],
     queryFn: async () => {
       if (!id) throw new Error('No post ID provided');
@@ -27,6 +27,22 @@ export default function CreatePost() {
     },
     enabled: isEditing && !!id,
   });
+
+  // Debug logging for post data
+  useEffect(() => {
+    if (isEditing && post) {
+      console.log('CreatePost - Editing existing post:', {
+        id: post.id,
+        title: post.title,
+        content: post.content?.substring(0, 100) + '...',
+        excerpt: post.excerpt,
+        featuredImage: post.featuredImage,
+        tags: post.tags,
+        isPublished: post.isPublished,
+        isFeatured: post.isFeatured
+      });
+    }
+  }, [isEditing, post]);
 
   // Auto-save mutation for drafts
   const autoSaveMutation = useMutation({
@@ -107,7 +123,6 @@ export default function CreatePost() {
       };
 
       if (isEditing) {
-        // Use path parameter format to match backend route
         const response = await fetch(`/api/admin/blog-posts/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -191,19 +206,58 @@ export default function CreatePost() {
     );
   }
 
+  if (isEditing && error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+        <Navigation />
+        <div className="container mx-auto px-6 py-24">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Post</h1>
+            <p className="text-gray-600 mb-6">
+              {error instanceof Error ? error.message : 'Failed to load the post you want to edit.'}
+            </p>
+            <button
+              onClick={() => setLocation('/admin')}
+              className="bg-forest-green text-white px-6 py-2 rounded-lg hover:bg-forest-green/90"
+            >
+              Back to Admin Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract post data with proper fallbacks
+  const postData = post as BlogPostWithDetails | undefined;
+  const initialValues = {
+    content: postData?.content || '',
+    title: postData?.title || '',
+    tags: postData?.tags || [],
+    excerpt: postData?.excerpt || '',
+    featuredImage: postData?.featuredImage || '',
+    isPublished: postData?.isPublished || false,
+    isFeatured: postData?.isFeatured || false
+  };
+
+  // Debug logging for initial values
+  useEffect(() => {
+    console.log('CreatePost - Initial values being passed to editor:', initialValues);
+  }, [initialValues]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
       <Navigation />
       <div className="pt-20">
         <SimpleMarkdownEditor
-          initialContent={(post as any)?.content || ''}
-          initialTitle={(post as any)?.title || ''}
-          initialTags={(post as any)?.tags || []}
-          initialExcerpt={(post as any)?.excerpt || ''}
-          initialFeaturedImage={(post as any)?.featuredImage || ''}
+          initialContent={initialValues.content}
+          initialTitle={initialValues.title}
+          initialTags={initialValues.tags}
+          initialExcerpt={initialValues.excerpt}
+          initialFeaturedImage={initialValues.featuredImage}
           postId={id}
-          onAutoSave={(data) => handleAutoSave({ ...data, isFeatured: false })}
-          onSave={(data) => handleSave({ ...data, isFeatured: false })}
+          onAutoSave={(data) => handleAutoSave({ ...data, isFeatured: initialValues.isFeatured })}
+          onSave={(data) => handleSave({ ...data, isFeatured: initialValues.isFeatured })}
         />
       </div>
     </div>

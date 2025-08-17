@@ -267,6 +267,13 @@ h1, h2, h3, h4, h5, h6 {
     margin: 2rem 0;
   }
 
+  /* Featured image should have no margins */
+  .featured-image-no-margin {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    display: block !important;
+  }
+  
   .hover\:text-fresh-lime:hover {
     color: var(--fresh-lime);
   }
