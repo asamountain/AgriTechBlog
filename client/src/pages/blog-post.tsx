@@ -26,6 +26,7 @@ import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
 import { ensureMarkdown } from '@/lib/html-to-markdown';
 import { markdownToText } from "@/lib/html-to-markdown";
+import CommentSection from "@/components/comments/comment-section";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -240,6 +241,9 @@ export default function BlogPost() {
                 {ensureMarkdown(post.content)}
               </ReactMarkdown>
             </div>
+
+            {/* Comment Section - Moved here to be right after article content */}
+            <CommentSection postId={post.id.toString()} postTitle={post.title} />
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (

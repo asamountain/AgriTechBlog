@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { useEffect, lazy, Suspense } from "react";
 // import { initGA } from "./lib/analytics"; // DISABLED
 // import { useAnalytics } from "./hooks/use-analytics"; // DISABLED
@@ -19,6 +20,7 @@ const CreatePost = lazy(() => import("@/pages/create-post"));
 const OpenGraphTester = lazy(() => import("@/pages/og-tester"));
 const TaggedPosts = lazy(() => import("@/pages/tagged-posts"));
 const AuthCallback = lazy(() => import("@/pages/auth-callback"));
+const UserProfile = lazy(() => import("@/pages/user-profile"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const DebugFlowVisualizer = lazy(() => import("@/components/debug-flow-visualizer"));
 
@@ -46,6 +48,7 @@ function Router() {
         <Route path="/auth/callback" component={AuthCallback} />
         <Route path="/tags/:tag" component={TaggedPosts} />
         <Route path="/blog/:slug" component={BlogPost} />
+        <Route path="/user/:username" component={UserProfile} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -86,17 +89,19 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-        {import.meta.env.DEV && isAdminPage && (
-          <Suspense fallback={<div className="fixed bottom-0 left-0 right-0 z-50 h-8 bg-blue-500 text-white text-center">Loading Debug...</div>}>
-            <div className="fixed bottom-0 left-0 right-0 z-50 max-h-96 overflow-y-auto bg-white shadow-2xl border-t-4 border-blue-500">
-              <DebugFlowVisualizer />
-            </div>
-          </Suspense>
-        )}
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+          {import.meta.env.DEV && isAdminPage && (
+            <Suspense fallback={<div className="fixed bottom-0 left-0 right-0 z-50 h-8 bg-blue-500 text-white text-center">Loading Debug...</div>}>
+              <div className="fixed bottom-0 left-0 right-0 z-50 max-h-96 overflow-y-auto bg-white shadow-2xl border-t-4 border-blue-500">
+                <DebugFlowVisualizer />
+              </div>
+            </Suspense>
+          )}
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
