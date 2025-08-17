@@ -52,7 +52,6 @@ export interface BlogPost {
   excerpt: string;
   content: string;
   featuredImage: string;
-  authorId: number | string;
   userId: string;
   tags: string[];
   readTime: number;
@@ -69,7 +68,6 @@ export interface InsertBlogPost {
   excerpt: string;
   content: string;
   featuredImage: string;
-  authorId: number | string;
   userId: string;
   tags?: string[];
   readTime?: number;
@@ -101,7 +99,7 @@ export interface InsertComment {
 
 // Extended interfaces
 export interface BlogPostWithDetails extends BlogPost {
-  author: Author;
+  // Author information removed - posts are now anonymous
 }
 
 // Zod validation schemas for MongoDB
@@ -129,7 +127,6 @@ export const insertBlogPostSchema = z.object({
   excerpt: z.string().min(1, "Excerpt is required"),
   content: z.string().min(1, "Content is required"),
   featuredImage: z.string().url("Valid image URL is required").or(z.literal("")),
-  authorId: z.union([z.number(), z.string()]),
   userId: z.string().min(1, "User ID is required"),
   tags: z.array(z.string()).default([]),
   readTime: z.number().positive().default(5),

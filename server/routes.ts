@@ -74,7 +74,6 @@ As technology continues to evolve, we can expect even more sophisticated autonom
 
 The future of agriculture is autonomous, sustainable, and efficient. By embracing these technologies, farmers can increase productivity while reducing their environmental footprint.`,
         featuredImage: "",
-        authorId: author.id,
         tags: ["autonomous farming", "AI", "technology", "agriculture"],
         readTime: 8,
         isFeatured: true,
@@ -142,7 +141,6 @@ Research continues to optimize agrivoltaic systems for various climates, crops, 
 
 The integration of agriculture and solar energy represents a promising pathway toward sustainable development, addressing the dual challenges of food security and clean energy transition.`,
         featuredImage: "",
-        authorId: author.id,
         tags: ["agrivoltaics", "solar energy", "sustainable agriculture", "renewable energy"],
         readTime: 7,
         isFeatured: true,
@@ -195,23 +193,7 @@ function createMockStorage(): IStorage {
       tags: ["test", "editing", "mock"],
       isFeatured: false,
       isPublished: false,
-      readTime: 2,
-      authorId: 1,
-      author: {
-        id: 1,
-        name: "Test Author",
-        email: "test@example.com",
-        bio: "A test author for mock data",
-        avatar: null,
-        userId: "demo-user-001",
-        linkedinUrl: null,
-        instagramUrl: null,
-        youtubeUrl: null,
-        githubUrl: null,
-        portfolioUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+      readTime: 2
     }
   ];
 
@@ -226,13 +208,13 @@ function createMockStorage(): IStorage {
 
     // Author methods
     async getAuthors(): Promise<Author[]> {
-      return mockPosts.map(p => p.author);
+      return [];
     },
     async createAuthor(insertAuthor: InsertAuthor): Promise<Author> {
       throw new Error("Mock storage: Author creation not implemented");
     },
     async getAuthorByUserId(userId: string): Promise<Author | undefined> {
-      return mockPosts[0]?.author;
+      return undefined;
     },
     async updateAuthor(id: number, updates: Partial<Author>): Promise<Author> {
       throw new Error("Mock storage: Author update not implemented");
@@ -1153,23 +1135,7 @@ ${publishedPosts.map(post => `  <url>
         tags: [],
         isFeatured: false,
         isPublished: false,
-        readTime: 0,
-        authorId: 1,
-        author: {
-          id: 1,
-          name: 'Author',
-          email: '',
-          bio: '',
-          avatar: null,
-          userId: '',
-          linkedinUrl: null,
-          instagramUrl: null,
-          youtubeUrl: null,
-          githubUrl: null,
-          portfolioUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
+        readTime: 0
       };
 
       const aiService = getAITaggingService();
@@ -1553,7 +1519,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     <description><![CDATA[${post.excerpt}]]></description>
     <content:encoded><![CDATA[${post.content}]]></content:encoded>
     <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>
-    <author>${post.author.email} (${post.author.name})</author>
+    <author>San (san@agritech.com)</author>
     <category><![CDATA[${post.tags?.join(", ") || "Uncategorized"}]]></category>
     ${post.tags?.map(tag => `<category><![CDATA[${tag}]]></category>`).join('') || ''}
     ${post.featuredImage ? `<enclosure url="${post.featuredImage}" type="image/jpeg"/>` : ''}
@@ -1622,14 +1588,14 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
         // Serve Open Graph optimized page for crawlers
         const post = await activeStorage.getBlogPostBySlug(slug);
         
-        if (!post || post.draft) {
+        if (!post || !post.isPublished) {
           return res.status(404).send('Post not found');
         }
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const currentUrl = `${baseUrl}/blog/${post.slug}`;
         const ogImageUrl = post.featuredImage || 
-          `${baseUrl}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author?.name || 'San')}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}`;
+          `${baseUrl}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=San&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}`;
         
         const html = `<!DOCTYPE html>
 <html lang="en">
@@ -1651,7 +1617,7 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
   <meta property="og:image:alt" content="${post.title} - Featured Image">
   
   <!-- Article Meta Tags -->
-  <meta property="article:author" content="${post.author?.name || 'San'}">
+  <meta property="article:author" content="San">
   <meta property="article:published_time" content="${post.createdAt}">
   <meta property="article:modified_time" content="${post.updatedAt}">
   <meta property="article:section" content="${post.tags?.[0] || 'Technology'}">

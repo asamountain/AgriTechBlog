@@ -422,7 +422,6 @@ export class MongoStorage implements IStorage {
       isPublished: insertPost.isPublished !== false, // Use schema field name
       isFeatured: insertPost.isFeatured || false,     // Use schema field name
       userId: insertPost.userId,
-      authorId: insertPost.authorId,
       tags: insertPost.tags || [],
       readTime: insertPost.readTime || this.calculateReadTime(insertPost.content),
       
@@ -453,7 +452,6 @@ export class MongoStorage implements IStorage {
       excerpt: insertPost.excerpt,
       content: insertPost.content,
       featuredImage: insertPost.featuredImage,
-      authorId: insertPost.authorId,
       tags: insertPost.tags || [],
       readTime: insertPost.readTime || this.calculateReadTime(insertPost.content),
       isFeatured: insertPost.isFeatured || false,
