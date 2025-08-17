@@ -162,11 +162,7 @@ function mapPostDocument(doc: any) {
     isFeatured: !!doc.featured,
     isPublished: !doc.draft, // Note: draft = true means unpublished
     readTime: Math.ceil((doc.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length / 200),
-    author: {
-      id: doc.userId || 'demo-user-001',
-      name: 'Admin Author', // TODO: Get from user profile
-      avatar: '/placeholder-avatar.jpg'
-    }
+    // Author information removed
   };
 }
 

@@ -98,7 +98,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                           </Badge>
                         )}
                         <span className="text-xs text-gray-500">
-                          {post.author.name} • {formatDate(post.createdAt)}
+                          {formatDate(post.createdAt)}
                         </span>
                       </div>
                     </div>

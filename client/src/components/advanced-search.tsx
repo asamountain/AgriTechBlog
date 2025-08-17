@@ -246,10 +246,6 @@ export default function AdvancedSearch() {
                           <Calendar className="h-3 w-3" />
                           {formatDate(post.createdAt)}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {post.author.name}
-                        </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="h-3 w-3" />

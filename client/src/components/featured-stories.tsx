@@ -97,26 +97,8 @@ export default function FeaturedStories() {
                         {markdownToText(story.excerpt)}
                       </p>
                       
-                      {/* Author & Read Time */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="w-8 h-8">
-                            {(profile as any)?.avatar ? (
-                              <img
-                                src={(profile as any).avatar}
-                                alt={(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                            ) : (
-                              <AvatarFallback className="bg-forest-green text-white text-xs font-medium">
-                                {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name).split(' ').map((n: string) => n[0]).join('')}
-                              </AvatarFallback>
-                            )}
-                          </Avatar>
-                          <span className="text-sm font-medium text-gray-700">
-                            {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : story.author.name}
-                          </span>
-                        </div>
+                      {/* Read Time Only */}
+                      <div className="flex items-center justify-end">
                         <span className="text-xs text-gray-500 uppercase tracking-wide">{story.readTime} min read</span>
                       </div>
                     </div>

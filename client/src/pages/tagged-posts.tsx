@@ -292,17 +292,6 @@ export default function TaggedPosts() {
                         )}
                       </div>
                       
-                      {/* Author */}
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-forest-green rounded-full flex items-center justify-center text-white text-sm font-bold">
-                            {((profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name).charAt(0)}
-                          </div>
-                          <span className="ml-2 text-sm text-gray-700">
-                            {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author.name}
-                          </span>
-                        </div>
-                      </div>
                     </div>
                   </article>
                 </Link>

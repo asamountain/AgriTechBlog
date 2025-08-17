@@ -1,57 +1,49 @@
 import { Linkedin, Instagram, Youtube, Github, Camera, Leaf, Globe, Users, BookOpen, MessageCircle } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import type { Author } from "@shared/schema";
 
 interface FooterProps {
   variant?: "simple" | "enhanced";
 }
 
 export default function Footer({ variant = "simple" }: FooterProps) {
-  // Fetch profile data for social media links
-  const { data: profile } = useQuery<Author>({
-    queryKey: ["/api/admin/profile"],
-    retry: false,
-  });
-
-  // Create social links array from profile data, with appropriate fallbacks
+  // Create social links array with fallback URLs (no profile dependency)
   const socialLinks = [
     {
-      href: profile?.linkedinUrl || "https://linkedin.com/in/agritech-innovations",
+      href: "https://linkedin.com/in/agritech-innovations",
       icon: Linkedin,
       label: "LinkedIn",
-      enabled: !!profile?.linkedinUrl,
+      enabled: true,
     },
     {
-      href: profile?.instagramUrl || "https://instagram.com/agritech_blog",
+      href: "https://instagram.com/agritech_blog",
       icon: Instagram,
       label: "Instagram",
-      enabled: !!profile?.instagramUrl,
+      enabled: true,
     },
     {
-      href: profile?.youtubeUrl || "https://youtube.com/@AgriTechInnovations",
+      href: "https://youtube.com/@AgriTechInnovations",
       icon: Youtube,
       label: "YouTube",
-      enabled: !!profile?.youtubeUrl,
+      enabled: true,
     },
     {
-      href: profile?.githubUrl || "https://github.com/agritech-innovations",
+      href: "https://github.com/agritech-innovations",
       icon: Github,
       label: "GitHub",
-      enabled: !!profile?.githubUrl,
+      enabled: true,
     },
     {
-      href: profile?.portfolioUrl || "https://portfolio.agritech-innovations.com",
+      href: "https://portfolio.agritech-innovations.com",
       icon: Camera,
       label: "Photo Portfolio",
-      enabled: !!profile?.portfolioUrl,
+      enabled: true,
     },
     {
       href: "https://discord.gg/3crTf7nqUk",
       icon: MessageCircle,
       label: "Discord",
-      enabled: true, // Always show Discord
+      enabled: true,
     },
-  ].filter((link) => link.enabled);
+  ];
 
   // Enhanced footer sections
   const footerSections = [

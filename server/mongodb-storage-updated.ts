@@ -239,22 +239,7 @@ export class MongoStorage implements IStorage {
       isFeatured: !!doc.featured,
       isPublished: !doc.draft,
       readTime: this.calculateReadTime(doc.content || ''),
-      authorId: 1, // Default author ID
-      author: {
-        id: 1,
-        name: 'San',
-        email: 'san@example.com',
-        bio: 'Sustainable Abundance Seeker',
-        avatar: null,
-        userId: doc.userId || '111583071033294776048',
-        linkedinUrl: null,
-        instagramUrl: null,
-        youtubeUrl: null,
-        githubUrl: null,
-        portfolioUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+      // Author information removed
     };
   }
 

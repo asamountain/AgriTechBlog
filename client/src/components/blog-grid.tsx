@@ -155,9 +155,6 @@ export default function BlogGrid({}: BlogGridProps) {
                           {/* Meta Info */}
                           <div className="flex items-center justify-between text-sm text-gray-500">
                             <div className="flex items-center space-x-4">
-                              <span className="font-medium text-gray-700">
-                                {(profile as any)?.name && (profile as any).name.trim() !== '' ? (profile as any).name : post.author?.name || 'San'}
-                              </span>
                               <span>{formatDate(post.createdAt)}</span>
                             </div>
                             <span className="text-xs uppercase tracking-wide">{post.readTime || 5} min read</span>

@@ -224,10 +224,6 @@ export default function PostsPage() {
                         <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              <span>{post.author.name}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                             </div>

@@ -39,25 +39,6 @@ export default function BlogPost() {
     enabled: !!slug,
   });
 
-  // Fetch profile data for author information
-  const {
-    data: profile,
-    isLoading: profileLoading,
-    error: profileError,
-  } = useQuery({
-    queryKey: ["/api/profile"],
-    retry: false,
-    staleTime: 0, // Always refetch to get latest profile data
-    gcTime: 5 * 60 * 1000, // Cache for 5 minutes (gcTime instead of cacheTime in v5)
-  });
-
-  // Debug profile data
-  useEffect(() => {
-    console.log("Profile data:", profile);
-    console.log("Profile loading:", profileLoading);
-    console.log("Profile error:", profileError);
-  }, [profile, profileLoading, profileError]);
-
   // Track blog post view when post loads
   useEffect(() => {
     if (post) {
@@ -112,10 +93,6 @@ export default function BlogPost() {
   }
 
   // Generate SEO data for maximum AI chatbot and search engine visibility
-  const authorName =
-    (profile as any)?.name && (profile as any).name.trim() !== ""
-      ? (profile as any).name
-      : post.author.name;
   const currentUrl = `${window.location.origin}/blog/${post.slug}`;
   const keywords = [
     ...(post.tags || []),
@@ -127,7 +104,7 @@ export default function BlogPost() {
 
   // Generate enhanced OG image URL with post-specific data
   const ogImageUrl = post ? 
-    `${window.location.origin}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(authorName)}&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}` :
+    `${window.location.origin}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=San&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}` :
     `${window.location.origin}/api/og-image?title=Blog Post`;
 
   // Use featured image if available, otherwise use generated OG image
@@ -138,17 +115,18 @@ export default function BlogPost() {
   return (
     <>
       <SEOHead
-        title={`${post?.title} | San's Agricultural Technology Blog`}
-        description={post?.excerpt || "Discover innovative agricultural technology and sustainable farming practices"}
+        title={`${post.title} - San's Agricultural Technology Blog`}
+        description={post.excerpt}
         keywords={keywords}
-        publishedTime={post?.createdAt instanceof Date ? post.createdAt.toISOString() : post?.createdAt}
-        modifiedTime={post?.updatedAt instanceof Date ? post.updatedAt.toISOString() : post?.updatedAt}
         image={socialImage}
         url={currentUrl}
         type="article"
-        author={authorName}
         tags={post?.tags || []}
         category={post?.tags?.[0] || 'Agricultural Technology'}
+        readingTime={post.readTime}
+        wordCount={post.content.split(/\s+/).length}
+        publishedTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}
+        modifiedTime={post.updatedAt instanceof Date ? post.updatedAt.toISOString() : post.updatedAt}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
