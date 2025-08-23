@@ -23,6 +23,7 @@ export default function DebugFlowVisualizer() {
   const [isTracking, setIsTracking] = useState(true);
   const [flowNodes, setFlowNodes] = useState<FlowNode[]>([]);
   const [postSummary, setPostSummary] = useState<any>(null);
+  const [isVisible, setIsVisible] = useState(true); // New state for visibility
 
   // Debug: Log when component mounts
   useEffect(() => {
@@ -130,59 +131,87 @@ export default function DebugFlowVisualizer() {
   const postEvents = events.filter(e => e.metadata?.post || e.data?.postId);
   const metrics = debugTracker.instance.getPerformanceMetrics();
 
+  const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+  };
+
+  // If not visible, show only a small toggle button
+  if (!isVisible) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onClick={toggleVisibility}
+          className="bg-forest-green hover:bg-forest-green/90 text-white shadow-lg"
+          size="sm"
+        >
+          🔍 Show Debug
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Card className="w-full border-0 shadow-none">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            🔍 Debug Flow Visualizer
-            {postSummary && (
-              <Badge variant="outline" className="ml-2">
-                <FileText className="h-3 w-3 mr-1" />
-                Post: {postSummary.postId}
-              </Badge>
-            )}
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleTracking}
-              className="flex items-center gap-1"
-            >
-              {isTracking ? (
-                <>
-                  <Pause className="h-4 w-4" />
-                  Pause
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4" />
-                  Resume
-                </>
+    <div className="fixed bottom-0 left-0 right-0 z-50 max-h-96 overflow-y-auto bg-white shadow-2xl border-t-4 border-blue-500">
+      <Card className="w-full border-0 shadow-none">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              🔍 Debug Flow Visualizer
+              {postSummary && (
+                <Badge variant="outline" className="ml-2">
+                  <FileText className="h-3 w-3 mr-1" />
+                  Post: {postSummary.postId}
+                </Badge>
               )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearEvents}
-              className="flex items-center gap-1"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Clear
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportFlowData}
-              className="flex items-center gap-1"
-            >
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleVisibility}
+                className="flex items-center gap-1"
+              >
+                👁️ Hide
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTracking}
+                className="flex items-center gap-1"
+              >
+                {isTracking ? (
+                  <>
+                    <Pause className="h-4 w-4" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4" />
+                    Resume
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearEvents}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Clear
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportFlowData}
+                className="flex items-center gap-1"
+              >
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
       
       <CardContent>
         <Tabs defaultValue="flow" className="w-full">
@@ -609,5 +638,6 @@ export default function DebugFlowVisualizer() {
         </Tabs>
       </CardContent>
     </Card>
+    </div>
   );
 } 
