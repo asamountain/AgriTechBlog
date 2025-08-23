@@ -103,50 +103,42 @@ export default function SimpleMarkdownEditor({
     );
   }, [getCurrentData]);
 
-  // Optimized auto-save function with change detection
+  // Auto-save function with proper memoization
   const autoSave = useCallback(async (force = false) => {
     if (!onAutoSave || saveStatus === 'saving') return;
     
-    // Only save if content has changed or forced
+    // Check if content has actually changed (unless forced)
     if (!force && !hasContentChanged()) return;
-
+    
     try {
       setSaveStatus('saving');
-      const data = getCurrentData();
+      const currentData = getCurrentData();
       
-      await onAutoSave(data);
+      await onAutoSave(currentData);
       
       // Update last saved content to prevent unnecessary saves
-      lastSavedContent.current = data.content;
-      lastSavedTitle.current = data.title;
+      lastSavedContent.current = currentData.content;
+      lastSavedTitle.current = currentData.title;
       
       setSaveStatus('saved');
       setLastSaved(new Date());
       
-      // Show success toast only for forced saves or significant changes
-      if (force) {
-        toast({
-          title: "Draft saved",
-          description: "Your changes have been automatically saved.",
-          duration: 2000,
-        });
-      }
+      toast({
+        title: 'Auto-saved',
+        description: 'Your changes have been automatically saved.',
+      });
       
-      // Reset status after 3 seconds
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      // Reset status after a delay
+      setTimeout(() => setSaveStatus('idle'), 4000);
     } catch (error) {
       console.error('Auto-save failed:', error);
       setSaveStatus('error');
       
-      // Show error toast only for forced saves
-      if (force) {
-        toast({
-          title: "Auto-save failed",
-          description: "Your changes could not be saved automatically. Please save manually.",
-          variant: "destructive",
-          duration: 4000,
-        });
-      }
+      toast({
+        title: 'Auto-save failed',
+        description: 'Failed to auto-save your changes.',
+        variant: 'destructive',
+      });
       
       setTimeout(() => setSaveStatus('idle'), 4000);
     }
@@ -171,7 +163,7 @@ export default function SimpleMarkdownEditor({
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [title, content, excerpt, featuredImage, tags, autoSave]);
+  }, [title, content, excerpt, featuredImage, tags]); // Removed autoSave dependency
 
   // Periodic auto-save (every 30 seconds) - only when content exists
   useEffect(() => {
@@ -188,7 +180,7 @@ export default function SimpleMarkdownEditor({
         clearInterval(autoSaveIntervalRef.current);
       }
     };
-  }, [autoSave, hasContentChanged]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Initialize content tracking after component mounts
   useEffect(() => {
@@ -197,7 +189,7 @@ export default function SimpleMarkdownEditor({
       lastSavedTitle.current = title;
       isInitialized.current = true;
     }
-  }, [content, title]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Convert HTML content when initialContent changes
   useEffect(() => {

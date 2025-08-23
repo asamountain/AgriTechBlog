@@ -4,6 +4,104 @@
 
 ---
 
+## **FIX #010: React Rules of Hooks Violation - Edit Post Page Crashing**
+
+**Date:** January 20, 2025  
+**Status:** ✅ RESOLVED  
+**Priority:** CRITICAL  
+**Affected:** Edit post page (`/edit-post/:id`), admin functionality
+
+### **Problem Description**
+- Edit post page crashing with React error #310
+- Console showing "Rendered more hooks than during the previous render"
+- "Rules of Hooks" violation preventing page from loading
+- All form fields (title, content, tags, excerpt, featured image) not visible
+
+### **Root Causes Identified**
+1. **Early conditional returns before hooks** - `if (isEditing && isLoading)` and `if (isEditing && error)` happening before all React hooks were called
+2. **Inconsistent hook order** - Hooks being called in different orders between renders
+3. **Rules of Hooks violation** - React expects all hooks to be called in the same order every time
+
+### **Solution Implemented**
+
+#### Step 1: Restructure Component Hook Order
+**BEFORE (BROKEN):**
+```typescript
+export default function CreatePost() {
+  const { id } = useParams<{ id?: string }>();
+  const [, setLocation] = useLocation();
+  
+  // Early return before all hooks - VIOLATES RULES OF HOOKS
+  if (isEditing && isLoading) {
+    return <LoadingSpinner />;
+  }
+  
+  // More hooks called after conditional return
+  const { data: post, isLoading, error } = useQuery({...});
+  const autoSaveMutation = useMutation({...});
+  // ... more hooks
+}
+```
+
+**AFTER (WORKING):**
+```typescript
+export default function CreatePost() {
+  // ✅ ALL HOOKS CALLED FIRST, BEFORE ANY CONDITIONAL LOGIC
+  const { id } = useParams<{ id?: string }>();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { data: post, isLoading, error } = useQuery({...});
+  const autoSaveMutation = useMutation({...});
+  const saveMutation = useMutation({...});
+  useEffect(() => {...}, [isEditing, post]);
+  useEffect(() => {...}, [initialValues]);
+  
+  // ✅ Helper functions after hooks
+  const handleAutoSave = async (data) => {...};
+  const handleSave = async (data) => {...};
+  
+  // ✅ Conditional rendering after all hooks
+  if (isEditing && isLoading) return <LoadingSpinner />;
+  if (isEditing && error) return <ErrorState />;
+  
+  return <MainEditor />;
+}
+```
+
+#### Step 2: Ensure Consistent Hook Order
+- All hooks moved to top of component
+- No conditional returns before hooks
+- Helper functions defined after hooks
+- Conditional rendering happens last
+
+### **Files Modified**
+- `client/src/pages/create-post.tsx` - Restructured hook order and component flow
+
+### **Testing Verification**
+```bash
+# Test edit post page
+1. Navigate to /edit-post/5230605364
+2. Check console - no React errors
+3. Verify all form fields are visible
+4. Test auto-save functionality
+5. Confirm no "Rules of Hooks" violations
+```
+
+### **⚠️ CRITICAL RULES - NEVER VIOLATE THESE:**
+
+1. **NEVER put conditional returns before hooks** - always call all hooks first
+2. **NEVER call hooks inside loops, conditions, or nested functions**
+3. **ALWAYS call hooks in the same order every render**
+4. **ALWAYS test hook consistency** - check for "Rendered more hooks" errors
+5. **ALWAYS follow React's Rules of Hooks** - they are not suggestions, they are requirements
+
+### **Prevention Measures**
+- Added comprehensive documentation in PRD.md
+- Created verification steps for hook consistency
+- Documented the fix pattern for future reference
+
+---
+
 ## **FIX #001: Posts Endpoints Not Working - API Returning HTML Instead of JSON**
 
 **Date:** June 28, 2025  

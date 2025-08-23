@@ -1457,6 +1457,37 @@ This comprehensive PRD ensures the San AgriTech Blog maintains high standards ac
 
 ## 🤖 **CRITICAL AUTO-SAVE FIX - AI ENGINEER GUIDELINES**
 
+### 🚨 **RECENTLY RESOLVED: React Rules of Hooks Violation (2025-01-20)**
+
+**Issue:** Edit post page (`/edit-post/:id`) was crashing with React error #310 and "Rendered more hooks than during the previous render" error.
+
+**Root Cause:** The `CreatePost` component had early conditional returns (`if (isEditing && isLoading)` and `if (isEditing && error)`) that happened **before** all React hooks were called, violating the Rules of Hooks.
+
+**Critical Rules of Hooks Violation:**
+- React expects **all hooks to be called in the same order every time**
+- Early returns before hooks cause inconsistent hook counts between renders
+- This breaks React's internal state management and causes crashes
+
+**Fix Applied:** Restructured the component to ensure all hooks are called first, before any conditional logic:
+1. **All hooks at the top** - `useParams`, `useLocation`, `useQuery`, `useMutation`, `useEffect`
+2. **Helper functions** - `handleAutoSave`, `handleSave`
+3. **Conditional rendering** - Loading, error, and main editor states
+
+**Files Modified:**
+- `client/src/pages/create-post.tsx` - Restructured hook order
+
+**Prevention Rules:**
+1. **NEVER put conditional returns before hooks** - always call all hooks first
+2. **Keep hook order consistent** - same hooks in same order every render
+3. **Move early returns after all hooks** - use conditional rendering instead
+4. **Test hook consistency** - ensure no "Rendered more hooks" errors
+
+**Verification Steps:**
+1. Edit post page loads without React errors
+2. All form fields (title, content, tags, excerpt, featured image) are visible
+3. Auto-save functionality works without infinite loops
+4. Console shows no "Rules of Hooks" violations
+
 ### 🚨 **RECENTLY RESOLVED: Auto-Save 404 Errors (2025-07-06)**
 
 **Issue:** Auto-save functionality was failing with 404 errors in production because it was using inconsistent endpoint formats.

@@ -28,22 +28,6 @@ export default function CreatePost() {
     enabled: isEditing && !!id,
   });
 
-  // Debug logging for post data
-  useEffect(() => {
-    if (isEditing && post) {
-      console.log('CreatePost - Editing existing post:', {
-        id: post.id,
-        title: post.title,
-        content: post.content?.substring(0, 100) + '...',
-        excerpt: post.excerpt,
-        featuredImage: post.featuredImage,
-        tags: post.tags,
-        isPublished: post.isPublished,
-        isFeatured: post.isFeatured
-      });
-    }
-  }, [isEditing, post]);
-
   // Auto-save mutation for drafts
   const autoSaveMutation = useMutation({
     mutationFn: async (data: {
@@ -166,6 +150,39 @@ export default function CreatePost() {
     },
   });
 
+  // Debug logging for post data
+  useEffect(() => {
+    if (isEditing && post) {
+      console.log('CreatePost - Editing existing post:', {
+        id: post.id,
+        title: post.title,
+        content: post.content?.substring(0, 100) + '...',
+        excerpt: post.excerpt,
+        featuredImage: post.featuredImage,
+        tags: post.tags,
+        isPublished: post.isPublished,
+        isFeatured: post.isFeatured
+      });
+    }
+  }, [isEditing, post]);
+
+  // Extract post data with proper fallbacks
+  const postData = post as BlogPostWithDetails | undefined;
+  const initialValues = {
+    content: postData?.content || '',
+    title: postData?.title || '',
+    tags: postData?.tags || [],
+    excerpt: postData?.excerpt || '',
+    featuredImage: postData?.featuredImage || '',
+    isPublished: postData?.isPublished || false,
+    isFeatured: postData?.isFeatured || false
+  };
+
+  // Debug logging for initial values
+  useEffect(() => {
+    console.log('CreatePost - Initial values being passed to editor:', initialValues);
+  }, [initialValues]);
+
   const handleAutoSave = async (data: {
     title: string;
     content: string;
@@ -193,6 +210,7 @@ export default function CreatePost() {
     await saveMutation.mutateAsync(data);
   };
 
+  // Render loading state
   if (isEditing && isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
@@ -206,6 +224,7 @@ export default function CreatePost() {
     );
   }
 
+  // Render error state
   if (isEditing && error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
@@ -228,23 +247,7 @@ export default function CreatePost() {
     );
   }
 
-  // Extract post data with proper fallbacks
-  const postData = post as BlogPostWithDetails | undefined;
-  const initialValues = {
-    content: postData?.content || '',
-    title: postData?.title || '',
-    tags: postData?.tags || [],
-    excerpt: postData?.excerpt || '',
-    featuredImage: postData?.featuredImage || '',
-    isPublished: postData?.isPublished || false,
-    isFeatured: postData?.isFeatured || false
-  };
-
-  // Debug logging for initial values
-  useEffect(() => {
-    console.log('CreatePost - Initial values being passed to editor:', initialValues);
-  }, [initialValues]);
-
+  // Render main editor
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
       <Navigation />
