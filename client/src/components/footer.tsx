@@ -8,31 +8,31 @@ export default function Footer({ variant = "simple" }: FooterProps) {
   // Create social links array with fallback URLs (no profile dependency)
   const socialLinks = [
     {
-      href: "https://linkedin.com/in/agritech-innovations",
+      href: "https://linkedin.com/in/seungjinyoun/",
       icon: Linkedin,
       label: "LinkedIn",
       enabled: true,
     },
     {
-      href: "https://instagram.com/agritech_blog",
+      href: "https://instagram.com/like__san",
       icon: Instagram,
       label: "Instagram",
       enabled: true,
     },
     {
-      href: "https://youtube.com/@AgriTechInnovations",
+      href: "https://www.youtube.com/@like-san",
       icon: Youtube,
       label: "YouTube",
       enabled: true,
     },
     {
-      href: "https://github.com/agritech-innovations",
+      href: "https://github.com/asamountain",
       icon: Github,
       label: "GitHub",
       enabled: true,
     },
     {
-      href: "https://portfolio.agritech-innovations.com",
+      href: "https://portfolio.asamountain.com",
       icon: Camera,
       label: "Photo Portfolio",
       enabled: true,
