@@ -114,7 +114,7 @@ export default function Footer({ variant = "simple" }: FooterProps) {
               <h4 className="text-lg font-semibold text-white mb-6 font-playfair">
                 Connect With San
               </h4>
-              <div className="flex justify-center space-x-4">
+              <div className="flex flex-wrap justify-center gap-4">
                 {socialLinks.map((social) => {
                   const IconComponent = social.icon;
                   return (
@@ -185,7 +185,7 @@ export default function Footer({ variant = "simple" }: FooterProps) {
           {/* Enhanced Social Links with Better Styling */}
           {socialLinks.length > 0 && (
             <div className="mb-12">
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap justify-center gap-4">
                 {socialLinks.map((social) => {
                   const IconComponent = social.icon;
                   return (
