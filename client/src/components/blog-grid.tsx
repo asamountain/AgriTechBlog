@@ -1,13 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
-import { markdownToText } from "@/lib/html-to-markdown";
+import { LoadingSpinner } from "@/components/loading-animations";
 
 interface BlogGridProps {}
 
@@ -33,7 +30,7 @@ export default function BlogGrid({}: BlogGridProps) {
   if (isLoading) {
     return (
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Latest Articles
@@ -43,9 +40,9 @@ export default function BlogGrid({}: BlogGridProps) {
               <LoadingSpinner size="md" text="Loading content..." />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="space-y-1">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <ContentSkeleton key={i} />
+              <div key={i} className="h-12 bg-gray-100 animate-pulse rounded"></div>
             ))}
           </div>
         </div>
@@ -56,7 +53,7 @@ export default function BlogGrid({}: BlogGridProps) {
   if (error) {
     return (
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Latest Articles
@@ -77,8 +74,8 @@ export default function BlogGrid({}: BlogGridProps) {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 bg-white">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Latest Articles
@@ -96,79 +93,23 @@ export default function BlogGrid({}: BlogGridProps) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {displayedPosts.map((post, index) => {
-                // Alternate between different layouts for visual interest
-                const isLarge = index % 6 === 0;
-                const isWide = index % 4 === 1;
-                
-                return (
-                  <Link key={`${post.id}-${post.slug}-${index}`} href={`/blog/${post.slug}`}>
-                    <article className={`group cursor-pointer ${
-                      isLarge ? 'md:col-span-2 lg:col-span-2' : 
-                      isWide ? 'md:col-span-2 lg:col-span-1' : ''
-                    }`}>
-                      <div className="bg-white rounded-none overflow-hidden transition-all duration-300 hover:shadow-lg">
-                        <div className="relative">
-                          <img
-                            src={post.featuredImage || 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400'}
-                            alt={post.title}
-                            className={`w-full object-cover ${
-                              isLarge ? 'h-80 md:h-96' : 'h-64'
-                            }`}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
-                            }}
-                          />
-                        </div>
-                        
-                        <div className={`p-6 ${isLarge ? 'md:p-8' : ''}`}>
-                          {/* Title */}
-                          <h3 className={`font-bold text-gray-900 mb-3 leading-tight group-hover:text-forest-green transition-colors ${
-                            isLarge ? 'text-2xl md:text-3xl' : 'text-xl'
-                          }`}>
-                            {post.title}
-                          </h3>
-                          
-                          {/* Excerpt */}
-                          <p className={`text-gray-600 mb-4 leading-relaxed ${
-                            isLarge ? 'text-lg line-clamp-3' : 'text-base line-clamp-2'
-                          }`}>
-                            {markdownToText(post.excerpt)}
-                          </p>
-                          
-                          {/* Tags */}
-                          {post.tags && post.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {post.tags.slice(0, 3).map((tag, tagIndex) => (
-                                <Badge 
-                                  key={tagIndex} 
-                                  variant="outline" 
-                                  className="text-xs border-forest-green text-forest-green"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Meta Info */}
-                          <div className="flex items-center justify-between text-sm text-gray-500">
-                            <div className="flex items-center space-x-4">
-                              <span>{formatDate(post.createdAt)}</span>
-                            </div>
-                            <span className="text-xs uppercase tracking-wide">{post.readTime || 5} min read</span>
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  </Link>
-                );
-              })}
+            <div className="space-y-1">
+              {displayedPosts.map((post, index) => (
+                <Link key={`${post.id}-${post.slug}-${index}`} href={`/blog/${post.slug}`}>
+                  <article className="group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 rounded hover:bg-gray-50 transition-all duration-200">
+                    <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
+                      {post.title}
+                    </h3>
+                    <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                      {formatDate(post.createdAt)}
+                    </span>
+                  </article>
+                </Link>
+              ))}
             </div>
 
             {hasMore && (
-              <div className="text-center mt-16">
+              <div className="text-center mt-12">
                 <Button
                   onClick={() => setPage(page + 1)}
                   className="bg-forest-green hover:bg-forest-green/90 text-white font-medium py-3 px-8 uppercase tracking-wide text-sm transition-all duration-300"

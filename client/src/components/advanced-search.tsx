@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Calendar, User, Tag, TrendingUp } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { Link } from "wouter";
 import { formatDate } from "@/lib/utils";
-import { markdownToText } from "@/lib/html-to-markdown";
-import { AgriculturalSkeleton, AgricultureLoader } from "@/components/loading-animations";
+import { LoadingSpinner } from "@/components/loading-animations";
 import type { BlogPostWithDetails } from "@shared/schema";
 
 export default function AdvancedSearch() {
@@ -168,12 +167,12 @@ export default function AdvancedSearch() {
         {/* Results */}
         {isLoading ? (
           <div className="space-y-6">
-            <div className="flex justify-center">
-              <AgricultureLoader size="lg" text="Searching the fields..." />
+            <div className="flex justify-center mb-8">
+              <LoadingSpinner size="lg" text="Searching..." />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-1">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <AgriculturalSkeleton key={i} />
+                <div key={i} className="h-12 bg-gray-100 animate-pulse rounded"></div>
               ))}
             </div>
           </div>
@@ -193,69 +192,23 @@ export default function AdvancedSearch() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPosts.map((post) => (
-              <Link key={post.id} href={`/blog/${post.slug}`}>
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={post.featuredImage}
-                      alt={post.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 left-4">
-                      {post.tags && post.tags.length > 0 && (
-                        <Badge 
-                          className="bg-white/90 text-gray-800 hover:bg-white"
-                        >
-                          <Tag className="h-3 w-3 mr-1" />
-                          {post.tags[0]}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <CardContent className="p-6">
-                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-forest-green transition-colors line-clamp-2">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="space-y-1">
+              {filteredPosts.map((post, index) => (
+                <Link key={post.id} href={`/blog/${post.slug}`}>
+                  <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
+                    index !== filteredPosts.length - 1 ? 'border-b border-gray-100' : ''
+                  }`}>
+                    <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
                       {post.title}
                     </h3>
-                    
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {markdownToText(post.excerpt)}
-                    </p>
-
-                    {/* Tags */}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {post.tags.slice(0, 3).map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {post.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{post.tags.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(post.createdAt)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" />
-                        {post.readTime} min read
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                    <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                      {formatDate(post.createdAt)}
+                    </span>
+                  </article>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>

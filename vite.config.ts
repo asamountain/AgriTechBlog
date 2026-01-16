@@ -30,5 +30,19 @@ export default defineConfig({
     minify: 'terser',
     sourcemap: false,
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/auth': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    },
+  },
 });
 
