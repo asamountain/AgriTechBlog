@@ -38,6 +38,8 @@
     "seo:test": "./scripts/test-seo-endpoints.sh",
     "seo:verify": "npx tsx scripts/verify-seo.ts",
     "notion:sync": "npx tsx scripts/sync-notion.ts",
+    "notion:import-journal": "python3 scripts/import-journal-to-notion.py",
+    "notion:validate-journal": "python3 scripts/validate-journal-setup.py",
     "db:publish-all": "npx tsx scripts/publish-all.ts"
   },
   "dependencies": {

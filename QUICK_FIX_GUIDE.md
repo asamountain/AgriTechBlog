@@ -188,6 +188,60 @@ npm run dev
 
 ---
 
+## 📓 Bulk Import Journal Entries to Notion
+
+### Quick Start
+
+```bash
+# 1. Setup (one-time)
+./scripts/setup-journal-import.sh
+
+# 2. Configure .env
+NOTION_TOKEN=secret_your_token_here
+NOTION_JOURNAL_DB_ID=your_database_id
+JOURNAL_ROOT_PATH=./Journal
+
+# 3. Validate setup
+npm run notion:validate-journal
+
+# 4. Run import
+npm run notion:import-journal
+```
+
+### File Format
+
+Your Markdown files should have YAML frontmatter:
+
+```markdown
+---
+title: My Journal Entry
+tags: personal, thoughts
+date: 2024-01-18
+---
+
+Your content here...
+```
+
+### Common Issues
+
+**❌ "Missing NOTION_TOKEN"**
+- Get token from: https://www.notion.so/my-integrations
+- Add to `.env`: `NOTION_TOKEN=secret_...`
+
+**❌ "Could not find database"**
+- Get database ID from URL (32-character hex string)
+- Connect integration to database in Notion
+
+**❌ "property_not_found: Tags"**
+- Add "Tags" multi-select property to your Notion database
+
+### Full Documentation
+
+- **[JOURNAL_IMPORT_QUICK_START.md](./JOURNAL_IMPORT_QUICK_START.md)** - Quick reference
+- **[scripts/JOURNAL_IMPORT_README.md](./scripts/JOURNAL_IMPORT_README.md)** - Complete guide
+
+---
+
 **Need Help?**
 - Check logs in terminal for errors
 - Verify `.env` has correct MongoDB credentials
