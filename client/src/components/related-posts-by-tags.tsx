@@ -43,93 +43,35 @@ export default function RelatedPostsByTags({ currentPostId, currentPostTags }: R
   return (
     <section className="py-16 bg-white border-t border-gray-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-playfair font-bold text-gray-900 mb-4">
-            Continue Your Reading Journey
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Related Articles
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover more insights on related topics that might interest you
-          </p>
+          <div className="w-16 h-1 bg-forest-green"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {relatedPosts.map((post) => (
-            <Card key={post.id} className="group hover:shadow-lg transition-all duration-300 border-gray-200 hover:border-forest-green/20">
-              <Link href={`/blog/${post.slug}`}>
-                <div className="cursor-pointer">
-                  {post.featuredImage && (
-                    <div className="aspect-video overflow-hidden rounded-t-lg">
-                      <img
-                        src={post.featuredImage}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-                  
-                  <CardContent className="p-6">
-                    {/* Show first tag if available */}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="mb-3">
-                        <Badge 
-                          className="text-xs font-medium bg-forest-green text-white"
-                        >
-                          {post.tags[0]}
-                        </Badge>
-                      </div>
-                    )}
-
-                    <h3 className="font-semibold text-lg text-gray-900 mb-3 group-hover:text-forest-green transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {markdownToText(post.excerpt)}
-                    </p>
-
-                    {/* Matching Tags */}
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-2">
-                        {post.matchingTags.slice(0, 3).map((tag) => (
-                          <Badge 
-                            key={tag} 
-                            variant="outline" 
-                            className="text-xs border-forest-green/30 text-forest-green"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                        {post.matchingTags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{post.matchingTags.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{formatDate(post.createdAt)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{post.readTime} min read</span>
-                        </div>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-forest-green group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </CardContent>
-                </div>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="space-y-1">
+            {relatedPosts.map((post, index) => (
+              <Link key={post.id} href={`/blog/${post.slug}`}>
+                <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
+                  index !== relatedPosts.length - 1 ? 'border-b border-gray-100' : ''
+                }`}>
+                  <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
+                    {post.title}
+                  </h3>
+                  <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                    {formatDate(post.createdAt)}
+                  </span>
+                </article>
               </Link>
-            </Card>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-8">
           <Link href="/">
-            <button className="inline-flex items-center gap-2 bg-forest-green text-white px-6 py-3 rounded-lg hover:bg-forest-green/90 transition-colors">
+            <button className="inline-flex items-center gap-2 text-forest-green hover:text-forest-green/80 font-medium transition-colors">
               <span>Explore All Articles</span>
               <ArrowRight className="h-4 w-4" />
             </button>

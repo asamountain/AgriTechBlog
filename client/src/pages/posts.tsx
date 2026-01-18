@@ -168,75 +168,36 @@ export default function PostsPage() {
             )}
           </div>
 
-          {/* Posts Grid */}
+          {/* Posts List */}
           {Object.entries(groupedPosts).map(([period, posts]) => (
             <div key={period} className="mb-12">
-              <h2 className="text-2xl font-bold text-forest-green mb-6 font-playfair">
-                {period}
-              </h2>
+              {period !== "All Posts" && (
+                <h2 className="text-2xl font-bold text-forest-green mb-6 font-playfair">
+                  {period}
+                </h2>
+              )}
               
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {(posts as any[]).map((post) => (
-                  <Card key={post.id} className="group hover:shadow-lg transition-shadow bg-white border-sage-200">
-                    <div className="aspect-video overflow-hidden rounded-t-lg">
-                      <img
-                        src={post.featuredImage}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {/* Tags */}
-                        {post.tags && post.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {post.tags.slice(0, 2).map((tag: string, index: number) => (
-                              <Badge 
-                                key={index} 
-                                variant="outline" 
-                                className="text-xs border-forest-green text-forest-green"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                            {post.tags.length > 2 && (
-                              <Badge variant="outline" className="text-xs text-gray-500">
-                                +{post.tags.length - 2} more
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Title and Excerpt */}
-                        <div>
-                          <h3 className="text-xl font-bold text-forest-green group-hover:text-sage-600 transition-colors mb-2 font-playfair">
-                            <Link href={`/blog/${post.slug}`}>
-                              {post.title}
-                            </Link>
-                          </h3>
-                          <p className="text-gray-600 text-sm line-clamp-3">
-                            {markdownToText(post.excerpt)}
-                          </p>
-                        </div>
-
-                        {/* Meta */}
-                        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{post.readTime} min</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="space-y-1">
+                  {(posts as any[]).map((post, index) => (
+                    <Link key={post.id} href={`/blog/${post.slug}`}>
+                      <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
+                        index !== (posts as any[]).length - 1 ? 'border-b border-gray-100' : ''
+                      }`}>
+                        <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
+                          {post.title}
+                        </h3>
+                        <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                          {new Date(post.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           ))}

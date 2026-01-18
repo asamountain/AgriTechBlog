@@ -130,9 +130,9 @@ if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
     }
 
     try {
-      // Find an available port starting from 5000
-      const port = await findAvailablePort(5000);
-      console.log(`🔍 Found available port: ${port}`);
+      // Use port 5000 for backend (frontend proxy expects this)
+      const port = 5000;
+      console.log(`🔍 Starting backend on port: ${port}`);
       
       server.listen(port, "127.0.0.1", () => {
         log(`🚀 Server serving on port ${port}`);
@@ -142,6 +142,7 @@ if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
       
     } catch (error) {
       console.error("❌ Failed to start server:", error);
+      console.error("💡 Tip: Run 'npm run predev' to kill processes on ports 3000, 5000, 5173");
       process.exit(1);
     }
   })();

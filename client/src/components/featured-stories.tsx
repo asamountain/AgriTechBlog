@@ -44,69 +44,36 @@ export default function FeaturedStories() {
 
   return (
     <section id="featured-stories" className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-playfair font-bold text-forest-green mb-4">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Featured Stories
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Discover the latest breakthroughs in agricultural technology and sustainable farming practices
-          </p>
+          <div className="w-16 h-1 bg-forest-green"></div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredPosts?.map((story, index) => {
-            const isHero = index === 0;
-            
-            return (
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="space-y-1">
+            {featuredPosts?.map((story, index) => (
               <Link key={story.id} href={`/blog/${story.slug}`}>
-                <article className={`group cursor-pointer ${isHero ? 'md:col-span-2 lg:col-span-2' : ''}`}>
-                  <div className="bg-white rounded-none overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
-                    <div className="relative">
-                      <img
-                        src={story.featuredImage}
-                        alt={story.title}
-                        className={`w-full object-cover ${isHero ? 'h-80 md:h-96' : 'h-72'}`}
-                      />
-                      
-                      {/* Featured Badge */}
-                      <div className="absolute top-4 left-4">
-                        <span className="inline-block px-3 py-1 bg-forest-green text-white text-xs font-medium uppercase tracking-wide">
-                          Featured
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className={`p-6 ${isHero ? 'md:p-8' : ''}`}>
-                      {/* Date */}
-                      <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">
-                        {formatDate(story.createdAt)}
-                      </div>
-                      
-                      {/* Title */}
-                      <h3 className={`font-bold text-gray-900 mb-4 leading-tight group-hover:text-forest-green transition-colors ${
-                        isHero ? 'text-3xl md:text-4xl' : 'text-2xl'
-                      }`}>
-                        {story.title}
-                      </h3>
-                      
-                      {/* Excerpt */}
-                      <p className={`text-gray-600 mb-6 leading-relaxed ${
-                        isHero ? 'text-lg line-clamp-4' : 'text-base line-clamp-3'
-                      }`}>
-                        {markdownToText(story.excerpt)}
-                      </p>
-                      
-                      {/* Read Time Only */}
-                      <div className="flex items-center justify-end">
-                        <span className="text-xs text-gray-500 uppercase tracking-wide">{story.readTime} min read</span>
-                      </div>
-                    </div>
+                <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
+                  index !== featuredPosts.length - 1 ? 'border-b border-gray-100' : ''
+                }`}>
+                  <div className="flex items-center flex-1">
+                    <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200">
+                      {story.title}
+                    </h3>
+                    <Badge className="bg-forest-green text-white ml-3 text-xs">
+                      Featured
+                    </Badge>
                   </div>
+                  <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                    {formatDate(story.createdAt)}
+                  </span>
                 </article>
               </Link>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
     </section>

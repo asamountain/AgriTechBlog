@@ -58,50 +58,25 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               <p>Start typing to search for articles...</p>
             </div>
           ) : isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex space-x-4">
-                  <div className="w-20 h-16 bg-gray-200 rounded animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
-                  </div>
-                </div>
+            <div className="space-y-1">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-12 bg-gray-100 animate-pulse rounded"></div>
               ))}
             </div>
           ) : searchResults && searchResults.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-1">
               {searchResults.map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`}>
                   <div 
-                    className="flex space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
+                    className="group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 rounded hover:bg-gray-50 transition-all duration-200"
                     onClick={handleClose}
                   >
-                    <div 
-                      className="w-20 h-16 bg-cover bg-center rounded"
-                      style={{ backgroundImage: `url('${post.featuredImage}')` }}
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-forest-green transition-colors line-clamp-1">
-                        {post.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                        {markdownToText(post.excerpt)}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        {post.tags && post.tags.length > 0 && (
-                          <Badge 
-                            variant="secondary"
-                            className="text-xs bg-forest-green text-white"
-                          >
-                            {post.tags[0]}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-gray-500">
-                          {formatDate(post.createdAt)}
-                        </span>
-                      </div>
-                    </div>
+                    <h3 className="text-base text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
+                      {post.title}
+                    </h3>
+                    <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                      {formatDate(post.createdAt)}
+                    </span>
                   </div>
                 </Link>
               ))}

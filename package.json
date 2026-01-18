@@ -5,6 +5,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "predev": "./scripts/kill-port.sh 3000 && ./scripts/kill-port.sh 5000 && ./scripts/kill-port.sh 5173",
     "dev:backend": "NODE_ENV=development tsx server/index.ts",
     "dev": "concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
     "start:dev": "npm run dev",
@@ -33,7 +34,9 @@
     "figma:enhanced:init": "node scripts/figma-integration-enhanced.js init",
     "dev:figma": "concurrently \"npm run dev\" \"npm run figma:watch\" --names \"🚀Dev,🎨Figma\" --prefix-colors \"blue,magenta\"",
     "seo:notify": "node scripts/notify-search-engines.js",
-    "seo:ping": "curl -X POST https://tech-san.vercel.app/api/update-sitemap"
+    "seo:ping": "curl -X POST https://tech-san.vercel.app/api/update-sitemap",
+    "notion:sync": "npx tsx scripts/sync-notion.ts",
+    "db:publish-all": "npx tsx scripts/publish-all.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

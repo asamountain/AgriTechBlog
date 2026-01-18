@@ -220,82 +220,36 @@ export default function TaggedPosts() {
             </div>
           </div>
 
-          {/* Posts Grid */}
+          {/* Posts List */}
           {sortedPosts.length > 0 ? (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {sortedPosts.map((post) => (
-                <Link 
-                  key={post.id} 
-                  href={`/blog/${post.slug}`}
-                  className="group"
-                  onClick={() => handlePostClick(post.id.toString())}
-                >
-                  <article className="bg-white rounded-golden-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 border border-gray-100">
-                    {post.featuredImage && (
-                      <div className="aspect-video overflow-hidden">
-                        <img
-                          src={post.featuredImage}
-                          alt={post.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="p-6">
-                      {post.isFeatured && (
-                        <Badge className="bg-forest-green text-white mb-3">
-                          Featured
-                        </Badge>
-                      )}
-                      
-                      <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-forest-green transition-colors line-clamp-2">
-                        {post.title}
-                      </h2>
-                      
-                      <p className="text-gray-600 mb-4 line-clamp-3">
-                        {markdownToText(post.excerpt)}
-                      </p>
-                      
-                      {/* Meta Information */}
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {formatDate(post.createdAt)}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {post.readTime} min read
-                        </div>
-                      </div>
-                      
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-2">
-                        {post.tags?.slice(0, 3).map((postTag, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className={`
-                              text-xs p-1 rounded-golden-sm
-                              ${postTag.toLowerCase() === decodedTag.toLowerCase()
-                                ? "bg-forest-green text-white border-forest-green"
-                                : "border-gray-300 text-gray-600 hover:border-forest-green hover:text-forest-green"
-                              }
-                            `}
-                          >
-                            #{postTag}
-                          </Badge>
-                        ))}
-                        {post.tags?.length > 3 && (
-                          <Badge variant="outline" className="text-xs p-1 rounded-golden-sm border-gray-300 text-gray-500">
-                            +{post.tags.length - 3}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden max-w-4xl mx-auto">
+              <div className="space-y-1">
+                {sortedPosts.map((post, index) => (
+                  <Link 
+                    key={post.id} 
+                    href={`/blog/${post.slug}`}
+                    onClick={() => handlePostClick(post.id.toString())}
+                  >
+                    <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
+                      index !== sortedPosts.length - 1 ? 'border-b border-gray-100' : ''
+                    }`}>
+                      <div className="flex items-center flex-1">
+                        <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200">
+                          {post.title}
+                        </h3>
+                        {post.isFeatured && (
+                          <Badge className="bg-forest-green text-white ml-3 text-xs">
+                            Featured
                           </Badge>
                         )}
                       </div>
-                      
-                    </div>
-                  </article>
-                </Link>
-              ))}
+                      <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
+                        {formatDate(post.createdAt)}
+                      </span>
+                    </article>
+                  </Link>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="text-center py-16">
