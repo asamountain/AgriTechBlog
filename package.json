@@ -35,6 +35,8 @@
     "dev:figma": "concurrently \"npm run dev\" \"npm run figma:watch\" --names \"🚀Dev,🎨Figma\" --prefix-colors \"blue,magenta\"",
     "seo:notify": "node scripts/notify-search-engines.js",
     "seo:ping": "curl -X POST https://tech-san.vercel.app/api/update-sitemap",
+    "seo:test": "./scripts/test-seo-endpoints.sh",
+    "seo:verify": "npx tsx scripts/verify-seo.ts",
     "notion:sync": "npx tsx scripts/sync-notion.ts",
     "db:publish-all": "npx tsx scripts/publish-all.ts"
   },
@@ -93,7 +95,7 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "firebase": "^12.1.0",
-    "framer-motion": "^11.13.1",
+    "framer-motion": "^11.18.2",
     "highlight.js": "^11.11.1",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",

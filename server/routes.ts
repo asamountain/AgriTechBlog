@@ -1535,6 +1535,52 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     }
   });
 
+  // SEO Meta Tags API - Get specific post metadata for dynamic head tags
+  app.get('/api/meta/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const post = await activeStorage.getBlogPostBySlug(slug);
+      
+      if (!post || !post.isPublished) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const postUrl = `${baseUrl}/blog/${post.slug}`;
+      const ogImageUrl = post.featuredImage || 
+        `${baseUrl}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}`;
+
+      res.json({
+        title: post.title,
+        description: post.excerpt,
+        keywords: post.tags?.join(', ') || 'agricultural technology, smart farming',
+        'og:title': post.title,
+        'og:description': post.excerpt,
+        'og:image': ogImageUrl,
+        'og:url': postUrl,
+        'og:type': 'article',
+        'og:site_name': 'AgriTech Innovation Hub',
+        'twitter:card': 'summary_large_image',
+        'twitter:title': post.title,
+        'twitter:description': post.excerpt,
+        'twitter:image': ogImageUrl,
+        'article:published_time': new Date(post.createdAt).toISOString(),
+        'article:modified_time': new Date(post.updatedAt).toISOString(),
+        'article:author': 'San',
+        'article:section': post.tags?.[0] || 'Technology',
+        'article:tag': post.tags || [],
+        canonicalUrl: postUrl,
+        readTime: post.readTime,
+        author: 'San',
+        publishedDate: new Date(post.createdAt).toISOString(),
+        modifiedDate: new Date(post.updatedAt).toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching post metadata:', error);
+      res.status(500).json({ error: 'Failed to fetch metadata' });
+    }
+  });
+
   // Open Graph image generator for social sharing
   app.get('/api/og-image', async (req, res) => {
     const { title, category } = req.query as { title?: string; category?: string };

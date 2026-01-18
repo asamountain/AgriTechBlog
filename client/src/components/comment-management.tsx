@@ -18,6 +18,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { usePersistentAuth } from "@/hooks/usePersistentAuth";
 import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
 import { Link } from "wouter";
 
@@ -38,9 +39,11 @@ export default function CommentManagement() {
   const [activeTab, setActiveTab] = useState("pending");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = usePersistentAuth();
 
   const { data: comments = [], isLoading } = useQuery<CommentWithPost[]>({
     queryKey: ["/api/admin/comments"],
+    enabled: isAuthenticated,
   });
 
   const approveComment = useMutation({

@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { usePersistentAuth } from "@/hooks/usePersistentAuth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -86,10 +87,12 @@ function MongoDBConnectionSection() {
 export default function MigrationPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = usePersistentAuth();
 
   // Check unassigned posts count
   const { data: unassignedData, isLoading: isCheckingCount } = useQuery({
     queryKey: ["/api/admin/unassigned-posts"],
+    enabled: isAuthenticated,
     retry: false
   });
 

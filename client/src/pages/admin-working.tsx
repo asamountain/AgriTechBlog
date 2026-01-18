@@ -174,6 +174,7 @@ function PostManagement() {
   const [selectedPost, setSelectedPost] = useState<Post | undefined>();
   const [selectedPosts, setSelectedPosts] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'drafts'>('all');
 
   const { data: posts = [], isLoading, error, isError } = useQuery<Post[]>({
     queryKey: ["/api/admin/blog-posts"],
@@ -485,6 +486,20 @@ function PostManagement() {
     toggleFeatureMutation.mutate({ id: post.id, isFeatured: newStatus });
   };
 
+  // Filter posts based on status
+  const filteredPosts = React.useMemo(() => {
+    if (!Array.isArray(posts)) return [];
+    
+    switch (statusFilter) {
+      case 'published':
+        return posts.filter(post => post.isPublished);
+      case 'drafts':
+        return posts.filter(post => !post.isPublished);
+      default:
+        return posts;
+    }
+  }, [posts, statusFilter]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
@@ -507,6 +522,60 @@ function PostManagement() {
           </Button>
         </div>
       </div>
+
+      {/* Status Filter Tabs */}
+      <Card className="p-1">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+              statusFilter === 'all'
+                ? 'bg-forest-green text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <FileText className="w-4 h-4" />
+              <span>All Posts</span>
+              <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+                {posts?.length || 0}
+              </Badge>
+            </div>
+          </button>
+          <button
+            onClick={() => setStatusFilter('published')}
+            className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+              statusFilter === 'published'
+                ? 'bg-green-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Globe className="w-4 h-4" />
+              <span>Published</span>
+              <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+                {posts?.filter(p => p.isPublished).length || 0}
+              </Badge>
+            </div>
+          </button>
+          <button
+            onClick={() => setStatusFilter('drafts')}
+            className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+              statusFilter === 'drafts'
+                ? 'bg-orange-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <FileX className="w-4 h-4" />
+              <span>Drafts</span>
+              <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+                {posts?.filter(p => !p.isPublished).length || 0}
+              </Badge>
+            </div>
+          </button>
+        </div>
+      </Card>
 
       {/* Debug Information */}
       <Card className="p-4 bg-blue-50 border-blue-200">
@@ -632,113 +701,166 @@ function PostManagement() {
        )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {Array.isArray(posts) && posts.length > 0 ? (
-          posts.map((post: Post) => (
-            <Card key={post.id} className={`h-fit transition-all ${selectedPosts.has(post.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-start gap-2 flex-1">
-                    <div className="flex flex-col gap-1 mt-1">
-                      <Checkbox
-                        checked={post.isPublished}
-                        onCheckedChange={() => handleTogglePublish(post)}
-                        className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
-                        title={post.isPublished ? "Click to unpublish" : "Click to publish"}
-                        disabled={togglePublishMutation.isPending}
-                      />
-                      <Checkbox
-                        checked={selectedPosts.has(post.id)}
-                        onCheckedChange={() => handleSelectPost(post.id)}
-                        className="h-3 w-3 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                        title="Select for bulk operations"
-                      />
-                    </div>
-                    <CardTitle className="text-lg line-clamp-2 flex-1">{post.title}</CardTitle>
-                  </div>
-                  <div className="flex gap-1 ml-2">
-                    <Switch
-                      checked={post.isFeatured}
-                      onCheckedChange={() => handleToggleFeature(post)}
-                      className="data-[state=checked]:bg-yellow-500"
-                      disabled={toggleFeatureMutation.isPending}
-                    />
-                    <Badge 
-                      variant={post.isFeatured ? "default" : "outline"} 
-                      className={`text-xs ${post.isFeatured ? 'bg-yellow-500 text-white' : 'text-yellow-600 border-yellow-200'}`}
-                    >
-                      {post.isFeatured ? '⭐ Featured' : 'Feature'}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post: Post) => (
+            <Card 
+              key={post.id} 
+              className={`relative border-2 transition-all hover:shadow-lg ${
+                selectedPosts.has(post.id) 
+                  ? 'border-blue-500 bg-blue-50/50 shadow-md' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              {/* Top Row: Status Badge (Left) + Selection Checkbox (Right) */}
+              <div className="flex items-start justify-between p-4 pb-2">
+                <div className="flex items-center gap-2">
                   <Badge 
                     variant={post.isPublished ? "default" : "outline"}
-                    className={`text-xs ${
+                    className={`text-xs font-medium ${
                       post.isPublished 
-                        ? "bg-green-500 text-white" 
-                        : "text-orange-600 border-orange-200"
+                        ? "bg-green-600 text-white hover:bg-green-700" 
+                        : "bg-orange-100 text-orange-700 border-orange-300"
                     }`}
                   >
                     {post.isPublished ? "✓ Published" : "📝 Draft"}
                   </Badge>
-                </div>
-                <CardDescription className="line-clamp-3 mt-2">
-                  {markdownToText(post.excerpt)}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p>Created: {formatDate(post.createdAt)}</p>
-                  <p>Read time: {post.readTime} min</p>
-                  {post.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {post.tags.map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
+                  {post.isFeatured && (
+                    <Badge className="text-xs bg-yellow-500 text-white">
+                      ⭐ Featured
+                    </Badge>
                   )}
                 </div>
-              </CardContent>
-              
-              <CardFooter>
-                <div className="flex w-full gap-2">
+                
+                {/* Selection Checkbox - Top Right */}
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectPost(post.id);
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md cursor-pointer transition-all ${
+                    selectedPosts.has(post.id)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title="Select for bulk operations"
+                >
+                  {selectedPosts.has(post.id) ? (
+                    <CheckSquare className="w-3.5 h-3.5" />
+                  ) : (
+                    <Square className="w-3.5 h-3.5" />
+                  )}
+                  <span className="text-xs font-medium">
+                    {selectedPosts.has(post.id) ? 'Selected' : 'Select'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Middle: Title + Excerpt */}
+              <div className="px-4 pb-3 space-y-2">
+                <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight">
+                  {post.title}
+                </h3>
+                <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                  {markdownToText(post.excerpt)}
+                </p>
+              </div>
+
+              {/* Tags Section */}
+              {post.tags?.length > 0 && (
+                <div className="px-4 pb-3">
+                  <div className="flex flex-wrap gap-1">
+                    {post.tags.slice(0, 3).map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs bg-gray-50">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {post.tags.length > 3 && (
+                      <Badge variant="outline" className="text-xs bg-gray-50">
+                        +{post.tags.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom: Metadata + Actions */}
+              <div className="border-t border-gray-200 bg-gray-50/50 px-4 py-3">
+                {/* Metadata Row */}
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                  <span className="flex items-center gap-1">
+                    📅 {formatDate(post.createdAt)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    ⏱️ {post.readTime} min read
+                  </span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-4 gap-1.5">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
-                    className="flex-1"
+                    className="text-xs h-8 px-2"
+                    title="View post"
                   >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
+                    <Eye className="w-3.5 h-3.5" />
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => window.location.href = `/edit-post/${post.id}`}
-                    className="flex-1"
+                    className="text-xs h-8 px-2"
+                    title="Edit post"
                   >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
+                    <Edit className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleTogglePublish(post)}
+                    disabled={togglePublishMutation.isPending}
+                    className={`text-xs h-8 px-2 ${
+                      post.isPublished 
+                        ? 'text-orange-600 hover:text-orange-700' 
+                        : 'text-green-600 hover:text-green-700'
+                    }`}
+                    title={post.isPublished ? "Unpublish" : "Publish"}
+                  >
+                    {post.isPublished ? <FileX className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => handleDelete(post.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-xs h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    title="Delete post"
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
-              </CardFooter>
+
+                {/* Feature Toggle - Discrete Bottom Row */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                  <span className="text-xs text-gray-600 font-medium">Featured Post</span>
+                  <Switch
+                    checked={post.isFeatured}
+                    onCheckedChange={() => handleToggleFeature(post)}
+                    className="data-[state=checked]:bg-yellow-500"
+                    disabled={toggleFeatureMutation.isPending}
+                  />
+                </div>
+              </div>
             </Card>
           ))
         ) : (
-          <div className="col-span-full text-center py-8">
-            <p className="text-gray-600">No posts found. Create your first post!</p>
+          <div className="col-span-full text-center py-12">
+            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600 font-medium">
+              {statusFilter === 'published' && 'No published posts found'}
+              {statusFilter === 'drafts' && 'No draft posts found'}
+              {statusFilter === 'all' && 'No posts found. Create your first post!'}
+            </p>
           </div>
         )}
       </div>
