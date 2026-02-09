@@ -139,6 +139,33 @@ export interface InsertComment {
   isApproved?: boolean;
 }
 
+// Inline comment interfaces (Medium-style text selection comments)
+export interface InlineComment {
+  id: number | string;
+  postId: number | string;
+  authorName: string;
+  authorEmail: string;
+  content: string;
+  selectedText: string;
+  paragraphId: string;
+  startOffset: number;
+  endOffset: number;
+  createdAt: Date;
+  isApproved: boolean;
+}
+
+export interface InsertInlineComment {
+  postId: number | string;
+  authorName: string;
+  authorEmail: string;
+  content: string;
+  selectedText: string;
+  paragraphId: string;
+  startOffset: number;
+  endOffset: number;
+  isApproved?: boolean;
+}
+
 // Extended interfaces
 export interface BlogPostWithDetails extends BlogPost {
   // Author information removed - posts are now anonymous

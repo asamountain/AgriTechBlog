@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import TagDisplay from "@/components/tag-display";
 import { ContentSkeleton } from "@/components/loading-animations";
 import ReactMarkdown from 'react-markdown';
@@ -27,9 +27,15 @@ import 'highlight.js/styles/github-dark.css';
 import { ensureMarkdown } from '@/lib/html-to-markdown';
 import { markdownToText } from "@/lib/html-to-markdown";
 import CommentSection from "@/components/comments/comment-section";
+import { InlineCommentPopup } from "@/components/inline-comment-popup";
+import { InlineCommentSidebar } from "@/components/inline-comment-sidebar";
+import { useTextSelection } from "@/hooks/useTextSelection";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { selection, clearSelection } = useTextSelection(contentRef);
+  const [highlightedParagraph, setHighlightedParagraph] = useState<string | null>(null);
 
   const {
     data: post,
@@ -135,9 +141,9 @@ export default function BlogPost() {
         
         <main className="container mx-auto px-6 pt-24">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Table of Contents Sidebar - Left */}
-              <aside className="lg:col-span-1">
+              <aside className="lg:col-span-1 hidden lg:block">
                 <div className="sticky top-24">
                   <TableOfContents content={post.content} />
                 </div>
@@ -225,6 +231,7 @@ export default function BlogPost() {
 
             {/* Article Content */}
             <div 
+              ref={contentRef}
               className="blog-content prose prose-lg max-w-none mb-8
                 prose-headings:text-forest-green prose-headings:font-playfair
                 prose-p:text-gray-700 prose-p:leading-relaxed
@@ -237,10 +244,34 @@ export default function BlogPost() {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeSlug, rehypeHighlight]}
+                components={{
+                  p: ({ children, ...props }) => {
+                    const paragraphId = `para-${Math.random().toString(36).substr(2, 9)}`;
+                    return (
+                      <p 
+                        {...props} 
+                        data-paragraph-id={paragraphId}
+                        className={highlightedParagraph === paragraphId ? 'bg-yellow-50 transition-colors' : ''}
+                      >
+                        {children}
+                      </p>
+                    );
+                  }
+                }}
               >
                 {ensureMarkdown(post.content)}
               </ReactMarkdown>
             </div>
+
+            {/* Inline Comment Popup */}
+            {selection && post && (
+              <InlineCommentPopup
+                selection={selection}
+                postId={post.id.toString()}
+                onClose={clearSelection}
+                onSuccess={clearSelection}
+              />
+            )}
 
             {/* Comment Section - Moved here to be right after article content */}
             <CommentSection postId={post.id.toString()} postTitle={post.title} />
@@ -269,6 +300,24 @@ export default function BlogPost() {
             />
 
               </article>
+
+              {/* Inline Comment Sidebar - Right */}
+              <aside className="lg:col-span-1 hidden lg:block">
+                {post && (
+                  <InlineCommentSidebar
+                    postId={post.id.toString()}
+                    highlightedParagraph={highlightedParagraph}
+                    onCommentClick={(paragraphId) => {
+                      setHighlightedParagraph(paragraphId);
+                      const element = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                      setTimeout(() => setHighlightedParagraph(null), 2000);
+                    }}
+                  />
+                )}
+              </aside>
             </div>
           </div>
         </main>
