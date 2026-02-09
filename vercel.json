@@ -1,6 +1,34 @@
 {
   "rewrites": [
     {
+      "source": "/api/blog-posts/featured",
+      "destination": "/api/posts?featured=true"
+    },
+    {
+      "source": "/api/blog-posts",
+      "destination": "/api/posts"
+    },
+    {
+      "source": "/api/blog-post",
+      "destination": "/api/posts"
+    },
+    {
+      "source": "/api/blog-post-meta",
+      "destination": "/api/meta"
+    },
+    {
+      "source": "/api/blog-post-ssr",
+      "destination": "/api/meta"
+    },
+    {
+      "source": "/api/notion-sync/list-pages",
+      "destination": "/api/notion-sync/pages"
+    },
+    {
+      "source": "/api/notion-sync/test",
+      "destination": "/api/notion-sync/pages?test=true"
+    },
+    {
       "source": "/((?!api|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
       "destination": "/index.html"
     }
