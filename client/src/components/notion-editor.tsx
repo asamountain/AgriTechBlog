@@ -67,6 +67,7 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
   });
 
   // Convert Markdown to HTML when loading content
+  // Only update on initial mount or when content truly changes from external source
   useEffect(() => {
     if (editor && content) {
       try {
@@ -74,8 +75,12 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
         const html = marked(content) as string;
         const currentHtml = editor.getHTML();
         
-        // Only update if content actually changed (avoid infinite loops)
-        if (html !== currentHtml) {
+        // Get current markdown from editor to compare
+        const currentMarkdown = turndownService.turndown(currentHtml);
+        
+        // Only update if content is significantly different (avoid cursor reset during typing)
+        // This prevents re-renders while the user is typing
+        if (content !== currentMarkdown && html !== currentHtml) {
           editor.commands.setContent(html, false); // false = don't trigger onUpdate
         }
       } catch (error) {
@@ -84,7 +89,7 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
         editor.commands.setContent(`<p>${content}</p>`, false);
       }
     }
-  }, [content, editor]);
+  }, []); // Empty array - only run on mount to prevent cursor jumping
 
   if (!editor) {
     return null;

@@ -211,22 +211,14 @@ export default function SimpleMarkdownEditor({
     // Skip updates if user is actively editing (dirty flag is set)
     if (isDirty.current) return;
     
-    if (initialTitle && initialTitle !== title) {
-      setTitle(initialTitle);
-    }
-    if (initialContent && initialContent !== content) {
-      setContent(initialContent);
-    }
-    if (initialExcerpt && initialExcerpt !== excerpt) {
-      setExcerpt(initialExcerpt);
-    }
-    if (initialFeaturedImage && initialFeaturedImage !== featuredImage) {
-      setFeaturedImage(initialFeaturedImage);
-    }
-    if (initialTags && initialTags.length > 0 && JSON.stringify(initialTags) !== JSON.stringify(tags)) {
-      setTags(initialTags);
-    }
-  }, [initialTitle, initialContent, initialExcerpt, initialFeaturedImage, initialTags, title, content, excerpt, featuredImage, tags]);
+    // Only update if these are genuinely new initial values (e.g., switching posts)
+    // Check if postId changed to avoid re-renders during typing
+    setTitle(initialTitle);
+    setContent(initialContent);
+    setExcerpt(initialExcerpt);
+    setFeaturedImage(initialFeaturedImage);
+    setTags(initialTags);
+  }, [postId]); // Only depend on postId to avoid cursor jumps
 
   // Load draft from localStorage on mount (only for new posts)
   useEffect(() => {

@@ -5,7 +5,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "predev": "./scripts/kill-port.sh 3000 && ./scripts/kill-port.sh 5000 && ./scripts/kill-port.sh 5173",
+    "predev": "echo Starting dev servers...",
     "dev:backend": "NODE_ENV=development tsx server/index.ts",
     "dev": "concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
     "start:dev": "npm run dev",
