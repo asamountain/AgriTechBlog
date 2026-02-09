@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
 import { markdownToText } from "@/lib/html-to-markdown";
-import { 
+import {
   Plus, 
   Edit, 
   Trash2, 
@@ -38,7 +38,8 @@ import {
   Globe,
   FileX,
   Star,
-  StarOff
+  StarOff,
+  ArrowUpDown
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -184,6 +185,7 @@ function PostManagement() {
   const [selectedPosts, setSelectedPosts] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'drafts'>('all');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title' | 'readTime'>('newest');
 
   const { data: posts = [], isLoading, error, isError } = useQuery<Post[]>({
     queryKey: ["/api/admin/blog-posts"],
@@ -207,51 +209,6 @@ function PostManagement() {
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/admin/blog-posts"] });
     queryClient.refetchQueries({ queryKey: ["/api/admin/blog-posts"] });
-  };
-
-  // Publish all posts mutation
-  const publishAllPostsMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/admin/publish-all-posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to publish posts');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Success",
-        description: `Published ${data.publishedCount} posts! Your blog should now show all posts.`,
-        duration: 5000,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/blog-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to publish posts",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handlePublishAllPosts = () => {
-    const draftPostsCount = posts.filter(post => !post.isPublished).length;
-    if (draftPostsCount === 0) {
-      toast({
-        title: "No drafts found",
-        description: "All posts are already published!",
-      });
-      return;
-    }
-    
-    if (confirm(`This will publish ${draftPostsCount} draft posts. Are you sure?`)) {
-      publishAllPostsMutation.mutate();
-    }
   };
 
   // Bulk operations mutations
@@ -495,19 +452,42 @@ function PostManagement() {
     toggleFeatureMutation.mutate({ id: post.id, isFeatured: newStatus });
   };
 
-  // Filter posts based on status
+  // Filter and sort posts
   const filteredPosts = React.useMemo(() => {
     if (!Array.isArray(posts)) return [];
     
+    // Filter by status
+    let filtered: Post[];
     switch (statusFilter) {
       case 'published':
-        return posts.filter(post => post.isPublished);
+        filtered = posts.filter(post => post.isPublished);
+        break;
       case 'drafts':
-        return posts.filter(post => !post.isPublished);
+        filtered = posts.filter(post => !post.isPublished);
+        break;
       default:
-        return posts;
+        filtered = posts;
     }
-  }, [posts, statusFilter]);
+
+    // Sort
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case 'oldest':
+        sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case 'title':
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'readTime':
+        sorted.sort((a, b) => b.readTime - a.readTime);
+        break;
+    }
+
+    return sorted;
+  }, [posts, statusFilter, sortBy]);
 
   if (isLoading) {
     return (
@@ -524,10 +504,6 @@ function PostManagement() {
         <div className="flex gap-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             🔄 Refresh Posts
-          </Button>
-          <Button onClick={handlePublishAllPosts} variant="outline" size="sm" disabled={publishAllPostsMutation.isPending}>
-            <Sparkles className="w-4 h-4 mr-1" />
-            Publish All Drafts
           </Button>
         </div>
       </div>
@@ -583,6 +559,51 @@ function PostManagement() {
               </Badge>
             </div>
           </button>
+        </div>
+      </Card>
+
+      {/* Sorting Controls */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700">Sort by:</label>
+          <div className="flex gap-2">
+            <Button 
+              variant={sortBy === 'newest' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('newest')}
+              className="text-xs"
+            >
+              <ArrowUpDown className="w-3 h-3 mr-1" />
+              Newest First
+            </Button>
+            <Button 
+              variant={sortBy === 'oldest' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('oldest')}
+              className="text-xs"
+            >
+              <ArrowUpDown className="w-3 h-3 mr-1" />
+              Oldest First
+            </Button>
+            <Button 
+              variant={sortBy === 'title' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('title')}
+              className="text-xs"
+            >
+              <ArrowUpDown className="w-3 h-3 mr-1" />
+              Title A-Z
+            </Button>
+            <Button 
+              variant={sortBy === 'readTime' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('readTime')}
+              className="text-xs"
+            >
+              <ArrowUpDown className="w-3 h-3 mr-1" />
+              Read Time
+            </Button>
+          </div>
         </div>
       </Card>
 
