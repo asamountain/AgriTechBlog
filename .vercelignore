@@ -1,0 +1,14 @@
+node_modules
+.git
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.log
+.DS_Store
+client/node_modules
+server/node_modules
+.vercel
+build
+dist/.gitkeep 

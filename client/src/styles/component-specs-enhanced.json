@@ -1,0 +1,28 @@
+{
+  "button": {
+    "figmaLink": "https://www.figma.com/file/NwcRNmRlX3h7nUwoTTCYiK",
+    "cssProperties": [
+      "background-color: var(--forest-green)",
+      "color: white",
+      "padding: var(--space-sm) var(--space-md)",
+      "border-radius: var(--radius-md)",
+      "font-size: var(--text-sm)"
+    ],
+    "states": [
+      "default",
+      "hover",
+      "active",
+      "disabled"
+    ]
+  },
+  "card": {
+    "figmaLink": "https://www.figma.com/file/NwcRNmRlX3h7nUwoTTCYiK",
+    "cssProperties": [
+      "background: var(--card)",
+      "border: 1px solid var(--border)",
+      "border-radius: var(--radius-lg)",
+      "padding: var(--space-lg)",
+      "box-shadow: 0 2px 4px rgba(0,0,0,0.1)"
+    ]
+  }
+}
