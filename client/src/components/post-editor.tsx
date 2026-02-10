@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, X, Wand2, Save } from "lucide-react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { ensureMarkdown, containsHtml } from "@/lib/html-to-markdown";
-import { InlineSpinner } from "@/components/loading-animations";
+import { InlineNatureSpinner } from "@/components/loading";
 
 interface PostEditorProps {
   post: BlogPostWithDetails;
@@ -202,7 +202,7 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
                 className="bg-forest-green text-white hover:opacity-80"
               >
                 {isGeneratingTags ? (
-                  <InlineSpinner size="sm" className="mr-2" />
+                  <InlineNatureSpinner size="sm" className="mr-2" />
                 ) : (
                   <Wand2 className="h-4 w-4 mr-2" />
                 )}
@@ -257,7 +257,7 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
                 className="bg-forest-green text-white hover:opacity-80"
               >
                 {isGeneratingExcerpt ? (
-                  <InlineSpinner size="sm" className="mr-2" />
+                  <InlineNatureSpinner size="sm" className="mr-2" />
                 ) : (
                   <Wand2 className="h-4 w-4 mr-2" />
                 )}
@@ -331,7 +331,7 @@ export default function PostEditor({ post, onClose }: PostEditorProps) {
               className="bg-forest-green text-white hover:opacity-80"
             >
               {updatePostMutation.isPending ? (
-                <InlineSpinner size="sm" className="mr-2" />
+                <InlineNatureSpinner size="sm" className="mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}

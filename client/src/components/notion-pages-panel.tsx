@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, ExternalLink, Sparkles, RefreshCw, Eye, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ExternalLink, Sparkles, RefreshCw, Eye, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { AdaptiveLoader, InlineNatureSpinner } from '@/components/loading';
 import { markdownToHtml } from '@/lib/html-to-markdown';
 
 interface NotionPage {
@@ -98,8 +99,7 @@ export function NotionPagesPanel() {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Loading Notion pages...</span>
+          <AdaptiveLoader size="sm" text="Loading Notion pages..." />
         </CardContent>
       </Card>
     );
@@ -288,7 +288,7 @@ export function NotionPagesPanel() {
           </DialogHeader>
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin" />
+              <AdaptiveLoader size="sm" showMessage={false} />
             </div>
           ) : previewData ? (
             <div className="prose prose-sm max-w-none">
@@ -376,7 +376,7 @@ function PageCard({
           >
             {isProcessing ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <InlineNatureSpinner size="sm" className="mr-2" />
                 Processing...
               </>
             ) : (

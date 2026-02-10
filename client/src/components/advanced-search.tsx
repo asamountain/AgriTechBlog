@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter } from "lucide-react";
 import { Link } from "wouter";
 import { formatDate } from "@/lib/utils";
-import { LoadingSpinner } from "@/components/loading-animations";
+import { AdaptiveLoader, CompactNatureSkeleton } from "@/components/loading";
 import type { BlogPostWithDetails } from "@shared/schema";
 
 export default function AdvancedSearch() {
@@ -168,11 +168,11 @@ export default function AdvancedSearch() {
         {isLoading ? (
           <div className="space-y-6">
             <div className="flex justify-center mb-8">
-              <LoadingSpinner size="lg" text="Searching..." />
+              <AdaptiveLoader size="lg" text="Searching..." />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-3">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-12 bg-gray-100 animate-pulse rounded"></div>
+                <CompactNatureSkeleton key={i} lines={2} />
               ))}
             </div>
           </div>

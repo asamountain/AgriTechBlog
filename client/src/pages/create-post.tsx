@@ -6,7 +6,7 @@ import SimpleMarkdownEditor from '@/components/simple-markdown-editor';
 import Navigation from '@/components/navigation';
 import { toast } from '@/hooks/use-toast';
 import type { BlogPostWithDetails } from '@shared/schema';
-import { LoadingSpinner } from '@/components/loading-animations';
+import { AdaptiveLoader } from '@/components/loading';
 
 export default function CreatePost() {
   const { id } = useParams<{ id?: string }>();
@@ -218,7 +218,7 @@ export default function CreatePost() {
         <Navigation />
         <div className="container mx-auto px-6 py-24">
           <div className="flex items-center justify-center">
-            <LoadingSpinner size="md" text="Loading post..." color="text-forest-green" />
+            <AdaptiveLoader size="md" text="Loading post..." color="text-forest-green" />
           </div>
         </div>
       </div>

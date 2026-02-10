@@ -9,7 +9,7 @@ import { useEffect, lazy, Suspense } from "react";
 // import { useAnalytics } from "./hooks/use-analytics"; // DISABLED
 import { debugTracker } from "./lib/debug-tracker";
 import "./lib/crash-detector"; // Initialize crash detector
-import { SimplePageLoader } from "@/components/loading-animations";
+import { SimpleNatureLoader } from "@/components/loading";
 
 // Lazy load pages for better code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -30,7 +30,7 @@ function Router() {
   // useAnalytics(); // DISABLED
   
   return (
-    <Suspense fallback={<SimplePageLoader />}>
+    <Suspense fallback={<SimpleNatureLoader />}>
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/posts" component={Posts} />

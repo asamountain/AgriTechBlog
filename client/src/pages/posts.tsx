@@ -10,7 +10,7 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
 import { markdownToText } from "@/lib/html-to-markdown";
-import { LoadingSpinner } from "@/components/loading-animations";
+import { AdaptiveLoader } from "@/components/loading";
 
 export default function PostsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,7 +93,7 @@ export default function PostsPage() {
         <Navigation />
         <div className="container mx-auto px-6 py-12">
           <div className="text-center">
-            <LoadingSpinner size="lg" text="Loading posts..." color="text-forest-green" />
+            <AdaptiveLoader size="lg" text="Loading posts..." color="text-forest-green" />
           </div>
         </div>
         <Footer />

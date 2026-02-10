@@ -51,7 +51,7 @@ import MigrationPanel from "@/components/migration-panel";
 import { NotionPagesPanel } from "@/components/notion-pages-panel";
 import CommentManagement from "@/components/comment-management";
 import { AITaggingPanel } from "@/components/ai-tagging-panel";
-import { PageLoader, LoadingSpinner, ContentSkeleton } from "@/components/loading-animations";
+import { AdaptiveLoader, ContentSkeleton } from "@/components/loading";
 
 interface Post {
   id: number;
@@ -492,7 +492,7 @@ function PostManagement() {
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
-        <LoadingSpinner size="lg" text="Loading posts..." />
+        <AdaptiveLoader size="lg" text="Loading posts..." />
       </div>
     );
   }

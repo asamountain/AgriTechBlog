@@ -18,7 +18,7 @@ import type { BlogPostWithDetails } from "@shared/schema";
 
 import { useEffect, useRef, useState } from "react";
 import TagDisplay from "@/components/tag-display";
-import { ContentSkeleton } from "@/components/loading-animations";
+import { ContentSkeleton } from "@/components/loading";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';

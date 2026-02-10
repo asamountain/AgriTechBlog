@@ -19,7 +19,7 @@ import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { usePersistentAuth } from "@/hooks/usePersistentAuth";
-import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
+import { AdaptiveLoader, ContentSkeleton } from "@/components/loading";
 import { Link } from "wouter";
 
 interface CommentWithPost {
@@ -171,7 +171,7 @@ export default function CommentManagement() {
           <h2 className="text-2xl font-bold text-gray-900">Comment Management</h2>
         </div>
         <div className="flex justify-center mb-8">
-          <LoadingSpinner size="lg" text="Loading comments..." />
+          <AdaptiveLoader size="lg" text="Loading comments..." />
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (

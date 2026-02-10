@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { MessageCircle, Heart, Reply, User, Calendar, Send, LogIn } from 'lucide-react';
 import CommentItem from './comment-item';
-import { LoadingSpinner, InlineSpinner } from '@/components/loading-animations';
+import { AdaptiveLoader, InlineNatureSpinner } from '@/components/loading';
 
 interface CommentSectionProps {
   postId: string;
@@ -129,7 +129,7 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
     return (
       <div className="mt-16 border-t border-gray-200 pt-8">
         <div className="flex items-center justify-center py-8">
-          <LoadingSpinner size="md" text="Loading comments..." />
+          <AdaptiveLoader size="md" text="Loading comments..." />
         </div>
       </div>
     );
@@ -218,7 +218,7 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
                   className="bg-forest-green hover:bg-forest-green/90 text-white"
                 >
                   {addCommentMutation.isPending ? (
-                    <InlineSpinner size="sm" color="text-white" className="mr-2" />
+                    <InlineNatureSpinner size="sm" className="mr-2" />
                   ) : (
                     <Send className="mr-2 h-4 w-4" />
                   )}

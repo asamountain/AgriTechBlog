@@ -17,7 +17,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import { ensureMarkdown, containsHtml } from '@/lib/html-to-markdown';
-import { InlineSpinner } from '@/components/loading-animations';
+import { InlineNatureSpinner } from '@/components/loading';
 
 interface SimpleMarkdownEditorProps {
   initialContent?: string;
@@ -323,7 +323,7 @@ export default function SimpleMarkdownEditor({
                 <div className="flex items-center gap-2 text-sm">
                   {saveStatus === 'saving' && (
                     <>
-                      <InlineSpinner size="sm" color="text-blue-600" />
+                      <InlineNatureSpinner size="sm" />
                       <span className="text-blue-600">Saving...</span>
                     </>
                   )}

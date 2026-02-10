@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { markdownToText } from "@/lib/html-to-markdown";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { ContentSkeleton, LoadingSpinner } from "@/components/loading-animations";
+import { AdaptiveLoader, NatureContentSkeleton } from "@/components/loading";
 
 export default function FeaturedStories() {
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
@@ -29,12 +29,12 @@ export default function FeaturedStories() {
               Featured Stories
             </h2>
             <div className="flex justify-center mb-8">
-              <LoadingSpinner size="lg" text="Loading featured content..." />
+              <AdaptiveLoader size="lg" text="Loading featured content..." />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <ContentSkeleton key={i} />
+              <NatureContentSkeleton key={i} />
             ))}
           </div>
         </div>

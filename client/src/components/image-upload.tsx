@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { Upload, X, Link, Loader2, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, Link, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import { SeedGrowthLoader } from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -177,7 +178,7 @@ export default function ImageUpload({ value, onChange, className = '' }: ImageUp
         >
           {status === 'uploading' ? (
             <div className="flex flex-col items-center gap-2 py-2">
-              <Loader2 className="h-8 w-8 text-forest-green animate-spin" />
+              <SeedGrowthLoader size="sm" />
               <p className="text-sm text-gray-600">Uploading to Cloudinary...</p>
             </div>
           ) : (

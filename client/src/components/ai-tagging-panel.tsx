@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Sparkles, Brain, Target, CheckCircle, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { markdownToText } from "@/lib/html-to-markdown";
-import { LoadingSpinner, InlineSpinner } from "@/components/loading-animations";
+import { AdaptiveLoader, InlineNatureSpinner } from "@/components/loading";
 
 interface TaggingResult {
   suggestedTags: string[];
@@ -90,7 +90,7 @@ export function AITaggingPanel() {
   if (postsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <LoadingSpinner size="md" text="Loading posts..." />
+        <AdaptiveLoader size="md" text="Loading posts..." />
       </div>
     );
   }
@@ -116,7 +116,7 @@ export function AITaggingPanel() {
           >
             {bulkAnalyzeMutation.isPending ? (
               <>
-                <InlineSpinner size="sm" className="mr-2" />
+                <InlineNatureSpinner size="sm" className="mr-2" />
                 Analyzing All Posts...
               </>
             ) : (
@@ -189,7 +189,7 @@ export function AITaggingPanel() {
               >
                 {analyzePostMutation.isPending ? (
                   <>
-                    <InlineSpinner size="sm" className="mr-2" />
+                    <InlineNatureSpinner size="sm" className="mr-2" />
                     Analyzing...
                   </>
                 ) : (

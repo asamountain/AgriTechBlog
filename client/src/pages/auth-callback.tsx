@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { usePersistentAuth } from '@/hooks/usePersistentAuth';
-import { LoadingSpinner } from '@/components/loading-animations';
+import { AdaptiveLoader } from '@/components/loading';
 
 export default function AuthCallback() {
   const { saveAuthState } = usePersistentAuth();
@@ -42,7 +42,7 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-forest-green/10 flex items-center justify-center">
       <div className="text-center">
-        <LoadingSpinner size="lg" text="Completing authentication..." />
+        <AdaptiveLoader size="lg" text="Completing authentication..." />
         <p className="text-gray-600 mt-4">Please wait...</p>
       </div>
     </div>

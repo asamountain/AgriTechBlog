@@ -9,7 +9,7 @@ import {
   DialogDescription 
 } from '@/components/ui/dialog';
 import { Chrome } from 'lucide-react';
-import { InlineSpinner } from '@/components/loading-animations';
+import { InlineNatureSpinner } from '@/components/loading';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -60,7 +60,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             disabled={loading}
           >
             {loading ? (
-              <InlineSpinner size="md" color="text-forest-green" className="mr-2" />
+              <InlineNatureSpinner size="md" className="mr-2" />
             ) : (
               <Chrome className="mr-2 h-5 w-5" />
             )}

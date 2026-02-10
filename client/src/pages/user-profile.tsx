@@ -6,7 +6,7 @@ import { commentService } from '@/lib/comment-service';
 import type { UserProfile, Comment } from '@/types/comments';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Globe, MessageCircle, Heart, ExternalLink } from 'lucide-react';
-import { LoadingSpinner } from '@/components/loading-animations';
+import { AdaptiveLoader } from '@/components/loading';
 
 export default function UserProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -35,7 +35,7 @@ export default function UserProfilePage() {
   if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading profile..." />
+        <AdaptiveLoader size="lg" text="Loading profile..." />
       </div>
     );
   }
@@ -198,7 +198,7 @@ export default function UserProfilePage() {
               <div>
                 {commentsLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <LoadingSpinner size="md" text="Loading comments..." />
+                    <AdaptiveLoader size="md" text="Loading comments..." />
                   </div>
                 ) : userComments && userComments.length > 0 ? (
                   <div className="space-y-4">

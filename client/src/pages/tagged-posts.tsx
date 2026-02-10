@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Hash, Clock, Calendar } from "lucide-react";
 import { Link } from "wouter";
 
-import { ContentSkeleton } from "@/components/loading-animations";
+import { ContentSkeleton } from "@/components/loading";
 import { markdownToText } from "@/lib/html-to-markdown";
 
 interface BlogPostWithDetails {

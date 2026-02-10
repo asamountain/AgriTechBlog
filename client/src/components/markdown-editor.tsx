@@ -26,7 +26,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
-import { InlineSpinner } from '@/components/loading-animations';
+import { InlineNatureSpinner } from '@/components/loading';
 
 interface MarkdownEditorProps {
   initialContent?: string;
@@ -231,7 +231,7 @@ export default function MarkdownEditor({
   const getSaveStatusIcon = () => {
     switch (saveStatus) {
       case 'saving':
-        return <InlineSpinner size="sm" />;
+        return <InlineNatureSpinner size="sm" />;
       case 'saved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'error':

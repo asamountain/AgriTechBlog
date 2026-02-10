@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/utils";
 import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { LoadingSpinner } from "@/components/loading-animations";
+import { AdaptiveLoader, CompactNatureSkeleton } from "@/components/loading";
 
 interface BlogGridProps {}
 
@@ -37,12 +37,12 @@ export default function BlogGrid({}: BlogGridProps) {
             </h2>
             <div className="flex items-center space-x-3">
               <div className="w-16 h-1 bg-forest-green"></div>
-              <LoadingSpinner size="md" text="Loading content..." />
+              <AdaptiveLoader size="md" text="Loading content..." showMessage={false} />
             </div>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-12 bg-gray-100 animate-pulse rounded"></div>
+              <CompactNatureSkeleton key={i} lines={2} />
             ))}
           </div>
         </div>
