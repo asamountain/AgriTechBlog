@@ -48,7 +48,7 @@ export default function CommentManagement() {
 
   const approveComment = useMutation({
     mutationFn: async (commentId: number) => {
-      return await apiRequest(`/api/comments/${commentId}/approve`, "PUT");
+      return await apiRequest("PUT", `/api/comments/${commentId}/approve`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/comments"] });
@@ -68,7 +68,7 @@ export default function CommentManagement() {
 
   const deleteComment = useMutation({
     mutationFn: async (commentId: number) => {
-      return await apiRequest(`/api/comments/${commentId}`, "DELETE");
+      return await apiRequest("DELETE", `/api/comments/${commentId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/comments"] });

@@ -37,7 +37,7 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
       authorEmail: string;
       content: string;
     }) => {
-      return await apiRequest(`/api/blog-posts/${postId}/comments`, "POST", commentData);
+      return await apiRequest("POST", `/api/blog-posts/${postId}/comments`, commentData);
     },
     onSuccess: () => {
       // Track comment submission

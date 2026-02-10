@@ -166,6 +166,49 @@ export interface InsertInlineComment {
   isApproved?: boolean;
 }
 
+// Annotation interfaces (Medium-style highlights, responses, and private notes)
+export interface Annotation {
+  id: string;
+  postId: number | string;
+  type: 'highlight' | 'response' | 'note';
+  selectedText: string;
+  paragraphId: string;
+  startOffset: number;
+  endOffset: number;
+  authorName: string;
+  authorEmail: string;
+  authorImage?: string;
+  firebaseUserId?: string;
+  anonymousUserId: string;
+  content: string;
+  parentAnnotationId?: string;
+  isPrivate: boolean;
+  isApproved: boolean;
+  createdAt: Date;
+  likes: number;
+  likedByUserIds: string[];
+}
+
+export interface InsertAnnotation {
+  postId: number | string;
+  type: 'highlight' | 'response' | 'note';
+  selectedText: string;
+  paragraphId: string;
+  startOffset: number;
+  endOffset: number;
+  authorName?: string;
+  authorEmail?: string;
+  authorImage?: string;
+  firebaseUserId?: string;
+  anonymousUserId: string;
+  content?: string;
+  parentAnnotationId?: string;
+  isPrivate?: boolean;
+  isApproved?: boolean;
+  likes?: number;
+  likedByUserIds?: string[];
+}
+
 // Extended interfaces
 export interface BlogPostWithDetails extends BlogPost {
   // Author information removed - posts are now anonymous
@@ -221,6 +264,24 @@ export const insertCommentSchema = z.object({
   authorEmail: z.string().email("Valid email is required"),
   content: z.string().min(1, "Content is required"),
   isApproved: z.boolean().default(false),
+});
+
+export const insertAnnotationSchema = z.object({
+  postId: z.union([z.number(), z.string()]),
+  type: z.enum(['highlight', 'response', 'note']),
+  selectedText: z.string().min(1, "Selected text is required"),
+  paragraphId: z.string().min(1, "Paragraph ID is required"),
+  startOffset: z.number().default(0),
+  endOffset: z.number().default(0),
+  authorName: z.string().optional(),
+  authorEmail: z.string().email("Valid email is required").optional().or(z.literal("")),
+  authorImage: z.string().optional(),
+  firebaseUserId: z.string().optional(),
+  anonymousUserId: z.string().min(1, "User ID is required"),
+  content: z.string().optional(),
+  parentAnnotationId: z.string().optional(),
+  isPrivate: z.boolean().default(false),
+  isApproved: z.boolean().default(true),
 });
 
 export const insertProcessingQueueSchema = z.object({

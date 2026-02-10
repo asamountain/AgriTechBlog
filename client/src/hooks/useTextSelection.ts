@@ -40,19 +40,38 @@ export function useTextSelection(containerRef: React.RefObject<HTMLElement>) {
         const range = sel.getRangeAt(0);
         const rect = range.getBoundingClientRect();
 
-        // Calculate position for popup
-        const scrollY = window.scrollY || window.pageYOffset;
-        const scrollX = window.scrollX || window.pageXOffset;
+        // Toolbar dimensions (estimate)
+        const toolbarWidth = 320;
+        const toolbarHeight = 40;
+
+        // Calculate ideal position (centered above selection)
+        let top = rect.top - toolbarHeight - 8;
+        let left = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+
+        // Viewport boundary detection
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // Keep within left/right bounds
+        if (left < 10) left = 10;
+        if (left + toolbarWidth > viewportWidth - 10) {
+          left = viewportWidth - toolbarWidth - 10;
+        }
+
+        // Keep within top/bottom bounds (flip to below if needed)
+        if (top < 10) {
+          top = rect.bottom + 8;
+        }
+        if (top + toolbarHeight > viewportHeight - 10) {
+          top = viewportHeight - toolbarHeight - 10;
+        }
 
         setSelection({
           text,
           paragraphId,
           startOffset: range.startOffset,
           endOffset: range.endOffset,
-          position: {
-            top: rect.bottom + scrollY + 10,
-            left: Math.min(rect.left + scrollX, window.innerWidth - 350),
-          },
+          position: { top, left },
         });
         return;
       }

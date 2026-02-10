@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   signInWithPopup, 
-  GoogleAuthProvider, 
+  GoogleAuthProvider,
+  GithubAuthProvider,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser
@@ -58,6 +59,20 @@ export function useAuth() {
     }
   };
 
+  const signInWithGithub = async () => {
+    try {
+      const provider = new GithubAuthProvider();
+      provider.addScope('read:user');
+      provider.addScope('user:email');
+      
+      const result = await signInWithPopup(auth, provider);
+      return result;
+    } catch (error) {
+      console.error('Github sign-in error:', error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -90,6 +105,7 @@ export function useAuth() {
     profile,
     loading,
     signInWithGoogle,
+    signInWithGithub,
     logout,
     refreshProfile,
     isAuthenticated: !!user

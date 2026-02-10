@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SocialShare from "@/components/social-share";
@@ -8,34 +8,48 @@ import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
 import ScrollToTopButton from "@/components/scroll-to-top-button";
 import RelatedPostsByTags from "@/components/related-posts-by-tags";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import type { BlogPostWithDetails } from "@shared/schema";
+import type { BlogPostWithDetails, Annotation } from "@shared/schema";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import TagDisplay from "@/components/tag-display";
 import { ContentSkeleton } from "@/components/loading-animations";
 import ReactMarkdown from 'react-markdown';
+import { stableParagraphId, extractTextFromChildren } from '@/lib/paragraph-utils';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
 import { ensureMarkdown } from '@/lib/html-to-markdown';
-import { markdownToText } from "@/lib/html-to-markdown";
 import CommentSection from "@/components/comments/comment-section";
-import { InlineCommentPopup } from "@/components/inline-comment-popup";
+import { SelectionToolbar, type AnnotationAction } from "@/components/selection-toolbar";
 import { InlineCommentSidebar } from "@/components/inline-comment-sidebar";
 import { useTextSelection } from "@/hooks/useTextSelection";
+import { useAnonymousUser } from "@/hooks/useAnonymousUser";
+import { applyHighlights } from "@/lib/highlight-utils";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
   const { selection, clearSelection } = useTextSelection(contentRef);
   const [highlightedParagraph, setHighlightedParagraph] = useState<string | null>(null);
+  const [activeAnnotation, setActiveAnnotation] = useState<{
+    selectedText: string;
+    paragraphId: string;
+    startOffset: number;
+    endOffset: number;
+    parentAnnotationId?: string;
+  } | null>(null);
+  const [noteInput, setNoteInput] = useState<{ show: boolean; text: string; paragraphId: string; startOffset: number; endOffset: number } | null>(null);
+
+  const { userId } = useAnonymousUser();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const {
     data: post,
@@ -57,6 +71,127 @@ export default function BlogPost() {
     queryKey: [`/api/blog-posts/${post?.id}/related`],
     enabled: !!post?.id,
   });
+
+  // Fetch annotations for this post
+  const { data: annotations = [] } = useQuery<Annotation[]>({
+    queryKey: [`/api/blog-posts/${post?.id}/inline-comments?userId=${userId}`],
+    enabled: !!post?.id,
+  });
+
+  // Mutation for creating annotations (highlights, notes)
+  const createAnnotation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('POST', `/api/blog-posts/${post?.id}/inline-comments`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/blog-posts/${post?.id}/inline-comments`] });
+    },
+  });
+
+  // Apply text highlights after render
+  useEffect(() => {
+    if (!contentRef.current || !annotations.length) return;
+    const timer = requestAnimationFrame(() => {
+      if (contentRef.current) {
+        applyHighlights(contentRef.current, annotations, (annotationId) => {
+          const annotation = annotations.find((a) => a.id === annotationId);
+          if (annotation) {
+            setActiveAnnotation({
+              selectedText: annotation.selectedText,
+              paragraphId: annotation.paragraphId,
+              startOffset: annotation.startOffset,
+              endOffset: annotation.endOffset,
+              parentAnnotationId: annotation.id,
+            });
+          }
+        });
+      }
+    });
+    return () => cancelAnimationFrame(timer);
+  }, [annotations, post?.content]);
+
+  // Handle toolbar actions
+  const handleToolbarAction = (action: AnnotationAction) => {
+    if (!selection || !post) return;
+
+    if (action === 'highlight') {
+      createAnnotation.mutate({
+        type: 'highlight',
+        selectedText: selection.text,
+        paragraphId: selection.paragraphId,
+        startOffset: selection.startOffset,
+        endOffset: selection.endOffset,
+        anonymousUserId: userId,
+      });
+      toast({ title: 'Text highlighted!' });
+      clearSelection();
+    }
+
+    if (action === 'respond') {
+      setActiveAnnotation({
+        selectedText: selection.text,
+        paragraphId: selection.paragraphId,
+        startOffset: selection.startOffset,
+        endOffset: selection.endOffset,
+      });
+      clearSelection();
+    }
+
+    if (action === 'share') {
+      const shareUrl = `${window.location.origin}/blog/${post.slug}#:~:text=${encodeURIComponent(selection.text.substring(0, 200))}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        toast({ title: 'Link copied!', description: 'Share this highlighted text with others.' });
+      });
+      clearSelection();
+    }
+
+    if (action === 'note') {
+      setNoteInput({
+        show: true,
+        text: selection.text,
+        paragraphId: selection.paragraphId,
+        startOffset: selection.startOffset,
+        endOffset: selection.endOffset,
+      });
+      clearSelection();
+    }
+  };
+
+  // Submit private note
+  const submitNote = (noteContent: string) => {
+    if (!noteInput || !post) return;
+    createAnnotation.mutate({
+      type: 'note',
+      selectedText: noteInput.text,
+      paragraphId: noteInput.paragraphId,
+      startOffset: noteInput.startOffset,
+      endOffset: noteInput.endOffset,
+      anonymousUserId: userId,
+      content: noteContent,
+    });
+    toast({ title: 'Note saved!' });
+    setNoteInput(null);
+  };
+
+  // Stable paragraph ID components for ReactMarkdown
+  const markdownComponents = useMemo(() => {
+    let paragraphIndex = 0;
+    return {
+      p: ({ children, ...props }: any) => {
+        const textContent = extractTextFromChildren(children);
+        const pid = stableParagraphId(textContent, paragraphIndex++);
+        return (
+          <p
+            {...props}
+            data-paragraph-id={pid}
+            className={highlightedParagraph === pid ? 'bg-yellow-50 transition-colors' : ''}
+          >
+            {children}
+          </p>
+        );
+      },
+    };
+  }, [post?.content, highlightedParagraph]);
 
   if (isLoading) {
     return (
@@ -244,33 +379,54 @@ export default function BlogPost() {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeSlug, rehypeHighlight]}
-                components={{
-                  p: ({ children, ...props }) => {
-                    const paragraphId = `para-${Math.random().toString(36).substr(2, 9)}`;
-                    return (
-                      <p 
-                        {...props} 
-                        data-paragraph-id={paragraphId}
-                        className={highlightedParagraph === paragraphId ? 'bg-yellow-50 transition-colors' : ''}
-                      >
-                        {children}
-                      </p>
-                    );
-                  }
-                }}
+                components={markdownComponents}
               >
                 {ensureMarkdown(post.content)}
               </ReactMarkdown>
             </div>
 
-            {/* Inline Comment Popup */}
+            {/* Selection Toolbar */}
             {selection && post && (
-              <InlineCommentPopup
-                selection={selection}
-                postId={post.id.toString()}
-                onClose={clearSelection}
-                onSuccess={clearSelection}
+              <SelectionToolbar
+                position={selection.position}
+                onAction={handleToolbarAction}
               />
+            )}
+
+            {/* Private Note Input */}
+            {noteInput?.show && (
+              <div className="fixed z-50 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 p-4 animate-in fade-in"
+                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+              >
+                <div className="text-xs text-amber-800 bg-amber-50 p-2 rounded mb-3 border-l-2 border-amber-400 italic max-h-20 overflow-y-auto">
+                  "{noteInput.text.length > 100 ? noteInput.text.substring(0, 100) + '...' : noteInput.text}"
+                </div>
+                <textarea
+                  autoFocus
+                  placeholder="Write a private note..."
+                  className="w-full text-sm border rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  rows={3}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      const value = (e.target as HTMLTextAreaElement).value.trim();
+                      if (value) submitNote(value);
+                    }
+                    if (e.key === 'Escape') setNoteInput(null);
+                  }}
+                />
+                <div className="flex justify-end gap-2 mt-2">
+                  <button onClick={() => setNoteInput(null)} className="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                  <button
+                    onClick={(e) => {
+                      const textarea = (e.currentTarget.parentElement?.previousElementSibling as HTMLTextAreaElement);
+                      const value = textarea?.value?.trim();
+                      if (value) submitNote(value);
+                    }}
+                    className="text-xs bg-amber-500 text-white px-3 py-1 rounded hover:bg-amber-600"
+                  >Save Note</button>
+                </div>
+              </div>
             )}
 
             {/* Comment Section - Moved here to be right after article content */}
@@ -307,6 +463,8 @@ export default function BlogPost() {
                   <InlineCommentSidebar
                     postId={post.id.toString()}
                     highlightedParagraph={highlightedParagraph}
+                    activeAnnotation={activeAnnotation}
+                    onCloseActiveAnnotation={() => setActiveAnnotation(null)}
                     onCommentClick={(paragraphId) => {
                       setHighlightedParagraph(paragraphId);
                       const element = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);

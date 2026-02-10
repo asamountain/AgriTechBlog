@@ -6,8 +6,8 @@
   "license": "MIT",
   "scripts": {
     "predev": "echo Starting dev servers...",
-    "dev:backend": "NODE_ENV=development tsx server/index.ts",
-    "dev": "concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
+    "dev:backend": "tsx server/index.ts",
+    "dev": "npx concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
     "start:dev": "npm run dev",
     "dev:vercel": "vercel dev --listen 127.0.0.1:3000",
     "build": "vite build",
@@ -165,7 +165,7 @@
     "@typescript-eslint/parser": "^8.15.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "concurrently": "^9.1.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.15.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -174,7 +174,7 @@
     "terser": "^5.32.2"
   },
   "engines": {
-    "node": "22.x",
+    "node": ">=20.0.0",
     "npm": ">=10.0.0"
   }
 }

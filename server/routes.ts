@@ -2,10 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
-import { insertBlogPostSchema, insertAuthorSchema, insertCommentSchema } from "@shared/schema";
+import { insertBlogPostSchema, insertAuthorSchema, insertCommentSchema, insertAnnotationSchema } from "@shared/schema";
 import { requireAuth } from "./auth";
 import { getAITaggingService } from "./ai-tagging";
-import { insertUserSchema, type User, type BlogPost, type Author } from "@shared/schema";
+import { insertUserSchema, type User, type BlogPost, type Author, type Annotation } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -928,6 +928,69 @@ ${publishedPosts.map(post => `  <url>
     } catch (error) {
       console.error("Error creating comment:", error);
       res.status(400).json({ message: "Failed to create comment" });
+    }
+  });
+
+  // Inline comments (Annotations)
+  app.get("/api/blog-posts/:id/inline-comments", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId, type, parentId } = req.query;
+      const postId = parseInt(id);
+      
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: "Invalid post ID" });
+      }
+
+      const annotations = await activeStorage.getAnnotations(postId, {
+        userId: userId as string,
+        type: type as string,
+        parentId: parentId as string
+      });
+      
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching annotations:", error);
+      res.status(500).json({ message: "Failed to fetch annotations" });
+    }
+  });
+
+  app.post("/api/blog-posts/:id/inline-comments", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const postId = parseInt(id);
+      
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: "Invalid post ID" });
+      }
+
+      const annotationData = insertAnnotationSchema.parse({
+        ...req.body,
+        postId
+      });
+      
+      const annotation = await activeStorage.createAnnotation(annotationData);
+      res.status(201).json(annotation);
+    } catch (error) {
+      console.error("Error creating annotation:", error);
+      res.status(400).json({ message: "Failed to create annotation", error: (error as any).message });
+    }
+  });
+
+  app.delete("/api/inline-comments/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.query;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      await activeStorage.deleteAnnotation(id, userId as string);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting annotation:", error);
+      res.status(400).json({ message: "Failed to delete annotation" });
     }
   });
 
