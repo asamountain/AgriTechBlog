@@ -29,6 +29,10 @@
       "destination": "/api/notion-sync/pages?test=true"
     },
     {
+      "source": "/api/blog-posts/:postId/inline-comments/:annotationId/like",
+      "destination": "/api/admin/inline-comments?postId=:postId&annotationId=:annotationId&action=like"
+    },
+    {
       "source": "/api/blog-posts/:postId/inline-comments",
       "destination": "/api/admin/inline-comments?postId=:postId"
     },
