@@ -438,6 +438,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Health check endpoint - MongoDB connection status
+  app.get("/api/health/mongodb", async (req, res) => {
+    try {
+      const { MongoConnectionManager } = await import('./mongodb-connection-manager');
+      const connectionManager = MongoConnectionManager.getInstance();
+      
+      const health = await connectionManager.getConnectionHealth();
+      
+      const statusCode = health.connected ? 200 : 503;
+      res.status(statusCode).json({
+        status: health.connected ? 'healthy' : 'unhealthy',
+        timestamp: new Date().toISOString(),
+        database: health.database,
+        connected: health.connected,
+        collections: health.collections,
+        serverInfo: health.serverInfo
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        connected: false
+      });
+    }
+  });
+
   // Authors
   app.get("/api/authors", async (req, res) => {
     try {

@@ -1,6 +1,44 @@
 // Load environment configuration
 import { loadEnvironment, displayEnvironmentStatus } from "./local-env-loader";
 
+// Auto-sync environment variables from Vercel on startup
+async function autoSyncEnvironment() {
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  
+  if (isDevelopment) {
+    console.log('🔄 Auto-syncing environment variables from Vercel...');
+    
+    try {
+      const { execSync } = await import('child_process');
+      const { existsSync } = await import('fs');
+      
+      // Check if vercel CLI is available
+      try {
+        execSync('vercel --version', { stdio: 'ignore' });
+        
+        // Try to pull environment variables
+        execSync('vercel env pull .env.local --yes 2>/dev/null', {
+          stdio: 'ignore',
+          timeout: 5000 
+        });
+        
+        console.log('✅ Environment variables synced from Vercel');
+      } catch {
+        // Silently continue if vercel not available or not logged in
+        console.log('ℹ️  Vercel sync skipped (CLI not available or not logged in)');
+      }
+    } catch (error) {
+      // Continue even if sync fails
+      console.log('ℹ️  Environment sync skipped');
+    }
+  }
+}
+
+// Run auto-sync before loading environment
+if (process.env.NODE_ENV !== 'production') {
+  await autoSyncEnvironment();
+}
+
 // Load environment variables
 loadEnvironment();
 displayEnvironmentStatus();
