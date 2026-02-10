@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"c:\\\\Users\\\\iocrops admin\\\\Coding\\\\AgriTechBlog\\\\api\")",
+      "Bash(npx tsc:*)",
+      "Bash(npm run check:*)"
+    ]
+  }
+}

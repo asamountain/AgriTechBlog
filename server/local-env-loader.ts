@@ -13,20 +13,16 @@ interface EnvironmentConfig {
   NODE_ENV: string;
   PORT: string;
   BCRYPT_ROUNDS: string;
-  GOOGLE_CLIENT_ID?: string;
-  GOOGLE_CLIENT_SECRET?: string;
 }
 
-// Default configuration for development
+// Default configuration for development (no credentials — must come from .env or .env.local)
 const DEFAULT_CONFIG: EnvironmentConfig = {
-  MONGODB_URI: 'mongodb+srv://blog-admin-new:dIGhkAFqirrk8Gva@cluster0.br3z5.mongodb.net/blog_database?retryWrites=true&w=majority&appName=Cluster0',
+  MONGODB_URI: '',
   MONGODB_DATABASE: 'blog_database',
-  SESSION_SECRET: 'super-secret-local-session-key-for-development',
+  SESSION_SECRET: '',
   NODE_ENV: 'development',
   PORT: '5000',
   BCRYPT_ROUNDS: '12',
-  GOOGLE_CLIENT_ID: 'your-google-client-id',
-  GOOGLE_CLIENT_SECRET: 'your-google-client-secret'
 };
 
 export function loadEnvironment(): void {
@@ -49,37 +45,65 @@ export function loadEnvironment(): void {
   console.log(`🗄️  Database: ${process.env.MONGODB_DATABASE}`);
 }
 
-function loadFromEnvFile(): boolean {
-  const envPath = join(process.cwd(), '.env');
-  
-  if (!existsSync(envPath)) {
-    console.log('📄 No .env file found, using default configuration');
-    return false;
-  }
-  
-  try {
-    const envContent = readFileSync(envPath, 'utf8');
-    const lines = envContent.split('\n');
-    
-    let loadedCount = 0;
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#')) {
-        const [key, ...valueParts] = trimmed.split('=');
-        if (key && valueParts.length > 0) {
-          const value = valueParts.join('=').trim();
-          process.env[key.trim()] = value;
-          loadedCount++;
+function loadEnvFromFile(filePath: string): number {
+  const content = readFileSync(filePath, 'utf8');
+  const lines = content.split('\n');
+  let count = 0;
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        let value = valueParts.join('=').trim();
+        // Remove surrounding quotes
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
         }
+        process.env[key.trim()] = value;
+        count++;
       }
-    });
-    
-    console.log(`📄 Loaded ${loadedCount} variables from .env file`);
-    return true;
-  } catch (error) {
-    console.log(`❌ Failed to read .env file: ${(error as Error).message}`);
-    return false;
+    }
+  });
+
+  return count;
+}
+
+function loadFromEnvFile(): boolean {
+  const cwd = process.cwd();
+  const envPath = join(cwd, '.env');
+  const envLocalPath = join(cwd, '.env.local');
+
+  let loaded = false;
+
+  // Load .env first (base)
+  if (existsSync(envPath)) {
+    try {
+      const count = loadEnvFromFile(envPath);
+      console.log(`📄 Loaded ${count} variables from .env`);
+      loaded = true;
+    } catch (error) {
+      console.log(`❌ Failed to read .env: ${(error as Error).message}`);
+    }
   }
+
+  // Load .env.local second (overrides .env)
+  if (existsSync(envLocalPath)) {
+    try {
+      const count = loadEnvFromFile(envLocalPath);
+      console.log(`📄 Loaded ${count} variables from .env.local (overrides .env)`);
+      loaded = true;
+    } catch (error) {
+      console.log(`❌ Failed to read .env.local: ${(error as Error).message}`);
+    }
+  }
+
+  if (!loaded) {
+    console.log('📄 No .env or .env.local file found, using default configuration');
+  }
+
+  return loaded;
 }
 
 function setDefaultConfiguration(): void {

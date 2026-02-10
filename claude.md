@@ -17,6 +17,57 @@ Full-stack AgriTech blog platform built with:
 
 ---
 
+## 🔍 Debugging & Problem Solving
+
+**CRITICAL: Read this before debugging any issue**
+
+When debugging issues, thoroughly investigate root causes before proposing fixes. Do not suggest quick workarounds (e.g., copying .env files) without understanding the underlying system. Ask clarifying questions if the problem domain is unclear.
+
+**Test-Driven Bug Fix Workflow:**
+1. **Read** all relevant files to understand current behavior
+2. **Write a failing test** that reproduces the exact bug (test MUST fail)
+3. **Run the test** with Bash to confirm it fails for the right reason
+4. **Only then** propose and implement a fix
+5. **Run the test again** to confirm it passes
+6. **Run full test suite** to check for regressions
+
+**Never skip straight to editing production code.** If you can't write a failing test, you don't understand the bug yet.
+
+---
+
+## ✨ Code Quality
+
+This project uses **JavaScript and TypeScript** (Next.js/Vercel). When editing files, always validate syntax before finishing—run the relevant linter or type checker. **Never leave syntax errors in edited files.**
+
+Validation commands:
+```powershell
+npx tsc --noEmit --skipLibCheck     # Type check all
+npx tsc --noEmit file.ts            # Check specific file
+```
+
+---
+
+## 🌾 Domain Context
+
+**This is an IoT/Industrial AgriTech Project**
+
+When the user asks about hardware/sensor data flow (RS-485, RX data, register values, K values), focus on the **actual embedded/serial data path in the codebase**—not browser-level interception or network tools like Playwright. This project reads data from **physical sensors**.
+
+**Hardware Stack:**
+- **Sensors:** RS-485 Modbus sensors connected via serial
+- **Data Flow:** Hardware RX pins → Modbus register parsing → Node.js backend → Web UI
+- **Registers:** Hold raw sensor values (temperature, humidity, etc.)
+- **K Values:** Calibration coefficients stored in specific registers (e.g., Register 16)
+
+**When proposing scaling or data transformation approaches for sensor registers:**
+- Present constraints and trade-offs upfront
+- Ask the user to confirm before implementing
+- Sensor hardware has **strict compatibility requirements**
+- Do NOT assume standard software rounding or scaling is acceptable
+- Test with actual hardware behavior (e.g., Mode 3 calibration)
+
+---
+
 ## ✅ COMPLETED FIXES (Do NOT Redo)
 
 ### 1. Vercel Function Limit Fix (COMPLETED Feb 9, 2026)

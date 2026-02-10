@@ -382,3 +382,24 @@ h1, h2, h3, h4, h5, h6 {
 .blog-content a {
   @apply text-forest-green hover:opacity-80 underline;
 }
+
+/* Inline annotation highlights */
+mark.inline-highlight {
+  background-color: rgb(220 252 231); /* bg-green-100 equivalent */
+  border-radius: 0.125rem; /* rounded-sm */
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.125rem 0;
+}
+
+mark.inline-highlight:hover {
+  background-color: rgb(187 247 208); /* bg-green-200 equivalent */
+}
+
+/* Ensure marks don't break text flow */
+mark.inline-highlight {
+  display: inline;
+  line-height: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+}

@@ -156,6 +156,36 @@ fi
 # Pre-deployment checks
 print_status "Running pre-deployment checks..."
 
+# Pull latest environment variables from Vercel
+print_status "Syncing environment variables from Vercel..."
+if command -v vercel &> /dev/null; then
+    if vercel env pull .env.vercel --yes 2>/dev/null; then
+        print_success "✓ Environment variables synced from Vercel"
+    else
+        print_warning "Could not sync from Vercel (not logged in or not linked)"
+        print_status "Continuing with local .env..."
+    fi
+else
+    print_warning "Vercel CLI not installed - skipping env sync"
+fi
+
+# Test MongoDB connection before deploying
+print_status "Testing MongoDB connection..."
+if [ -f "test-mongodb-connection.js" ]; then
+    if node test-mongodb-connection.js > /tmp/mongo-test.log 2>&1; then
+        print_success "✓ MongoDB connection test passed"
+    else
+        print_error "MongoDB connection test failed!"
+        print_status "Test output:"
+        cat /tmp/mongo-test.log
+        print_error "Fix MongoDB connection issues before deploying."
+        print_status "Hint: Check MONGODB_URI in .env or Vercel environment variables"
+        exit 1
+    fi
+else
+    print_warning "MongoDB test script not found - skipping connection test"
+fi
+
 # Check if TypeScript compiles
 print_status "Checking TypeScript compilation..."
 if npm run check; then

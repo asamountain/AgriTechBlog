@@ -6,14 +6,15 @@
   "license": "MIT",
   "scripts": {
     "predev": "echo Starting dev servers...",
-    "dev:backend": "NODE_ENV=development tsx server/index.ts",
-    "dev": "concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
+    "dev:backend": "tsx server/index.ts",
+    "dev": "npx concurrently \"npm run dev:backend\" \"npx vite\" --names \"🚀Backend,⚡Frontend\" --prefix-colors \"blue,green\"",
     "start:dev": "npm run dev",
     "dev:vercel": "vercel dev --listen 127.0.0.1:3000",
     "build": "vite build",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "deploy": "git add -A && git diff --cached --quiet || git commit -m \"deploy: consolidate API functions to fit Vercel limit\" && git push && vercel --prod",
+    "deploy:safe": "bash deploy.sh production",
     "deploy:preview": "vercel",
     "deploy:quick": "vercel --prod",
     "test:build": "npm run check && npm run build",
@@ -21,7 +22,12 @@
     "setup:deploy": "chmod +x deploy.sh && npm install -g vercel@latest",
     "env:pull": "vercel env pull .env.development",
     "env:list": "vercel env ls",
+    "sync": "node scripts/env-sync.js auto",
+    "sync:pull": "node scripts/env-sync.js pull",
+    "sync:status": "node scripts/env-sync.js status",
+    "sync:validate": "node scripts/env-sync.js validate",
     "db:test": "node test-mongodb-connection.js",
+    "db:health": "node -e \"fetch('http://localhost:5000/api/health/mongodb').then(r=>r.json()).then(console.log).catch(e=>console.error('Server not running:',e.message))\"",
     "db:check": "node check-posts.js",
     "db:list": "node list-dbs.js",
     "db:fix": "node fix-mongodb-credentials.js",
@@ -159,7 +165,7 @@
     "@typescript-eslint/parser": "^8.15.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "concurrently": "^9.1.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.15.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -168,7 +174,7 @@
     "terser": "^5.32.2"
   },
   "engines": {
-    "node": "22.x",
+    "node": ">=20.0.0",
     "npm": ">=10.0.0"
   }
 }

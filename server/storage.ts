@@ -6,7 +6,8 @@ import {
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
   type Comment, type InsertComment,
-  type BlogPostWithDetails
+  type BlogPostWithDetails,
+  type Annotation, type InsertAnnotation
 } from "@shared/schema";
 import { MongoStorage } from "./mongodb-storage-updated";
 
@@ -37,6 +38,11 @@ export interface IStorage {
   createComment(insertComment: InsertComment): Promise<Comment>;
   approveComment(id: number): Promise<Comment>;
   deleteComment(id: number): Promise<void>;
+
+  // Annotation methods
+  getAnnotations(postId: number, options?: { type?: string; parentId?: string; userId?: string }): Promise<Annotation[]>;
+  createAnnotation(insertAnnotation: InsertAnnotation): Promise<Annotation>;
+  deleteAnnotation(id: string, userId: string): Promise<void>;
 }
 
 // MONGODB-ONLY STORAGE CREATION

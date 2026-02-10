@@ -134,6 +134,7 @@ export class MongoStorage implements IStorage {
   private authorsCollection: Collection;
   private blogPostsCollection: Collection;
   private commentsCollection: Collection;
+  private annotationsCollection: Collection;
 
   constructor(connectionString: string, databaseName: string) {
     console.log(`Initializing MongoDB connection to database: ${databaseName}`);
@@ -143,6 +144,7 @@ export class MongoStorage implements IStorage {
     this.authorsCollection = this.db.collection("authors");
     this.blogPostsCollection = this.db.collection("posts");
     this.commentsCollection = this.db.collection("comments");
+    this.annotationsCollection = this.db.collection("inline-comments");
   }
 
   async connect(): Promise<void> {
@@ -670,6 +672,69 @@ export class MongoStorage implements IStorage {
     } catch (error) {
       console.error("Count error:", error);
       return 0;
+    }
+  }
+
+  // Annotation methods
+  async getAnnotations(postId: number, options: { type?: string; parentId?: string; userId?: string } = {}): Promise<Annotation[]> {
+    const { type, parentId, userId } = options;
+    const filter: any = { postId, isApproved: true };
+
+    if (type) filter.type = type;
+    if (parentId) filter.parentAnnotationId = parentId;
+
+    if (userId) {
+      filter.$or = [
+        { isPrivate: { $ne: true } },
+        { isPrivate: true, anonymousUserId: userId },
+      ];
+    } else {
+      filter.isPrivate = { $ne: true };
+    }
+
+    const docs = await this.annotationsCollection.find(filter).sort({ createdAt: -1 }).toArray();
+    return docs.map(doc => ({
+      id: doc._id.toString(),
+      postId: doc.postId,
+      type: doc.type,
+      selectedText: doc.selectedText,
+      paragraphId: doc.paragraphId,
+      startOffset: doc.startOffset,
+      endOffset: doc.endOffset,
+      authorName: doc.authorName || '',
+      authorEmail: doc.authorEmail || '',
+      authorImage: doc.authorImage,
+      firebaseUserId: doc.firebaseUserId,
+      anonymousUserId: doc.anonymousUserId || '',
+      content: doc.content || '',
+      parentAnnotationId: doc.parentAnnotationId,
+      isPrivate: doc.isPrivate || false,
+      isApproved: doc.isApproved,
+      createdAt: doc.createdAt,
+    }));
+  }
+
+  async createAnnotation(insertAnnotation: InsertAnnotation): Promise<Annotation> {
+    const doc = {
+      ...insertAnnotation,
+      createdAt: new Date(),
+      isApproved: true,
+      isPrivate: insertAnnotation.type === 'note' || insertAnnotation.isPrivate === true
+    };
+    const result = await this.annotationsCollection.insertOne(doc);
+    return {
+      id: result.insertedId.toString(),
+      ...doc
+    } as Annotation;
+  }
+
+  async deleteAnnotation(id: string, userId: string): Promise<void> {
+    const result = await this.annotationsCollection.deleteOne({
+      _id: new ObjectId(id),
+      anonymousUserId: userId
+    });
+    if (result.deletedCount === 0) {
+      throw new Error("Annotation not found or not owned by user");
     }
   }
 }

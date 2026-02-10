@@ -18,6 +18,9 @@ export class MongoConnectionManager {
   private connectionRetries = 0;
   private readonly maxRetries = 3;
   private readonly retryDelay = 5000; // 5 seconds
+  private heartbeatFailures = 0;
+  private readonly maxHeartbeatFailures = 3;
+  private reconnectionInProgress = false;
 
   private constructor() {}
 
@@ -188,6 +191,7 @@ export class MongoConnectionManager {
 
     this.client.on('connectionPoolCreated', () => {
       console.log('🔗 MongoDB connection pool created');
+      this.heartbeatFailures = 0; // Reset on successful connection
     });
 
     this.client.on('connectionPoolClosed', () => {
@@ -197,6 +201,23 @@ export class MongoConnectionManager {
 
     this.client.on('serverHeartbeatFailed', (event) => {
       console.warn('💔 MongoDB heartbeat failed:', event.failure?.message);
+      this.heartbeatFailures++;
+      
+      // Auto-reconnect if heartbeat failures exceed threshold
+      if (this.heartbeatFailures >= this.maxHeartbeatFailures && !this.reconnectionInProgress) {
+        console.warn(`⚠️  ${this.heartbeatFailures} consecutive heartbeat failures detected - attempting auto-reconnection...`);
+        this.attemptAutoReconnection().catch(err => {
+          console.error('❌ Auto-reconnection failed:', err.message);
+        });
+      }
+    });
+
+    this.client.on('serverHeartbeatSucceeded', () => {
+      // Reset failure counter on successful heartbeat
+      if (this.heartbeatFailures > 0) {
+        console.log('✅ MongoDB heartbeat restored');
+        this.heartbeatFailures = 0;
+      }
     });
 
     this.client.on('topologyDescriptionChanged', (event) => {
@@ -204,6 +225,50 @@ export class MongoConnectionManager {
         console.log('🔄 MongoDB topology changed:', event.newDescription.type);
       }
     });
+  }
+
+  /**
+   * Attempt automatic reconnection after heartbeat failures
+   */
+  private async attemptAutoReconnection(): Promise<void> {
+    if (this.reconnectionInProgress) {
+      console.log('🔄 Reconnection already in progress, skipping...');
+      return;
+    }
+
+    this.reconnectionInProgress = true;
+
+    try {
+      console.log('🔄 Attempting to reconnect to MongoDB...');
+      
+      // Close existing connection
+      if (this.client) {
+        await this.client.close().catch(() => {});
+      }
+
+      // Reset state
+      this.client = null;
+      this.db = null;
+      this.isConnected = false;
+      this.connectionRetries = 0;
+      this.heartbeatFailures = 0;
+
+      // Wait a bit before reconnecting
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Attempt reconnection
+      await this.connect({
+        uri: process.env.MONGODB_URI || '',
+        database: process.env.MONGODB_DATABASE || 'blog_database'
+      });
+
+      console.log('✅ Auto-reconnection successful!');
+    } catch (error) {
+      console.error('❌ Auto-reconnection failed:', error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    } finally {
+      this.reconnectionInProgress = false;
+    }
   }
 
   /**
