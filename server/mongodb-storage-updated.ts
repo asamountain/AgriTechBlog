@@ -711,6 +711,8 @@ export class MongoStorage implements IStorage {
       isPrivate: doc.isPrivate || false,
       isApproved: doc.isApproved,
       createdAt: doc.createdAt,
+      likes: (doc as any).likes || 0,
+      likedByUserIds: (doc as any).likedByUserIds || [],
     }));
   }
 
