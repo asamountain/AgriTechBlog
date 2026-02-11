@@ -42,7 +42,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db(dbName);
     const postsCollection = db.collection('posts');
     
-    const { slug, id, category, limit = '50', offset = '0', featured } = req.query;
+    const { slug, id, category, limit = '50', offset = '0', featured, includeDrafts } = req.query;
+    const shouldIncludeDrafts = includeDrafts === 'true';
     
     // --- Single post by slug or ID ---
     if (slug || id) {
@@ -55,22 +56,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       
       let post: any = null;
       
+      const singlePostFilter: any = { slug: identifier };
+      if (!shouldIncludeDrafts) {
+        singlePostFilter.draft = { $ne: true };
+      }
+
       if (id || /^\d+$/.test(identifier)) {
         // Numeric ID lookup
         const postId = parseInt(identifier);
-        console.log(`📖 POSTS: Looking for post with ID: ${postId}`);
+        console.log(`📖 POSTS: Looking for post with ID: ${postId} (IncludeDrafts: ${shouldIncludeDrafts})`);
         
+        const idFilter: any = { id: postId };
+        if (!shouldIncludeDrafts) {
+          idFilter.draft = { $ne: true };
+        }
+
         // Strategy 1: Explicit ID field
-        post = await postsCollection.findOne({ 
-          id: postId,
-          draft: { $ne: true }
-        });
+        post = await postsCollection.findOne(idFilter);
         
         // Strategy 2: Generated ID from ObjectId
         if (!post) {
-          const allPosts = await postsCollection.find({ 
-            draft: { $ne: true } 
-          }).toArray();
+          const searchFilter = shouldIncludeDrafts ? {} : { draft: { $ne: true } };
+          const allPosts = await postsCollection.find(searchFilter).toArray();
           
           for (const doc of allPosts) {
             const objectIdStr = doc._id.toString();
@@ -86,11 +93,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       } else {
         // Slug lookup
-        console.log(`📖 POSTS: Looking for post with slug: ${identifier}`);
-        post = await postsCollection.findOne({ 
-          slug: identifier,
-          draft: { $ne: true }
-        });
+        console.log(`📖 POSTS: Looking for post with slug: ${identifier} (IncludeDrafts: ${shouldIncludeDrafts})`);
+        post = await postsCollection.findOne(singlePostFilter);
       }
       
       if (!post) {
@@ -111,12 +115,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- Featured posts ---
     if (featured === 'true') {
       const limitNum = parseInt(limit as string) || 3;
-      console.log('⭐ POSTS: Fetching featured posts with limit:', limitNum);
+      console.log('⭐ POSTS: Fetching featured posts with limit:', limitNum, '(IncludeDrafts:', shouldIncludeDrafts, ')');
       
-      const filter = { 
-        featured: true,
-        draft: { $ne: true }
-      };
+      const filter: any = { featured: true };
+      if (!shouldIncludeDrafts) {
+        filter.draft = { $ne: true };
+      }
       
       let docs = await postsCollection
         .find(filter)
@@ -127,8 +131,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Fallback to latest posts if no featured posts found
       if (docs.length === 0) {
         console.log('⭐ POSTS: No featured posts, falling back to latest');
+        const fallbackFilter = shouldIncludeDrafts ? {} : { draft: { $ne: true } };
         docs = await postsCollection
-          .find({ draft: { $ne: true } })
+          .find(fallbackFilter)
           .sort({ date: -1 })
           .limit(limitNum)
           .toArray();
@@ -146,10 +151,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const offsetNum = parseInt(offset as string) || 0;
     
     console.log('📄 POSTS: Fetching posts with params:', {
-      category, limit: limitNum, offset: offsetNum
+      category, limit: limitNum, offset: offsetNum, includeDrafts: shouldIncludeDrafts
     });
     
-    const filter: any = { draft: { $ne: true } };
+    const filter: any = {};
+    if (!shouldIncludeDrafts) {
+      filter.draft = { $ne: true };
+    }
     
     if (category) {
       filter.tags = category;
