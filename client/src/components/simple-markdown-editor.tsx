@@ -411,11 +411,12 @@ export default function SimpleMarkdownEditor({
                     <FileText className="h-4 w-4" />
                     Content * (Type "/" for formatting options)
                   </label>
-                  <div className="mb-2 flex gap-2 text-xs text-gray-600">
+                  <div className="mb-2 flex gap-2 flex-wrap text-xs text-gray-600">
                     <span>• Type <code className="px-1 bg-gray-100 rounded">#</code> for heading</span>
                     <span>• Type <code className="px-1 bg-gray-100 rounded">**</code> for bold</span>
                     <span>• Type <code className="px-1 bg-gray-100 rounded">*</code> for italic</span>
                     <span>• Type <code className="px-1 bg-gray-100 rounded">-</code> for list</span>
+                    <span>• Type <code className="px-1 bg-gray-100 rounded">- [ ]</code> for task</span>
                   </div>
                   <NotionEditor
                     content={content}

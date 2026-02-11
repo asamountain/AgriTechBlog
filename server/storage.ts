@@ -42,7 +42,8 @@ export interface IStorage {
   // Annotation methods
   getAnnotations(postId: number, options?: { type?: string; parentId?: string; userId?: string }): Promise<Annotation[]>;
   createAnnotation(insertAnnotation: InsertAnnotation): Promise<Annotation>;
-  deleteAnnotation(id: string, userId: string): Promise<void>;
+  deleteAnnotation(id: string, userId: string, isAdmin?: boolean, adminEmail?: string): Promise<void>;
+  toggleAnnotationLike(annotationId: string, userId: string): Promise<{ likes: number; hasLiked: boolean }>;
 }
 
 // MONGODB-ONLY STORAGE CREATION

@@ -42,6 +42,8 @@ export function ResponsePanel({
   const queryClient = useQueryClient();
   const { userId } = useAnonymousUser();
   const { isAuthenticated, user, signInWithGoogle, signInWithGithub, loading: authLoading } = useAuth();
+  const isAdminUser = user?.email === 'seungjinyoun@gmail.com' ||
+                      user?.email === 'admin@agritech.com';
   const deleteMutation = useDeleteAnnotation(postId);
 
   useEffect(() => {
@@ -217,7 +219,7 @@ export function ResponsePanel({
             {responses.map((r) => (
               <div key={r.id} className="space-y-1 group relative">
                 {/* Delete button for own responses */}
-                {r.anonymousUserId === userId && (
+                {(r.anonymousUserId === userId || isAdminUser) && (
                   <div className="absolute top-0 right-0 z-10">
                     <DeleteAnnotationButton
                       onDelete={() => deleteMutation.mutate(r.id)}

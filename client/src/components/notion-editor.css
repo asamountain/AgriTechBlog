@@ -77,11 +77,17 @@
   margin-top: 0;
 }
 
-/* Lists */
-.notion-editor-content ul,
+/* Lists — restore markers stripped by Tailwind preflight */
+.notion-editor-content ul {
+  padding-left: 1.5em;
+  margin: 0.75em 0;
+  list-style-type: disc;
+}
+
 .notion-editor-content ol {
   padding-left: 1.5em;
   margin: 0.75em 0;
+  list-style-type: decimal;
 }
 
 .notion-editor-content li {
@@ -93,8 +99,16 @@
   margin: 0.25em 0;
 }
 
-/* Nested lists */
-.notion-editor-content ul ul,
+/* Nested list markers */
+.notion-editor-content ul ul {
+  list-style-type: circle;
+  margin: 0.25em 0;
+}
+
+.notion-editor-content ul ul ul {
+  list-style-type: square;
+}
+
 .notion-editor-content ol ol,
 .notion-editor-content ul ol,
 .notion-editor-content ol ul {
@@ -193,25 +207,42 @@
   background: #dbeafe;
 }
 
-/* Task lists (if you add them later) */
+/* Task lists - interactive checkboxes */
 .notion-editor-content ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
+  margin: 0.75em 0;
 }
 
 .notion-editor-content ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;
+  gap: 0.5em;
+  margin: 0.25em 0;
 }
 
 .notion-editor-content ul[data-type="taskList"] li > label {
   flex: 0 0 auto;
-  margin-right: 0.5em;
+  margin-top: 0.25em;
   user-select: none;
+}
+
+.notion-editor-content ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #059669;
+  cursor: pointer;
+  border-radius: 3px;
 }
 
 .notion-editor-content ul[data-type="taskList"] li > div {
   flex: 1 1 auto;
+}
+
+/* Strikethrough for checked items */
+.notion-editor-content ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  color: #9ca3af;
 }
 
 /* Ensure smooth typing experience */

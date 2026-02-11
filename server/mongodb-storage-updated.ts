@@ -711,6 +711,8 @@ export class MongoStorage implements IStorage {
       isPrivate: doc.isPrivate || false,
       isApproved: doc.isApproved,
       createdAt: doc.createdAt,
+      likes: (doc as any).likes || 0,
+      likedByUserIds: (doc as any).likedByUserIds || [],
     }));
   }
 
@@ -728,13 +730,72 @@ export class MongoStorage implements IStorage {
     } as Annotation;
   }
 
-  async deleteAnnotation(id: string, userId: string): Promise<void> {
+  async deleteAnnotation(id: string, userId: string, isAdmin: boolean = false, adminEmail?: string): Promise<void> {
+    const annotation = await this.annotationsCollection.findOne({
+      _id: new ObjectId(id)
+    });
+
+    if (!annotation) {
+      throw new Error("Annotation not found");
+    }
+
+    const isOwner = annotation.anonymousUserId === userId;
+    if (!isOwner && !isAdmin) {
+      throw new Error("Forbidden: You can only delete your own annotations");
+    }
+
+    // Log admin deletions to audit trail
+    if (isAdmin && !isOwner) {
+      const logsCollection = this.db.collection('deletion_logs');
+      await logsCollection.insertOne({
+        deletedAt: new Date(),
+        deletedBy: adminEmail,
+        annotationType: 'inline-comment',
+        annotationId: id,
+        postId: annotation.postId,
+        originalAuthor: annotation.authorName || annotation.authorEmail,
+        originalContent: annotation.content,
+        selectedText: annotation.selectedText,
+        reason: 'admin_override',
+      });
+    }
+
     const result = await this.annotationsCollection.deleteOne({
-      _id: new ObjectId(id),
-      anonymousUserId: userId
+      _id: new ObjectId(id)
     });
     if (result.deletedCount === 0) {
-      throw new Error("Annotation not found or not owned by user");
+      throw new Error("Delete operation failed");
     }
+  }
+
+  async toggleAnnotationLike(annotationId: string, userId: string): Promise<{ likes: number; hasLiked: boolean }> {
+    const annotation = await this.annotationsCollection.findOne({
+      _id: new ObjectId(annotationId)
+    });
+
+    if (!annotation) {
+      throw new Error("Annotation not found");
+    }
+
+    const likedByUserIds: string[] = (annotation as any).likedByUserIds || [];
+    const hasLiked = likedByUserIds.includes(userId);
+
+    if (hasLiked) {
+      await this.annotationsCollection.updateOne(
+        { _id: new ObjectId(annotationId) },
+        { $pull: { likedByUserIds: userId }, $inc: { likes: -1 } }
+      );
+    } else {
+      await this.annotationsCollection.updateOne(
+        { _id: new ObjectId(annotationId) },
+        { $addToSet: { likedByUserIds: userId }, $inc: { likes: 1 } }
+      );
+    }
+
+    const updated = await this.annotationsCollection.findOne({ _id: new ObjectId(annotationId) });
+    return {
+      likes: (updated as any)?.likes || 0,
+      hasLiked: !hasLiked,
+    };
   }
 }

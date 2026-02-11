@@ -73,8 +73,16 @@ export default function BlogPost() {
   });
 
   // Fetch annotations for this post
+  // Query key matches invalidation key (without userId) so cache refreshes properly after mutations
   const { data: annotations = [] } = useQuery<Annotation[]>({
-    queryKey: [`/api/blog-posts/${post?.id}/inline-comments?userId=${userId}`],
+    queryKey: [`/api/blog-posts/${post?.id}/inline-comments`],
+    queryFn: async () => {
+      const res = await fetch(`/api/blog-posts/${post?.id}/inline-comments?userId=${userId}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to fetch annotations');
+      return res.json();
+    },
     enabled: !!post?.id,
   });
 
@@ -173,7 +181,12 @@ export default function BlogPost() {
     setNoteInput(null);
   };
 
+  // Memoize plugin arrays to prevent ReactMarkdown re-renders that destroy <mark> elements
+  const remarkPluginsMemo = useMemo(() => [remarkGfm], []);
+  const rehypePluginsMemo = useMemo(() => [rehypeSlug, rehypeHighlight], []);
+
   // Stable paragraph ID components for ReactMarkdown
+  // IMPORTANT: Only depend on post?.content to prevent DOM destruction that wipes <mark> highlights
   const markdownComponents = useMemo(() => {
     let paragraphIndex = 0;
     return {
@@ -181,17 +194,48 @@ export default function BlogPost() {
         const textContent = extractTextFromChildren(children);
         const pid = stableParagraphId(textContent, paragraphIndex++);
         return (
-          <p
-            {...props}
-            data-paragraph-id={pid}
-            className={highlightedParagraph === pid ? 'bg-yellow-50 transition-colors' : ''}
-          >
+          <p {...props} data-paragraph-id={pid}>
             {children}
           </p>
         );
       },
+      li: ({ children, ...props }: any) => {
+        const textContent = extractTextFromChildren(children);
+        const pid = stableParagraphId(textContent, paragraphIndex++);
+        return (
+          <li {...props} data-paragraph-id={pid}>
+            {children}
+          </li>
+        );
+      },
     };
-  }, [post?.content, highlightedParagraph]);
+  }, [post?.content]);
+
+  // Memoize the entire ReactMarkdown output so unrelated re-renders don't destroy <mark> highlights
+  const renderedContent = useMemo(() => (
+    <ReactMarkdown
+      remarkPlugins={remarkPluginsMemo}
+      rehypePlugins={rehypePluginsMemo}
+      components={markdownComponents}
+    >
+      {ensureMarkdown(post?.content || '')}
+    </ReactMarkdown>
+  ), [remarkPluginsMemo, rehypePluginsMemo, markdownComponents, post?.content]);
+
+  // Apply yellow flash highlight on sidebar click via DOM manipulation
+  // (separate from useMemo to avoid destroying <mark> elements)
+  useEffect(() => {
+    if (!contentRef.current) return;
+    contentRef.current.querySelectorAll('[data-paragraph-id].bg-yellow-50').forEach((el) => {
+      el.classList.remove('bg-yellow-50', 'transition-colors');
+    });
+    if (highlightedParagraph) {
+      const el = contentRef.current.querySelector(`[data-paragraph-id="${highlightedParagraph}"]`);
+      if (el) {
+        el.classList.add('bg-yellow-50', 'transition-colors');
+      }
+    }
+  }, [highlightedParagraph]);
 
   if (isLoading) {
     return (
@@ -376,13 +420,7 @@ export default function BlogPost() {
                 prose-code:bg-sage-100 prose-code:text-sage-800 prose-code:px-1 prose-code:rounded
               "
             >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeSlug, rehypeHighlight]}
-                components={markdownComponents}
-              >
-                {ensureMarkdown(post.content)}
-              </ReactMarkdown>
+              {renderedContent}
             </div>
 
             {/* Selection Toolbar */}
@@ -470,6 +508,12 @@ export default function BlogPost() {
                       const element = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
                       if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Blink the green highlights within this paragraph
+                        const marks = element.querySelectorAll('mark.inline-highlight');
+                        marks.forEach((mark) => {
+                          mark.classList.add('highlight-blink');
+                          setTimeout(() => mark.classList.remove('highlight-blink'), 2000);
+                        });
                       }
                       setTimeout(() => setHighlightedParagraph(null), 2000);
                     }}
