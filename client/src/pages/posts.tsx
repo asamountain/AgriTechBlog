@@ -89,9 +89,9 @@ export default function PostsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50 flex flex-col">
         <Navigation />
-        <div className="container mx-auto px-6 py-12">
+        <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <AdaptiveLoader size="lg" text="Loading posts..." color="text-forest-green" />
           </div>
@@ -116,7 +116,7 @@ export default function PostsPage() {
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
         <Navigation />
         
-        <main className="container mx-auto px-6 py-12">
+        <main className="container mx-auto px-6 pt-24 pb-12">
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair mb-4">

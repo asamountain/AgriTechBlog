@@ -214,12 +214,10 @@ export default function CreatePost() {
   // Render loading state
   if (isEditing && isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50 flex flex-col">
         <Navigation />
-        <div className="container mx-auto px-6 py-24">
-          <div className="flex items-center justify-center">
-            <AdaptiveLoader size="md" text="Loading post..." color="text-forest-green" />
-          </div>
+        <div className="flex-1 flex items-center justify-center">
+          <AdaptiveLoader size="md" text="Loading post..." color="text-forest-green" />
         </div>
       </div>
     );
