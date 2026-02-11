@@ -26,6 +26,7 @@
     "sync:pull": "node scripts/env-sync.js pull",
     "sync:status": "node scripts/env-sync.js status",
     "sync:validate": "node scripts/env-sync.js validate",
+    "check:firebase": "node scripts/check-firebase-env.js",
     "db:test": "node test-mongodb-connection.js",
     "db:health": "node -e \"fetch('http://localhost:5000/api/health/mongodb').then(r=>r.json()).then(console.log).catch(e=>console.error('Server not running:',e.message))\"",
     "db:check": "node check-posts.js",

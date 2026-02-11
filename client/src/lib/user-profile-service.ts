@@ -10,14 +10,18 @@ import {
   getDocs,
   increment
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, isFirebaseConfigured } from './firebase';
 import type { UserProfile, AuthUser } from '@/types/comments';
 
 export class UserProfileService {
-  private profilesCollection = collection(db, 'userProfiles');
+  private get profilesCollection() {
+    if (!db) throw new Error('Firebase is not configured');
+    return collection(db, 'userProfiles');
+  }
 
   // Get or create user profile
   async getUserProfile(uid: string): Promise<UserProfile | null> {
+    if (!isFirebaseConfigured) return null;
     try {
       const profileRef = doc(db, 'userProfiles', uid);
       const profileDoc = await getDoc(profileRef);
@@ -47,6 +51,7 @@ export class UserProfileService {
 
   // Create or update user profile from Firebase Auth
   async createOrUpdateProfile(authUser: AuthUser): Promise<UserProfile> {
+    if (!isFirebaseConfigured) throw new Error('Firebase is not configured');
     try {
       const profileRef = doc(db, 'userProfiles', authUser.uid);
       const existingProfile = await getDoc(profileRef);

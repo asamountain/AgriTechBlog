@@ -1,9 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, type Auth } from 'firebase/auth';
 
-// Your Firebase configuration
-// You'll need to replace these with your actual Firebase project values
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -14,11 +12,26 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey);
 
-// Initialize Firebase services
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+let app: FirebaseApp | null = null;
+let db: Firestore | null = null;
+let auth: Auth | null = null;
 
+if (isFirebaseConfigured) {
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+  } catch (error) {
+    console.warn('Firebase initialization failed:', error);
+  }
+} else {
+  console.warn(
+    'Firebase is not configured. Comments and authentication will be unavailable. ' +
+    'Set VITE_FIREBASE_* environment variables to enable these features.'
+  );
+}
+
+export { db, auth };
 export default app;

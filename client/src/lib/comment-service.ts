@@ -11,12 +11,15 @@ import {
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, isFirebaseConfigured } from './firebase';
 import type { Comment, CommentFormData } from '@/types/comments';
 import { userProfileService } from './user-profile-service';
 
 export class CommentService {
-  private commentsCollection = collection(db, 'comments');
+  private get commentsCollection() {
+    if (!db) throw new Error('Firebase is not configured');
+    return collection(db, 'comments');
+  }
 
   // Add a new comment (requires authentication)
   async addComment(postId: string, commentData: CommentFormData, userId: string): Promise<Comment> {
@@ -128,12 +131,8 @@ export class CommentService {
 
   // Get comments for a specific post with user profiles
   async getComments(postId: string): Promise<Comment[]> {
+    if (!isFirebaseConfigured) return [];
     try {
-      // Check if Firebase is initialized
-      if (!db) {
-        console.error('Firebase db is not initialized');
-        throw new Error('Firebase not initialized');
-      }
 
       console.log('Fetching comments for postId:', postId);
       console.log('Using collection:', this.commentsCollection);

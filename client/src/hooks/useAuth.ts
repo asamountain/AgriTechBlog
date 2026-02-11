@@ -7,16 +7,21 @@ import {
   onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, isFirebaseConfigured } from '@/lib/firebase';
 import { userProfileService } from '@/lib/user-profile-service';
 import type { AuthUser, UserProfile } from '@/types/comments';
 
 export function useAuth() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       
@@ -46,11 +51,12 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!auth) throw new Error('Firebase authentication is not configured');
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-      
+
       const result = await signInWithPopup(auth, provider);
       return result;
     } catch (error) {
@@ -60,11 +66,12 @@ export function useAuth() {
   };
 
   const signInWithGithub = async () => {
+    if (!auth) throw new Error('Firebase authentication is not configured');
     try {
       const provider = new GithubAuthProvider();
       provider.addScope('read:user');
       provider.addScope('user:email');
-      
+
       const result = await signInWithPopup(auth, provider);
       return result;
     } catch (error) {
@@ -74,6 +81,7 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
     } catch (error) {

@@ -5,7 +5,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm run check:*)",
       "Bash(cd:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(node scripts/check-firebase-env.js:*)"
     ]
   }
 }

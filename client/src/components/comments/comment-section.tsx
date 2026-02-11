@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentService } from '@/lib/comment-service';
+import { isFirebaseConfigured } from '@/lib/firebase';
 import { useAuthContext } from '@/components/auth/auth-provider';
 import { LoginModal } from '@/components/auth/login-modal';
 import type { Comment, CommentFormData } from '@/types/comments';
@@ -36,6 +37,7 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
     queryKey: ['comments', postId],
     queryFn: () => commentService.getComments(postId),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!postId && isFirebaseConfigured,
   });
 
   // Add comment mutation
@@ -124,6 +126,18 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
       minute: '2-digit'
     }).format(date);
   };
+
+  if (!isFirebaseConfigured) {
+    return (
+      <div className="mt-16 border-t border-gray-200 pt-8">
+        <div className="text-center py-8">
+          <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Comments</h3>
+          <p className="text-gray-600">Comments are not available at this time.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
