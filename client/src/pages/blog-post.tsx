@@ -56,7 +56,7 @@ export default function BlogPost() {
     isLoading,
     error,
   } = useQuery<BlogPostWithDetails>({
-    queryKey: [`/api/blog-post?slug=${slug}`],
+    queryKey: [`/api/blog-post`, { slug, includeDrafts: true }],
     enabled: !!slug,
   });
 
