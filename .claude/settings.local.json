@@ -6,7 +6,10 @@
       "Bash(npm run check:*)",
       "Bash(cd:*)",
       "Bash(npm install:*)",
-      "Bash(node scripts/check-firebase-env.js:*)"
+      "Bash(node scripts/check-firebase-env.js:*)",
+      "Bash(xargs:*)",
+      "Bash(del \"c:\\\\Users\\\\iocrops admin\\\\Coding\\\\AgriTechBlog\\\\scripts\\\\check-firebase-env.js\")",
+      "Bash(node scripts/check-env.js:*)"
     ]
   }
 }
