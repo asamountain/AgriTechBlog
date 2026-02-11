@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Highlighter, StickyNote, Heart } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useAnonymousUser } from '@/hooks/useAnonymousUser';
+import { useAuth } from '@/hooks/useAuth';
 import { useDeleteAnnotation } from '@/hooks/useDeleteAnnotation';
 import { useLikeAnnotation } from '@/hooks/useLikeAnnotation';
 import { DeleteAnnotationButton } from '@/components/delete-annotation-button';
@@ -35,6 +36,9 @@ export function InlineCommentSidebar({
   onCloseActiveAnnotation,
 }: InlineCommentSidebarProps) {
   const { userId } = useAnonymousUser();
+  const { user } = useAuth();
+  const isAdminUser = user?.email === 'seungjinyoun@gmail.com' ||
+                      user?.email === 'admin@agritech.com';
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
   const deleteMutation = useDeleteAnnotation(postId);
   const likeMutation = useLikeAnnotation(postId);
@@ -132,8 +136,8 @@ export function InlineCommentSidebar({
               className="mb-2 p-3 hover:shadow-md transition cursor-pointer bg-white group relative"
               onClick={() => onCommentClick(paragraphId)}
             >
-              {/* Delete button - only show for own annotations */}
-              {annotation.anonymousUserId === userId && (
+              {/* Delete button - show for own annotations or admin */}
+              {(annotation.anonymousUserId === userId || isAdminUser) && (
                 <div
                   className="absolute top-2 right-2 z-10"
                   onClick={(e) => e.stopPropagation()}

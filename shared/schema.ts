@@ -209,6 +209,20 @@ export interface InsertAnnotation {
   likedByUserIds?: string[];
 }
 
+// Deletion audit log for admin actions
+export interface DeletionLog {
+  id?: string;
+  deletedAt: Date;
+  deletedBy: string;              // Admin email who performed deletion
+  annotationType: string;          // 'inline-comment', 'comment', etc.
+  annotationId: string;            // ID of deleted annotation
+  postId: number;                  // Post where annotation existed
+  originalAuthor: string;          // Author name/email of deleted annotation
+  originalContent: string;         // Content that was deleted
+  selectedText: string;            // Highlighted text (for inline comments)
+  reason: 'admin_override' | 'spam' | 'inappropriate';
+}
+
 // Extended interfaces
 export interface BlogPostWithDetails extends BlogPost {
   // Author information removed - posts are now anonymous

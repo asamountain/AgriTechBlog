@@ -292,6 +292,18 @@ function createMockStorage(): IStorage {
     },
     async deleteComment(id: number): Promise<void> {
       console.log("Mock storage: Comment deletion not implemented");
+    },
+    async getAnnotations(postId: number, options?: any): Promise<any[]> {
+      return [];
+    },
+    async createAnnotation(insertAnnotation: any): Promise<any> {
+      throw new Error("Mock storage: Annotation creation not implemented");
+    },
+    async deleteAnnotation(id: string, userId: string, isAdmin?: boolean, adminEmail?: string): Promise<void> {
+      console.log("Mock storage: Annotation deletion not implemented");
+    },
+    async toggleAnnotationLike(annotationId: string, userId: string): Promise<{ likes: number; hasLiked: boolean }> {
+      return { likes: 0, hasLiked: false };
     }
   };
 }
@@ -977,20 +989,56 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.delete("/api/inline-comments/:id", async (req, res) => {
+  // Admin email whitelist (matches api/admin/inline-comments.ts)
+  const ADMIN_EMAILS = ['seungjinyoun@gmail.com', 'admin@agritech.com'];
+
+  app.delete("/api/blog-posts/:id/inline-comments", async (req, res) => {
     try {
-      const { id } = req.params;
-      const { userId } = req.query;
-      
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
+      const { annotationId, userId, userEmail } = req.query;
+
+      if (!annotationId || !userId) {
+        return res.status(400).json({ message: "annotationId and userId are required" });
       }
 
-      await activeStorage.deleteAnnotation(id, userId as string);
-      res.status(204).send();
-    } catch (error) {
+      const isAdmin = userEmail
+        ? ADMIN_EMAILS.includes((userEmail as string).toLowerCase())
+        : false;
+
+      await activeStorage.deleteAnnotation(
+        annotationId as string,
+        userId as string,
+        isAdmin,
+        userEmail as string | undefined
+      );
+      res.status(200).json({ message: "Deleted" });
+    } catch (error: any) {
       console.error("Error deleting annotation:", error);
+      if (error.message?.includes('Forbidden')) {
+        return res.status(403).json({ message: error.message });
+      }
       res.status(400).json({ message: "Failed to delete annotation" });
+    }
+  });
+
+  // Like/unlike annotation
+  app.put("/api/blog-posts/:id/inline-comments/:annotationId/like", async (req, res) => {
+    try {
+      const { annotationId } = req.params;
+      const { userId } = req.query;
+      const postId = parseInt(req.params.id);
+
+      if (!annotationId || !userId) {
+        return res.status(400).json({ error: "annotationId and userId are required" });
+      }
+
+      const result = await activeStorage.toggleAnnotationLike(
+        annotationId,
+        userId as string
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      res.status(400).json({ error: "Failed to update like" });
     }
   });
 

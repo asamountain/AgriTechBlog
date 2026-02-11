@@ -49,6 +49,21 @@ function formatAnnotation(doc: MongoAnnotation): Annotation {
   };
 }
 
+// Admin email whitelist
+const ADMIN_EMAILS = [
+  'seungjinyoun@gmail.com',
+  'admin@agritech.com',
+  'sjisyours@gmail.com'
+];
+
+/**
+ * Check if the given email belongs to an admin user
+ */
+function isAdminEmail(email: string | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!['GET', 'POST', 'DELETE', 'PUT'].includes(req.method || '')) {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -161,25 +176,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(201).json(formatAnnotation({ ...doc, _id: result.insertedId }));
       }
 
-      // DELETE — remove own annotation
+      // DELETE — remove own annotation or admin delete any
       if (req.method === 'DELETE') {
         const idStr = Array.isArray(annotationId) ? annotationId[0] : annotationId;
         const userIdStr = Array.isArray(userId) ? userId[0] : userId;
+        const userEmail = Array.isArray(req.query.userEmail)
+          ? req.query.userEmail[0]
+          : req.query.userEmail;
 
         if (!idStr || !userIdStr) {
           return res.status(400).json({ message: 'annotationId and userId are required' });
         }
 
+        // Check if user is admin
+        const isAdmin = isAdminEmail(userEmail);
+
+        // Find the annotation first
+        const annotation = await collection.findOne({
+          _id: new ObjectId(idStr)
+        });
+
+        if (!annotation) {
+          return res.status(404).json({ message: 'Annotation not found' });
+        }
+
+        // Check authorization: owner OR admin
+        const isOwner = annotation.anonymousUserId === userIdStr;
+        const canDelete = isOwner || isAdmin;
+
+        if (!canDelete) {
+          return res.status(403).json({
+            message: 'Forbidden: You can only delete your own annotations'
+          });
+        }
+
+        // Log admin deletions to audit trail
+        if (isAdmin && !isOwner) {
+          const logsCollection = db.collection('deletion_logs');
+          await logsCollection.insertOne({
+            deletedAt: new Date(),
+            deletedBy: userEmail,
+            annotationType: 'inline-comment',
+            annotationId: idStr,
+            postId: postId,
+            originalAuthor: annotation.authorName || annotation.authorEmail,
+            originalContent: annotation.content,
+            selectedText: annotation.selectedText,
+            reason: 'admin_override',
+          });
+        }
+
+        // Perform deletion
         const result = await collection.deleteOne({
-          _id: new ObjectId(idStr),
-          anonymousUserId: userIdStr,
+          _id: new ObjectId(idStr)
         });
 
         if (result.deletedCount === 0) {
-          return res.status(404).json({ message: 'Annotation not found or not owned by user' });
+          return res.status(500).json({ message: 'Delete operation failed' });
         }
 
-        return res.status(200).json({ message: 'Deleted' });
+        return res.status(200).json({
+          message: 'Deleted',
+          deletedBy: isAdmin && !isOwner ? 'admin' : 'owner'
+        });
       }
 
       // PUT — toggle like on an annotation
