@@ -369,20 +369,6 @@ export default function SimpleMarkdownEditor({
           <CardContent className="p-6">
             {!showPreview ? (
               <div className="space-y-6">
-                {/* Debug Header for Development */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <h4 className="text-sm font-medium text-yellow-800 mb-2">🔍 Development Debug Info:</h4>
-                    <div className="text-xs text-yellow-700 space-y-1">
-                      <div>Post ID: {postId || 'New Post'}</div>
-                      <div>Initial Title: {initialTitle ? `"${initialTitle}"` : 'Not set'}</div>
-                      <div>Initial Content: {initialContent ? `${initialContent.length} chars` : 'Not set'}</div>
-                      <div>Initial Excerpt: {initialExcerpt ? `"${initialExcerpt}"` : 'Not set'}</div>
-                      <div>Initial Tags: {initialTags?.length ? initialTags.join(', ') : 'Not set'}</div>
-                      <div>Initial Featured Image: {initialFeaturedImage ? 'Set' : 'Not set'}</div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Title Input */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-white">
@@ -532,21 +518,6 @@ export default function SimpleMarkdownEditor({
                   </p>
                 </div>
 
-                {/* Debug Info (Development Only) */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="text-sm font-medium text-blue-800 mb-2">🔧 Current State Debug Info:</h4>
-                    <div className="text-xs text-blue-700 space-y-1">
-                      <div>Post ID: {postId || 'New Post'}</div>
-                      <div>Title Length: {title.length}</div>
-                      <div>Content Length: {content.length}</div>
-                      <div>Excerpt Length: {excerpt.length}</div>
-                      <div>Tags Count: {tags.length}</div>
-                      <div>Featured Image: {featuredImage ? 'Set' : 'Not set'}</div>
-                      <div>Published: {published ? 'Yes' : 'No'}</div>
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="prose prose-lg max-w-none">

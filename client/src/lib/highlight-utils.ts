@@ -62,8 +62,7 @@ function highlightTextInElement(
     range.setEnd(node, highlightEnd);
 
     const mark = document.createElement('mark');
-    mark.className =
-      'inline-highlight bg-green-100 hover:bg-green-200 cursor-pointer rounded-sm transition-colors';
+    mark.className = 'inline-highlight';
     mark.dataset.annotationId = annotationId;
     mark.addEventListener('click', () => onClick(annotationId));
 

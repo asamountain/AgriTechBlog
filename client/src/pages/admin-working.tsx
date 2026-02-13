@@ -571,29 +571,29 @@ function PostManagement() {
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-gray-700">Sort by:</label>
           <div className="flex gap-2">
-            <Button 
+            <Button
               variant={sortBy === 'newest' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('newest')}
-              className="text-xs"
+              className={`text-xs ${sortBy === 'newest' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
             >
               <ArrowUpDown className="w-3 h-3 mr-1" />
               Newest First
             </Button>
-            <Button 
+            <Button
               variant={sortBy === 'oldest' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('oldest')}
-              className="text-xs"
+              className={`text-xs ${sortBy === 'oldest' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
             >
               <ArrowUpDown className="w-3 h-3 mr-1" />
               Oldest First
             </Button>
-            <Button 
+            <Button
               variant={sortBy === 'title' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('title')}
-              className="text-xs"
+              className={`text-xs ${sortBy === 'title' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
             >
               <ArrowUpDown className="w-3 h-3 mr-1" />
               Title A-Z
@@ -608,20 +608,6 @@ function PostManagement() {
               Read Time
             </Button>
           </div>
-        </div>
-      </Card>
-
-      {/* Debug Information */}
-      <Card className="p-4 bg-blue-50 border-blue-200">
-        <h3 className="font-medium text-blue-800 mb-2">🔍 Debug Information:</h3>
-        <div className="text-sm text-blue-700 space-y-1">
-          <p><strong>Loading:</strong> {isLoading ? 'Yes' : 'No'}</p>
-          <p><strong>Error:</strong> {isError ? error?.message || 'Unknown error' : 'None'}</p>
-          <p><strong>Posts Found:</strong> {posts?.length || 0}</p>
-          <p><strong>API Endpoint:</strong> /api/admin/blog-posts</p>
-          {posts?.length > 0 && (
-            <p><strong>Sample Title:</strong> {posts[0]?.title}</p>
-          )}
         </div>
       </Card>
 
@@ -748,18 +734,18 @@ function PostManagement() {
               {/* Top Row: Status Badge (Left) + Selection Checkbox (Right) */}
               <div className="flex items-start justify-between p-4 pb-2">
                 <div className="flex items-center gap-2">
-                  <Badge 
+                  <Badge
                     variant={post.isPublished ? "default" : "outline"}
                     className={`text-xs font-medium ${
-                      post.isPublished 
-                        ? "bg-green-600 text-white hover:bg-green-700" 
-                        : "bg-orange-100 text-orange-700 border-orange-300"
+                      post.isPublished
+                        ? "bg-forest-green text-white hover:bg-forest-green/90"
+                        : "bg-[#8B7355]/15 text-[#654321] border-[#8B7355]/30"
                     }`}
                   >
                     {post.isPublished ? "✓ Published" : "📝 Draft"}
                   </Badge>
                   {post.isFeatured && (
-                    <Badge className="text-xs bg-yellow-500 text-white">
+                    <Badge className="text-xs bg-[#9B7E46] text-white hover:bg-[#9B7E46]/90">
                       ⭐ Featured
                     </Badge>
                   )}

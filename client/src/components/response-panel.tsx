@@ -145,7 +145,7 @@ export function ResponsePanel({
       </div>
 
       {/* Quoted text */}
-      <div className="p-3 bg-green-50 border-l-3 border-green-400 rounded-r text-sm text-gray-700 italic max-h-24 overflow-y-auto">
+      <div className="p-3 bg-[rgba(45,80,22,0.06)] border-l-3 border-forest-green rounded-r text-sm text-forest-green italic max-h-24 overflow-y-auto">
         "{selectedText.length > 150 ? selectedText.substring(0, 150) + '...' : selectedText}"
       </div>
 
@@ -180,7 +180,7 @@ export function ResponsePanel({
           <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-md border border-gray-100">
             <Avatar className="h-8 w-8">
               <AvatarImage src={user?.photoURL || undefined} />
-              <AvatarFallback className="text-xs bg-green-100 text-green-700">
+              <AvatarFallback className="text-xs bg-[rgba(45,80,22,0.10)] text-forest-green">
                 {user?.displayName?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
@@ -231,7 +231,7 @@ export function ResponsePanel({
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6 border border-gray-100">
                     <AvatarImage src={r.authorImage || undefined} />
-                    <AvatarFallback className="text-[10px] bg-green-100 text-green-700 font-bold">
+                    <AvatarFallback className="text-[10px] bg-[rgba(45,80,22,0.10)] text-forest-green font-bold">
                       {r.authorName?.[0]?.toUpperCase() || '?'}
                     </AvatarFallback>
                   </Avatar>

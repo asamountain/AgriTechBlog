@@ -37,8 +37,14 @@ export function useTextSelection(containerRef: React.RefObject<HTMLElement>) {
     while (node && node !== containerRef.current) {
       if ((node as HTMLElement).dataset?.paragraphId) {
         const paragraphId = (node as HTMLElement).dataset.paragraphId!;
+        const paragraphElement = node as HTMLElement;
         const range = sel.getRangeAt(0);
         const rect = range.getBoundingClientRect();
+
+        // Calculate offsets relative to paragraph's textContent (ignore mark boundaries)
+        const paragraphText = paragraphElement.textContent || '';
+        const startOffset = paragraphText.indexOf(text);
+        const endOffset = startOffset + text.length;
 
         // Toolbar dimensions (estimate)
         const toolbarWidth = 320;
@@ -69,8 +75,8 @@ export function useTextSelection(containerRef: React.RefObject<HTMLElement>) {
         setSelection({
           text,
           paragraphId,
-          startOffset: range.startOffset,
-          endOffset: range.endOffset,
+          startOffset,
+          endOffset,
           position: { top, left },
         });
         return;

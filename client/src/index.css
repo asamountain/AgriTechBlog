@@ -383,17 +383,21 @@ h1, h2, h3, h4, h5, h6 {
   @apply text-forest-green hover:opacity-80 underline;
 }
 
-/* Inline annotation highlights */
+/* Inline annotation highlights — forest-green tint */
 mark.inline-highlight {
-  background-color: rgb(220 252 231); /* bg-green-100 equivalent */
-  border-radius: 0.125rem; /* rounded-sm */
+  background-color: rgba(45, 80, 22, 0.12);
+  border-radius: 0.125rem;
   cursor: pointer;
   transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0.125rem 0;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 mark.inline-highlight:hover {
-  background-color: rgb(187 247 208); /* bg-green-200 equivalent */
+  background-color: rgba(45, 80, 22, 0.22);
 }
 
 /* Ensure marks don't break text flow */
@@ -406,10 +410,10 @@ mark.inline-highlight {
 
 /* Blink animation for sidebar click → scroll to highlight */
 @keyframes highlight-blink {
-  0%, 100% { background-color: rgb(220 252 231); }
-  25% { background-color: rgb(254 249 195); }
-  50% { background-color: rgb(187 247 208); }
-  75% { background-color: rgb(254 249 195); }
+  0%, 100% { background-color: rgba(45, 80, 22, 0.12); }
+  25% { background-color: rgba(45, 80, 22, 0.30); }
+  50% { background-color: rgba(45, 80, 22, 0.22); }
+  75% { background-color: rgba(45, 80, 22, 0.30); }
 }
 
 mark.inline-highlight.highlight-blink {

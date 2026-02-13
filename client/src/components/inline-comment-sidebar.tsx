@@ -109,7 +109,7 @@ export function InlineCommentSidebar({
             variant={sortBy === 'recent' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setSortBy('recent')}
-            className="h-7 text-xs px-2"
+            className={`h-7 text-xs px-2 ${sortBy === 'recent' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
           >
             Recent
           </Button>
@@ -117,7 +117,7 @@ export function InlineCommentSidebar({
             variant={sortBy === 'popular' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setSortBy('popular')}
-            className="h-7 text-xs px-2"
+            className={`h-7 text-xs px-2 ${sortBy === 'popular' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
           >
             Popular
           </Button>
@@ -128,7 +128,7 @@ export function InlineCommentSidebar({
       {Object.entries(grouped).map(([paragraphId, items]) => (
         <div
           key={paragraphId}
-          className={`transition-all ${highlightedParagraph === paragraphId ? 'ring-2 ring-green-400 rounded-lg p-1' : ''}`}
+          className={`transition-all ${highlightedParagraph === paragraphId ? 'ring-2 ring-[#2D5016]/40 rounded-lg p-1' : ''}`}
         >
           {items.map((annotation) => (
             <Card
@@ -150,7 +150,7 @@ export function InlineCommentSidebar({
               )}
 
               {/* Quoted text */}
-              <div className="text-xs text-green-800 bg-green-50 p-2 rounded mb-2 border-l-2 border-green-400 italic">
+              <div className="text-xs text-forest-green bg-[rgba(45,80,22,0.06)] p-2 rounded mb-2 border-l-2 border-forest-green italic">
                 "{annotation.selectedText.length > 80
                   ? annotation.selectedText.substring(0, 80) + '...'
                   : annotation.selectedText}"
@@ -162,7 +162,7 @@ export function InlineCommentSidebar({
                   <div className="flex gap-2 mb-1">
                     <Avatar className="h-5 w-5">
                       <AvatarImage src={annotation.authorImage || undefined} />
-                      <AvatarFallback className="text-[10px] bg-green-100 text-green-700">
+                      <AvatarFallback className="text-[10px] bg-[rgba(45,80,22,0.10)] text-forest-green">
                         {annotation.authorName?.[0]?.toUpperCase() || '?'}
                       </AvatarFallback>
                     </Avatar>
