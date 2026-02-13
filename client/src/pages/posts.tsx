@@ -11,6 +11,7 @@ import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
 import { markdownToText } from "@/lib/html-to-markdown";
 import { AdaptiveLoader } from "@/components/loading";
+import { stripMarkdown } from "@/lib/utils";
 
 export default function PostsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -96,7 +97,6 @@ export default function PostsPage() {
             <AdaptiveLoader size="lg" text="Loading posts..." color="text-forest-green" />
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -185,7 +185,7 @@ export default function PostsPage() {
                         index !== (posts as any[]).length - 1 ? 'border-b border-gray-100' : ''
                       }`}>
                         <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
-                          {post.title}
+                          {stripMarkdown(post.title)}
                         </h3>
                         <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
                           {new Date(post.createdAt).toLocaleDateString('en-US', {

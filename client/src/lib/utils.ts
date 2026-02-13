@@ -47,4 +47,14 @@ export function truncateText(text: string, length: number): string {
   return text.slice(0, length).trim() + '...';
 }
 
+export function stripMarkdown(text: string): string {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+  return text
+    .replace(/[*_~`]/g, '')
+    .replace(/\\/g, '')
+    .trim();
+}
+
 // getReadingTime removed - unused function

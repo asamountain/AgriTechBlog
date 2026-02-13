@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { formatDate } from "@/lib/utils";
+import { formatDate, stripMarkdown } from "@/lib/utils";
 import { markdownToText } from "@/lib/html-to-markdown";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
@@ -61,7 +61,7 @@ export default function FeaturedStories() {
                 }`}>
                   <div className="flex items-center flex-1">
                     <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200">
-                      {story.title}
+                      {stripMarkdown(story.title)}
                     </h3>
                     <Badge className="bg-forest-green text-white ml-3 text-xs">
                       Featured

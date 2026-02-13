@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { formatDate, stripMarkdown } from "@/lib/utils";
 import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
@@ -13,19 +13,13 @@ export default function BlogGrid({}: BlogGridProps) {
   const limit = 6;
 
   const { data: blogPosts, isLoading, error } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts", { limit: (page + 1) * limit, offset: 0, includeDrafts: false }],
+    queryKey: ["/api/blog-posts", { limit: (page + 1) * limit + 5, offset: 0, includeDrafts: false }],
     retry: 1,
   });
 
-  // Fetch updated profile data for author information
-  const { data: profile } = useQuery({
-    queryKey: ["/api/profile"],
-    staleTime: 0,
-    gcTime: 5 * 60 * 1000,
-  });
-
-  const displayedPosts = blogPosts?.slice(0, (page + 1) * limit) || [];
-  const hasMore = blogPosts && blogPosts.length > displayedPosts.length;
+  // Filter out featured posts and limit to the current page size
+  const displayedPosts = blogPosts?.filter(post => !post.isFeatured).slice(0, (page + 1) * limit) || [];
+  const hasMore = blogPosts && blogPosts.filter(post => !post.isFeatured).length > displayedPosts.length;
 
   if (isLoading) {
     return (
@@ -98,7 +92,7 @@ export default function BlogGrid({}: BlogGridProps) {
                 <Link key={`${post.id}-${post.slug}-${index}`} href={`/blog/${post.slug}`}>
                   <article className="group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 rounded hover:bg-gray-50 transition-all duration-200">
                     <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
-                      {post.title}
+                      {stripMarkdown(post.title)}
                     </h3>
                     <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
                       {formatDate(post.createdAt)}

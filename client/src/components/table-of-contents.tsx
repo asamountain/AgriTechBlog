@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ChevronRight, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { stripMarkdown } from "@/lib/utils";
 
 interface TOCItem {
   id: string;
@@ -28,7 +29,8 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       const match = line.match(headingRegex);
       if (match) {
         const level = match[1].length;
-        const text = match[2].trim();
+        // Clean markdown formatting from the heading text for display
+        const text = stripMarkdown(match[2]);
         headings.push({ level, text, line: index });
       }
     });

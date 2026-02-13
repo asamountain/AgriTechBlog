@@ -8,7 +8,7 @@ import TableOfContents from "@/components/table-of-contents";
 import ReadingProgress from "@/components/reading-progress";
 import ScrollToTopButton from "@/components/scroll-to-top-button";
 import RelatedPostsByTags from "@/components/related-posts-by-tags";
-import { formatDate } from "@/lib/utils";
+import { formatDate, stripMarkdown } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -244,7 +244,6 @@ export default function BlogPost() {
         <div className="flex-1 flex items-center justify-center">
           <AdaptiveLoader size="lg" text="Loading article..." color="text-forest-green" />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -328,7 +327,7 @@ export default function BlogPost() {
                 <header className="mb-8">
                   <div className="mb-4">
                     <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair leading-tight">
-                      {post.title}
+                      {stripMarkdown(post.title)}
                     </h1>
                   </div>
 

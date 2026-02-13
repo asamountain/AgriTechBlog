@@ -136,17 +136,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .limit(limitNum)
         .toArray();
       
-      // Fallback to latest posts if no featured posts found
-      if (docs.length === 0) {
-        console.log('⭐ POSTS: No featured posts, falling back to latest');
-        const fallbackFilter = shouldIncludeDrafts ? {} : { draft: { $ne: true } };
-        docs = await postsCollection
-          .find(fallbackFilter)
-          .sort({ date: -1 })
-          .limit(limitNum)
-          .toArray();
-      }
-      
       const posts = docs.map(mapPostDocument).filter(Boolean);
       const uniquePosts = deduplicatePosts(posts);
       
