@@ -16,7 +16,7 @@ import type { BlogPostWithDetails, Annotation } from "@shared/schema";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import TagDisplay from "@/components/tag-display";
-import { ContentSkeleton } from "@/components/loading";
+import { ContentSkeleton, AdaptiveLoader } from "@/components/loading";
 import ReactMarkdown from 'react-markdown';
 import { stableParagraphId, extractTextFromChildren } from '@/lib/paragraph-utils';
 import remarkGfm from 'remark-gfm';
@@ -239,15 +239,10 @@ export default function BlogPost() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white flex flex-col">
         <Navigation />
-        <div className="pt-24 pb-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ContentSkeleton />
-            <div className="mt-8">
-              <ContentSkeleton />
-            </div>
-          </div>
+        <div className="flex-1 flex items-center justify-center">
+          <AdaptiveLoader size="lg" text="Loading article..." color="text-forest-green" />
         </div>
         <Footer />
       </div>

@@ -6,7 +6,8 @@ import {
   type Author, type InsertAuthor,
   type BlogPost, type InsertBlogPost,
   type Comment, type InsertComment,
-  type BlogPostWithDetails
+  type BlogPostWithDetails,
+  type Annotation, type InsertAnnotation
 } from "@shared/schema";
 
 // Comprehensive HTML tag removal with entity decoding
@@ -781,9 +782,10 @@ export class MongoStorage implements IStorage {
     const hasLiked = likedByUserIds.includes(userId);
 
     if (hasLiked) {
+      // @ts-ignore - MongoDB driver type definition issue with $pull and array of strings
       await this.annotationsCollection.updateOne(
         { _id: new ObjectId(annotationId) },
-        { $pull: { likedByUserIds: userId }, $inc: { likes: -1 } }
+        { $pull: { likedByUserIds: userId } as any, $inc: { likes: -1 } }
       );
     } else {
       await this.annotationsCollection.updateOne(

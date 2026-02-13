@@ -491,8 +491,12 @@ function PostManagement() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <AdaptiveLoader size="lg" text="Loading posts..." />
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50 flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <AdaptiveLoader size="lg" text="Loading posts..." />
+        </div>
+        <Footer />
       </div>
     );
   }

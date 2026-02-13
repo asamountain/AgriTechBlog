@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Hash, Clock, Calendar } from "lucide-react";
 import { Link } from "wouter";
 
-import { ContentSkeleton } from "@/components/loading";
+import { ContentSkeleton, AdaptiveLoader } from "@/components/loading";
 import { markdownToText } from "@/lib/html-to-markdown";
 
 interface BlogPostWithDetails {
@@ -177,16 +177,11 @@ export default function TaggedPosts() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white flex flex-col">
         <Navigation />
-        <div className="pt-24 pb-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ContentSkeleton />
-            <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <ContentSkeleton key={i} />
-              ))}
-            </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <AdaptiveLoader size="lg" text="Loading posts..." color="text-forest-green" />
           </div>
         </div>
       </div>
