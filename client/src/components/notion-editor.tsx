@@ -71,9 +71,11 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
         },
       }),
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         HTMLAttributes: {
           class: 'notion-link',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
       TaskList,
