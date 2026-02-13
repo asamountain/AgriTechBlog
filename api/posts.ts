@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db(dbName);
     const postsCollection = db.collection('posts');
     
-    const { slug, id, category, limit = '50', offset = '0', featured, includeDrafts } = req.query;
+    const { slug, id, category, limit = '1000', offset = '0', featured, includeDrafts } = req.query;
     const shouldIncludeDrafts = includeDrafts === 'true';
     
     // --- Single post by slug or ID ---
@@ -184,10 +184,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json(uniquePosts);
     
   } catch (error) {
-    console.error('📄 POSTS: Error:', error);
+    console.error('📄 POSTS: Error fetching posts:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    
     res.status(500).json({ 
       message: 'Failed to fetch blog posts',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? errorStack : undefined
     });
   } finally {
     await client.close();

@@ -182,8 +182,16 @@ export function deduplicatePosts(posts: ReturnType<typeof mapPostDocument>[]) {
 export function getMongoConfig() {
   const uri = process.env.MONGODB_URI;
   const dbName = process.env.MONGODB_DATABASE || 'blog_database';
+  
+  console.log('[CONFIG] MongoDB Database:', dbName);
   if (!uri) {
+    console.error('[CONFIG] MONGODB_URI is missing!');
     throw new Error('MONGODB_URI environment variable is not set');
   }
+  
+  // Log a masked version of the URI for debugging
+  const maskedUri = uri.replace(/:\/\/([^:]+):([^@]+)@/, '://[USER]:[PASS]@');
+  console.log('[CONFIG] MongoDB URI:', maskedUri);
+  
   return { uri, dbName };
 }
