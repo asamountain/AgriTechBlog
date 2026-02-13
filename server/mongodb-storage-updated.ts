@@ -527,8 +527,12 @@ export class MongoStorage implements IStorage {
 
       // Check user permission if userId provided
       const finalDoc = await this.blogPostsCollection.findOne(query);
-      if (userId && finalDoc.userId && finalDoc.userId !== userId) {
+      if (userId && finalDoc && finalDoc.userId && finalDoc.userId !== userId) {
         throw new Error("Not authorized to update this post");
+      }
+
+      if (!finalDoc) {
+        throw new Error("Blog post not found after identification");
       }
 
       // Prepare update data

@@ -8,7 +8,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { BlogAutomationPipeline } from '../../server/services/blog-automation-pipeline';
-import { storage } from '../../server/mongodb-storage-updated';
+import { getStorage } from '../../server/storage';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
@@ -30,6 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Initialize pipeline
     const pipeline = new BlogAutomationPipeline();
+    const storage = await getStorage();
 
     // Process the page
     const result = await pipeline.processNotionPage(pageId, async (draft) => {

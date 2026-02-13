@@ -221,10 +221,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             
             <div class="meta-info">
               ${readingTime ? `<div class="meta-item"><div class="meta-icon">⏱</div>${readingTime} min read</div>` : ''}
-              ${tags ? `<div class="meta-item"><div class="meta-icon">🏷</div>${tags.split(',').slice(0, 3).join(', ')}</div>` : ''}
+              ${tags ? `<div class="meta-item"><div class="meta-icon">🏷</div>${String(tags).split(',').slice(0, 3).join(', ')}</div>` : ''}
             </div>
             
-            ${tags ? `<div class="tags">${tags.split(',').slice(0, 5).map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}</div>` : ''}
+            ${tags ? `<div class="tags">${String(tags).split(',').slice(0, 5).map((tag: string) => `<span class="tag">${tag.trim()}</span>`).join('')}</div>` : ''}
           </div>
           
           <div class="footer">

@@ -83,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const config = getMongoConfig();
     const { MongoClient } = await import('mongodb');
-    const client = new MongoClient(config.mongoUri);
+    const client = new MongoClient(config.uri);
 
     try {
       await client.connect();
