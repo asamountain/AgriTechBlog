@@ -532,13 +532,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POSTS GRID PAGE: /posts - All published posts with pagination/filtering
   app.get("/api/blog-posts", async (req, res) => {
     try {
-      const { category, limit, offset, featured } = req.query;
+      const { category, limit, offset, featured, includeDrafts } = req.query;
       const options = {
         categorySlug: category as string,
         limit: limit ? parseInt(limit as string) : undefined,
         offset: offset ? parseInt(offset as string) : undefined,
-        featured: featured ? featured === 'true' : undefined,
-        includeDrafts: false, // POSTS GRID: Only published posts
+        featured: featured ? featured === "true" : undefined,
+        includeDrafts: includeDrafts === "true", // Respect query parameter
       };
       
       console.log("📄 POSTS GRID: Fetching blog posts with options:", options);
@@ -555,10 +555,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // LANDING PAGE: / - Featured posts for homepage hero section
   app.get("/api/blog-posts/featured", async (req, res) => {
     try {
+      const { includeDrafts } = req.query;
       const posts = await activeStorage.getBlogPosts({ 
         featured: true, 
         limit: 3,
-        includeDrafts: false // LANDING PAGE: Only published featured posts
+        includeDrafts: includeDrafts === "true" // Respect query parameter
       });
       console.log(`🏠 LANDING PAGE: Found ${posts.length} featured posts from MongoDB`);
       res.json(posts);
@@ -799,45 +800,6 @@ ${publishedPosts.map(post => `  <url>
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ message: "Failed to update profile" });
-    }
-  });
-
-  // Admin endpoints
-  app.get("/api/admin/blog-posts", async (req, res) => {
-    try {
-      const posts = await activeStorage.getBlogPosts({ includeDrafts: true });
-      res.json(posts);
-    } catch (error) {
-      console.error("Error fetching admin blog posts:", error);
-      res.status(500).json({ message: "Failed to fetch blog posts" });
-    }
-  });
-
-  app.get("/api/admin/stats", requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID not found" });
-      }
-      
-      const posts = await activeStorage.getBlogPosts({ 
-        includeDrafts: true, 
-        userId: userId 
-      });
-      const totalPosts = posts.length;
-      const publishedPosts = posts.filter(p => p.isPublished).length;
-      const draftPosts = totalPosts - publishedPosts;
-      const featuredPosts = posts.filter(p => p.isFeatured).length;
-      
-      res.json({
-        totalPosts,
-        publishedPosts,
-        draftPosts,
-        featuredPosts
-      });
-    } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Failed to fetch statistics" });
     }
   });
 
@@ -1294,7 +1256,8 @@ ${publishedPosts.map(post => `  <url>
   app.get("/api/admin/blog-posts", async (req, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ 
-        includeDrafts: true // ADMIN PAGE: Include both published and draft posts
+        includeDrafts: true, // ADMIN PAGE: Include both published and draft posts
+        limit: 1000 // Increased limit to ensure all posts are visible for management
       });
       console.log(`⚙️ ADMIN PAGE: Found ${posts.length} total posts from MongoDB (including drafts)`);
       res.json(posts);

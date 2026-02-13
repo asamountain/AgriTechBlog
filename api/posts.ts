@@ -119,7 +119,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       
       const filter: any = { featured: true };
       if (!shouldIncludeDrafts) {
-        filter.draft = { $ne: true };
+        filter.$or = [
+          { isPublished: true },
+          { isPublished: { $exists: false }, draft: { $ne: true } }
+        ];
       }
       
       let docs = await postsCollection
@@ -156,7 +159,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     const filter: any = {};
     if (!shouldIncludeDrafts) {
-      filter.draft = { $ne: true };
+      filter.$or = [
+        { isPublished: true },
+        { isPublished: { $exists: false }, draft: { $ne: true } }
+      ];
     }
     
     if (category) {

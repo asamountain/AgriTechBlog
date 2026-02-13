@@ -19,7 +19,7 @@ export default function PostsPage() {
   const { data: posts, isLoading } = useQuery({
     queryKey: ["/api/blog-posts"],
     queryFn: async () => {
-      const response = await fetch("/api/blog-posts?limit=50");
+      const response = await fetch("/api/blog-posts?limit=200&includeDrafts=false");
       if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json();
     },

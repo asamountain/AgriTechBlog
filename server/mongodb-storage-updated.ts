@@ -331,34 +331,47 @@ export class MongoStorage implements IStorage {
   }
 
   // Blog Post methods
-  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string } = {}): Promise<BlogPostWithDetails[]> {
-    const { limit = 100, offset = 0, featured, includeDrafts = false, userId } = options;
+  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string; categorySlug?: string } = {}): Promise<BlogPostWithDetails[]> {
+    const { limit = 1000, offset = 0, featured, includeDrafts = false, userId, categorySlug } = options;
     let query: any = {};
+    let andConditions: any[] = [];
     
     // Use correct schema field: isPublished instead of draft
     if (!includeDrafts) {
-      query.$or = [
-        { isPublished: true },
-        { isPublished: { $exists: false }, draft: { $ne: true } } // Backward compatibility
-      ];
+      andConditions.push({
+        $or: [
+          { isPublished: true },
+          { isPublished: { $exists: false }, draft: { $ne: true } } // Backward compatibility
+        ]
+      });
     }
     
     if (featured !== undefined) {
       // Support both schema field and legacy field for backward compatibility
-      query.$or = [
-        { isFeatured: featured },
-        { isFeatured: { $exists: false }, featured: featured }
-      ];
+      andConditions.push({
+        $or: [
+          { isFeatured: featured },
+          { isFeatured: { $exists: false }, featured: featured }
+        ]
+      });
+    }
+
+    if (categorySlug) {
+      // Assuming category is stored in tags for now based on previous code
+      andConditions.push({ tags: { $in: [categorySlug] } });
     }
     
     if (userId) {
-      query.$and = query.$and || [];
-      query.$and.push({
+      andConditions.push({
         $or: [
           { userId: userId },
           { userId: { $exists: false } }
         ]
       });
+    }
+
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
     
     const docs = await this.blogPostsCollection
@@ -466,68 +479,81 @@ export class MongoStorage implements IStorage {
 
   async updateBlogPost(id: number | string, updateData: Partial<InsertBlogPost>, userId?: string): Promise<BlogPost> {
     try {
-      let targetDoc;
+      let query: any;
       
-      // Try to find by the generated ID field first (for migrated posts)
-      const allDocs = await this.blogPostsCollection.find({}).toArray();
-      targetDoc = allDocs.find(doc => doc.id && doc.id.toString() === id.toString());
+      // Try to match by the custom 'id' field first
+      const numericId = typeof id === 'string' ? parseInt(id) : id;
       
-      // If not found by ID field, try the ObjectId prefix method
-      if (!targetDoc) {
-        const numericId = typeof id === 'string' ? parseInt(id) : id;
-        const hexPrefix = numericId.toString(16).padStart(8, '0');
-        targetDoc = allDocs.find(doc => {
-          const objectIdStr = doc._id.toString();
-          return objectIdStr.startsWith(hexPrefix);
-        });
-      }
+      // Check if it's a valid ObjectId string (24 hex chars)
+      const isObjectId = typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
       
-      if (!targetDoc) {
-        console.log(`Blog post not found for ID: ${id}`);
-        throw new Error("Blog post not found");
+      if (isObjectId) {
+        query = { _id: new ObjectId(id as string) };
+      } else if (!isNaN(numericId)) {
+        // Search by numeric id field
+        query = { id: numericId };
+      } else {
+        // Fallback for string identifiers that aren't ObjectIds
+        query = { slug: id };
       }
 
-      // Check user permission if userId provided (skip for admin operations when userId is undefined)
-      if (userId && targetDoc.userId && targetDoc.userId !== userId) {
+      const targetDoc = await this.blogPostsCollection.findOne(query);
+      
+      if (!targetDoc) {
+        // Fallback: search all docs if numeric ID wasn't found directly (might be stored as string)
+        if (!isNaN(numericId)) {
+          const altQuery = { id: numericId.toString() };
+          const altDoc = await this.blogPostsCollection.findOne(altQuery);
+          if (altDoc) {
+            query = { _id: altDoc._id };
+          } else {
+            // Last resort: prefix matching
+            const hexPrefix = numericId.toString(16).padStart(8, '0');
+            const allDocs = await this.blogPostsCollection.find({}).toArray();
+            const prefixDoc = allDocs.find(doc => doc._id.toString().startsWith(hexPrefix));
+            if (prefixDoc) {
+              query = { _id: prefixDoc._id };
+            } else {
+              throw new Error("Blog post not found");
+            }
+          }
+        } else {
+          throw new Error("Blog post not found");
+        }
+      } else {
+        // Use the actual _id for the subsequent update
+        query = { _id: targetDoc._id };
+      }
+
+      // Check user permission if userId provided
+      const finalDoc = await this.blogPostsCollection.findOne(query);
+      if (userId && finalDoc.userId && finalDoc.userId !== userId) {
         throw new Error("Not authorized to update this post");
       }
 
-      // Use the actual _id from the found document for the update
-      const query = { _id: targetDoc._id };
-      
-      // Prepare update data using correct schema fields
+      // Prepare update data
       const updateDoc: any = {
         ...updateData,
-        updatedAt: new Date(), // Use schema field name
-        lastModified: new Date() // Keep legacy field for backward compatibility
+        updatedAt: new Date(),
+        lastModified: new Date()
       };
 
-      // Store both schema fields and legacy fields for backward compatibility
-      if (updateData.isFeatured !== undefined) {
-        updateDoc.isFeatured = updateData.isFeatured;  // Schema field
-        updateDoc.featured = updateData.isFeatured;    // Legacy field
-      }
-      if (updateData.isPublished !== undefined) {
-        updateDoc.isPublished = updateData.isPublished; // Schema field
-        updateDoc.draft = !updateData.isPublished;      // Legacy field (inverted)
-      }
-      if (updateData.featuredImage !== undefined) {
-        updateDoc.featuredImage = updateData.featuredImage; // Schema field
-        updateDoc.coverImage = updateData.featuredImage;    // Legacy field
-      }
+      // Handle legacy fields
+      if (updateData.isFeatured !== undefined) updateDoc.featured = updateData.isFeatured;
+      if (updateData.isPublished !== undefined) updateDoc.draft = !updateData.isPublished;
+      if (updateData.featuredImage !== undefined) updateDoc.coverImage = updateData.featuredImage;
 
-      const result = await this.blogPostsCollection.updateOne(
+      const result = await this.blogPostsCollection.findOneAndUpdate(
         query,
-        { $set: updateDoc }
+        { $set: updateDoc },
+        { returnDocument: 'after' }
       );
 
-      if (result.matchedCount === 0) {
+      if (!result) {
         throw new Error("Blog post not found for update");
       }
 
-      // Return the updated document with properly mapped fields
-      const updatedDoc = await this.blogPostsCollection.findOne(query);
-      return this.mapPostDocument(updatedDoc);
+      return this.mapPostDocument(result);
       
     } catch (error) {
       console.error("Update blog post error:", error);

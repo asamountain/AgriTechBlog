@@ -22,7 +22,7 @@ export default function AdvancedSearch() {
   });
 
   const { data: allPosts = [] } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts", { limit: 100 }],
+    queryKey: ["/api/blog-posts", { limit: 1000 }],
     enabled: searchQuery.length <= 2,
   });
 

@@ -13,7 +13,7 @@ export default function BlogGrid({}: BlogGridProps) {
   const limit = 6;
 
   const { data: blogPosts, isLoading, error } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts", { limit: (page + 1) * limit, offset: 0, includeDrafts: true }],
+    queryKey: ["/api/blog-posts", { limit: (page + 1) * limit, offset: 0, includeDrafts: false }],
     retry: 1,
   });
 

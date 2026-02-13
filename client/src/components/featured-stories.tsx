@@ -10,7 +10,7 @@ import { AdaptiveLoader, NatureContentSkeleton } from "@/components/loading";
 
 export default function FeaturedStories() {
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts/featured", { includeDrafts: true }],
+    queryKey: ["/api/blog-posts/featured", { includeDrafts: false }],
   });
 
   // Fetch updated profile data for author information
