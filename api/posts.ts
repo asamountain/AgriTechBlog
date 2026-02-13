@@ -35,10 +35,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   
   const { uri, dbName } = getMongoConfig();
-  const client = new MongoClient(uri);
+  const client = new MongoClient(uri, {
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000,
+  });
   
   try {
+    console.log('[API] Connecting to MongoDB...');
     await client.connect();
+    console.log('[API] Connected successfully');
     const db = client.db(dbName);
     const postsCollection = db.collection('posts');
     
@@ -185,13 +190,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
   } catch (error) {
     console.error('📄 POSTS: Error fetching posts:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : '';
+    const err = error as any;
     
     res.status(500).json({ 
       message: 'Failed to fetch blog posts',
-      error: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      error: err.message || 'Unknown error',
+      code: err.code,
+      name: err.name,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   } finally {
     await client.close();
