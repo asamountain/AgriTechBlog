@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { MongoClient, ObjectId } from 'mongodb';
-import { stripHtmlTags, markdownToText, generateCleanExcerpt, mapPostDocument, deduplicatePosts } from '../_shared/post-helpers';
+import { stripHtmlTags, markdownToText, generateCleanExcerpt, mapPostDocument, deduplicatePosts } from '../_shared/post-helpers.js';
 
 const uri = process.env.MONGODB_URI;
 
@@ -369,8 +369,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Handle list operations (when no ID is provided)
     if (req.method === 'GET') {
       // Parse query parameters
-      const { limit = '50', offset = '0' } = req.query;
-      const limitNum = parseInt(limit as string) || 50;
+      const { limit = '1000', offset = '0' } = req.query;
+      const limitNum = parseInt(limit as string) || 1000;
       const offsetNum = parseInt(offset as string) || 0;
       
       console.log('📋 Admin: Fetching all posts (including drafts)');

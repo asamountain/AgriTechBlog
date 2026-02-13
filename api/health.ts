@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { MongoClient } from 'mongodb';
-import { getMongoConfig } from './_shared/post-helpers';
+import { getMongoConfig } from './_shared/post-helpers.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { uri, dbName } = getMongoConfig();

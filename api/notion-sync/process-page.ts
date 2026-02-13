@@ -8,7 +8,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { BlogAutomationPipeline } from '../../server/services/blog-automation-pipeline';
-import { getStorage } from '../../server/storage';
+import { getStorage } from '../../server/storage.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests

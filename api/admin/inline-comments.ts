@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { ObjectId } from 'mongodb';
-import { getMongoConfig } from '../_shared/post-helpers';
+import { getMongoConfig } from '../_shared/post-helpers.js';
 import type { Annotation, InsertAnnotation } from '../../shared/schema';
 
 interface MongoAnnotation {
