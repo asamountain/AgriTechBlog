@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import type { Comment, CommentFormData } from '@/types/comments';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Heart, Reply, User, Calendar, Send, MessageCircle, ExternalLink } from 'lucide-react';
+import { Heart, Reply, User, Calendar, Send, MessageCircle, ExternalLink, Trash2 } from 'lucide-react';
 
 interface CommentItemProps {
   comment: Comment;
   onReply: (commentId: string) => void;
   onLike: (commentId: string) => void;
+  onDelete: (commentId: string) => void;
   replyingTo: string | null;
   replyData: CommentFormData;
   setReplyData: (data: CommentFormData) => void;
@@ -22,6 +23,7 @@ export default function CommentItem({
   comment, 
   onReply, 
   onLike, 
+  onDelete,
   replyingTo, 
   replyData, 
   setReplyData, 
@@ -39,6 +41,12 @@ export default function CommentItem({
   const handleUserProfileClick = () => {
     // Navigate to user profile page
     window.open(`/user/${comment.authorId}`, '_blank');
+  };
+
+  const handleDelete = (commentId: string) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      onDelete(commentId);
+    }
   };
 
   return (
@@ -97,6 +105,17 @@ export default function CommentItem({
             >
               <Reply className="h-4 w-4 mr-1" />
               Reply
+            </Button>
+          )}
+
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDelete(comment.id)}
+              className="text-gray-500 hover:text-red-600 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -176,15 +195,28 @@ export default function CommentItem({
                       </span>
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onLike(reply.id)}
-                      className="text-gray-500 hover:text-red-500 h-6 px-2"
-                    >
-                      <Heart className="h-3 w-3 mr-1" />
-                      {reply.likes}
-                    </Button>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onLike(reply.id)}
+                        className="text-gray-500 hover:text-red-500 h-6 px-2"
+                      >
+                        <Heart className="h-3 w-3 mr-1" />
+                        {reply.likes}
+                      </Button>
+
+                      {isAuthenticated && currentUserId === reply.authorId && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(reply.id)}
+                          className="text-gray-500 hover:text-red-600 h-6 px-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="text-gray-700 text-sm">

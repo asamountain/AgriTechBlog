@@ -91,6 +91,25 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
     },
   });
 
+  // Delete comment mutation
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: string) => commentService.deleteComment(commentId, profile!.uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      toast({
+        title: "Comment deleted",
+        description: "Your comment has been removed successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete comment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentData.content.trim()) {
@@ -253,6 +272,7 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
               comment={comment}
               onReply={setReplyingTo}
               onLike={likeCommentMutation.mutate}
+              onDelete={deleteCommentMutation.mutate}
               replyingTo={replyingTo}
               replyData={replyData}
               setReplyData={setReplyData}
