@@ -3,47 +3,36 @@ import { MongoClient } from 'mongodb';
 import { getMongoConfig } from './_shared/post-helpers.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { uri, dbName } = getMongoConfig();
-  
-  const client = new MongoClient(uri, {
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000,
-  });
+  const start = Date.now();
+  const status: any = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    services: {
+      mongodb: { status: 'unknown' }
+    }
+  };
 
   try {
-    const startTime = Date.now();
+    const { uri } = getMongoConfig();
+    const client = new MongoClient(uri, { serverSelectionTimeoutMS: 2000 });
+    
     await client.connect();
-    const db = client.db(dbName);
-    
-    // Ping database
-    await db.command({ ping: 1 });
-    
-    const collections = await db.listCollections().toArray();
-    const postsCount = await db.collection('posts').countDocuments();
-    
-    const duration = Date.now() - startTime;
-
-    res.status(200).json({
-      status: 'connected',
-      database: dbName,
-      duration: `${duration}ms`,
-      collections: collections.map(c => c.name),
-      postsCount,
-      environment: process.env.NODE_ENV,
-      vercel: !!process.env.VERCEL
-    });
-  } catch (error) {
-    const err = error as any;
-    res.status(500).json({
-      status: 'error',
-      message: err.message,
-      code: err.code,
-      name: err.name,
-      stack: err.stack,
-      dbName,
-      uri: uri.replace(/:\/\/([^:]+):([^@]+)@/, '://[USER]:[PASS]@')
-    });
-  } finally {
+    await client.db().admin().ping();
     await client.close();
+    
+    status.services.mongodb = {
+      status: 'healthy',
+      latency: `${Date.now() - start}ms`
+    };
+  } catch (error) {
+    status.status = 'error';
+    status.services.mongodb = {
+      status: 'unhealthy',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
+
+  const statusCode = status.status === 'ok' ? 200 : 503;
+  res.status(statusCode).json(status);
 }

@@ -1,4 +1,5 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Extension } from '@tiptap/react';
+import { InputRule } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
@@ -9,6 +10,69 @@ import { useEffect } from 'react';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
 import './notion-editor.css';
+
+// Custom Emoji Input Rules Extension
+const EmojiInputRule = Extension.create({
+  name: 'emojiInputRule',
+
+  addInputRules() {
+    const emojis: Record<string, string> = {
+      'think': '🤔',
+      'smile': '😊',
+      'laugh': '😂',
+      'wink': '😉',
+      'heart': '❤️',
+      'rocket': '🚀',
+      'check': '✅',
+      'fire': '🔥',
+      'star': '⭐',
+      'party': '🎉',
+      'pray': '🙏',
+      'thumb': '👍',
+      'eyes': '👀',
+      'leaf': '🍃',
+      'seed': '🌱',
+      'tech': '💻',
+      'data': '📊',
+      'iot': '📡',
+      'farm': '🚜',
+      'sun': '☀️',
+      'rain': '🌧️',
+      'warn': '⚠️',
+      'idea': '💡',
+      'cool': '😎',
+      'sad': '😢',
+      'angry': '😠',
+      'confused': '😕',
+      'love': '😍',
+      'hand': '👋',
+      'clap': '👏',
+      'ok': '👌',
+      'money': '💰',
+      'time': '⏰',
+      'gift': '🎁',
+      'book': '📚',
+      'tool': '🛠️',
+      'bug': '🐛',
+      'link': '🔗',
+      'earth': '🌍',
+      'globe': '🌐',
+    };
+
+    return Object.entries(emojis).map(([key, emoji]) => {
+      return new InputRule({
+        find: new RegExp(`:${key}:$`),
+        handler: ({ state, range }) => {
+          const { tr } = state;
+          const start = range.from;
+          const end = range.to;
+
+          tr.insertText(emoji, start, end);
+        },
+      });
+    });
+  },
+});
 
 // Initialize Turndown for HTML to Markdown conversion
 const turndownService = new TurndownService({
@@ -82,6 +146,7 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
       TaskItem.configure({
         nested: true,
       }),
+      EmojiInputRule,
     ],
     content: '', // Start empty, will be set in useEffect
     editorProps: {
