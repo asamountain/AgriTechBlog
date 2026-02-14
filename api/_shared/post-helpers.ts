@@ -150,13 +150,13 @@ export function mapPostDocument(doc: any) {
     content: doc.content || '',
     slug: doc.slug || doc.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
     excerpt: doc.excerpt || generateCleanExcerpt(doc.content || '', 150),
-    featuredImage: doc.coverImage || '',
-    createdAt: doc.date ? new Date(doc.date).toISOString() : new Date().toISOString(),
-    updatedAt: doc.lastModified ? new Date(doc.lastModified).toISOString() : new Date().toISOString(),
+    featuredImage: doc.featuredImage || doc.coverImage || '',
+    createdAt: (doc.createdAt || doc.date) ? new Date(doc.createdAt || doc.date).toISOString() : new Date().toISOString(),
+    updatedAt: (doc.updatedAt || doc.lastModified) ? new Date(doc.updatedAt || doc.lastModified).toISOString() : new Date().toISOString(),
     userId: doc.userId || '',
     tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? [doc.tags] : []),
-    isFeatured: !!doc.featured,
-    isPublished: !doc.draft,
+    isFeatured: doc.isFeatured !== undefined ? !!doc.isFeatured : !!doc.featured,
+    isPublished: doc.isPublished !== undefined ? !!doc.isPublished : !doc.draft,
     readTime: Math.ceil((doc.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length / 200),
   };
 }

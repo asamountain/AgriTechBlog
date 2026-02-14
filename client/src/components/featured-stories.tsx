@@ -1,79 +1,116 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDate, stripMarkdown } from "@/lib/utils";
-import { markdownToText } from "@/lib/html-to-markdown";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { AdaptiveLoader, NatureContentSkeleton } from "@/components/loading";
+import { AdaptiveLoader } from "@/components/loading";
+
+function formatDateEnglish(date: string | Date): string {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "Invalid Date";
+  
+  const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+  
+  const day = d.getDate();
+  const monthName = months[d.getMonth()];
+  const year = d.getFullYear();
+  
+  return `${monthName} ${day}, ${year}`;
+}
+
+function StoryCard({ story }: { story: BlogPostWithDetails }) {
+  const excerptText = stripMarkdown(story.excerpt || "");
+  const tagText = story.tags?.[0] || 'TECH';
+  const secondTagText = story.tags?.[1] ? `, ${story.tags[1].toUpperCase()}` : '';
+
+  return (
+    <div className="flex flex-col group h-full">
+      {/* Image Container with Offset Content Box */}
+      <div className="relative mb-8">
+        <Link href={`/blog/${story.slug}`}>
+          <div className="aspect-[4/3] overflow-hidden cursor-pointer">
+            <img 
+              src={story.featuredImage || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80'} 
+              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 hover:scale-105"
+              alt={story.title}
+            />
+          </div>
+        </Link>
+        
+        {/* The "Notch" or offset box effect - matching the image */}
+        <div className="absolute -bottom-1 left-0 w-24 h-1 bg-white z-10 hidden sm:block"></div>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex flex-col flex-1 px-1">
+        <Link href={`/blog/${story.slug}`}>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 hover:text-forest-green cursor-pointer transition-colors leading-[1.2]">
+            {story.title}
+          </h2>
+        </Link>
+        
+        {/* Metadata */}
+        <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 mb-6 uppercase">
+          <span>{formatDateEnglish(story.createdAt)}</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-gray-500">{tagText.toUpperCase()}{secondTagText}</span>
+        </div>
+
+        {/* Excerpt */}
+        <p className="text-sm text-gray-600 leading-relaxed mb-6 line-clamp-3">
+          {excerptText}
+        </p>
+        
+        {/* Read More */}
+        <div className="mt-auto">
+          <Link href={`/blog/${story.slug}`}>
+            <span className="inline-flex items-center text-[10px] font-bold tracking-widest text-forest-green hover:opacity-70 transition-opacity cursor-pointer uppercase group">
+              READ MORE 
+              <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
+            </span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function FeaturedStories() {
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts/featured", { includeDrafts: false }],
   });
 
-  // Fetch updated profile data for author information
-  const { data: profile } = useQuery({
-    queryKey: ["/api/profile"],
-    staleTime: 0,
-    gcTime: 5 * 60 * 1000,
-  });
-
   if (isLoading) {
     return (
-      <section id="featured-stories" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-playfair font-bold text-forest-green mb-4">
-              Featured Stories
-            </h2>
-            <div className="flex justify-center mb-8">
-              <AdaptiveLoader size="lg" text="Loading featured content..." />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <NatureContentSkeleton key={i} />
-            ))}
-          </div>
+      <section id="featured-stories" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <AdaptiveLoader size="lg" text="Loading featured content..." />
         </div>
       </section>
     );
   }
 
+  if (!featuredPosts || featuredPosts.length === 0) {
+    return null;
+  }
+
+  // Take only top 3 as per the requested design
+  const displayPosts = featuredPosts.slice(0, 3);
+
   return (
-    <section id="featured-stories" className="py-16 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+    <section id="featured-stories" className="py-24 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header - Subtle and Professional */}
+        <div className="mb-16 border-b border-gray-100 pb-8">
+          <h2 className="text-3xl font-playfair font-bold text-gray-900 italic">
             Featured Stories
           </h2>
-          <div className="w-16 h-1 bg-forest-green"></div>
         </div>
         
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="space-y-1">
-            {featuredPosts?.map((story, index) => (
-              <Link key={story.id} href={`/blog/${story.slug}`}>
-                <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
-                  index !== featuredPosts.length - 1 ? 'border-b border-gray-100' : ''
-                }`}>
-                  <div className="flex items-center flex-1">
-                    <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200">
-                      {stripMarkdown(story.title)}
-                    </h3>
-                    <Badge className="bg-forest-green text-white ml-3 text-xs">
-                      Featured
-                    </Badge>
-                  </div>
-                  <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
-                    {formatDate(story.createdAt)}
-                  </span>
-                </article>
-              </Link>
-            ))}
-          </div>
+        {/* Grid Layout - 3 Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+          {displayPosts.map((story) => (
+            <StoryCard key={story.id} story={story} />
+          ))}
         </div>
       </div>
     </section>

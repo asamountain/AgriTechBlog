@@ -241,22 +241,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Convert isPublished to draft status (invert)
         if (updateData.hasOwnProperty('isPublished')) {
           updateData.draft = !updateData.isPublished;
-          delete updateData.isPublished;
         }
         
         // Convert isFeatured to featured status
         if (updateData.hasOwnProperty('isFeatured')) {
           updateData.featured = updateData.isFeatured;
-          delete updateData.isFeatured;
         }
         
         // Convert featuredImage to coverImage for MongoDB storage
         if (updateData.hasOwnProperty('featuredImage')) {
           updateData.coverImage = updateData.featuredImage;
-          delete updateData.featuredImage;
         }
         
-        // Set lastModified
+        // Set both updatedAt and lastModified
+        updateData.updatedAt = new Date();
         updateData.lastModified = new Date();
 
         // Use same ID matching logic for updates
@@ -411,11 +409,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         content: postData.content || '',
         excerpt: postData.excerpt || '',
         slug: postData.slug || postData.title?.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-') || 'untitled',
+        featuredImage: postData.featuredImage || '',
         coverImage: postData.featuredImage || '',
         tags: Array.isArray(postData.tags) ? postData.tags : [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
         date: new Date(),
         lastModified: new Date(),
+        isPublished: !!postData.isPublished,
         draft: !postData.isPublished, // Invert - draft = true means unpublished
+        isFeatured: !!postData.isFeatured,
         featured: !!postData.isFeatured,
         userId: postData.userId
       };

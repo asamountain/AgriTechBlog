@@ -234,13 +234,13 @@ export class MongoStorage implements IStorage {
       content: doc.content || '',
       slug: doc.slug || this.generateSlug(doc.title || 'untitled'),
       excerpt: doc.excerpt || this.extractExcerpt(doc.content || ''),
-      featuredImage: doc.coverImage || '',
-      createdAt: doc.date ? new Date(doc.date) : new Date(),
-      updatedAt: doc.lastModified ? new Date(doc.lastModified) : new Date(),
+      featuredImage: doc.featuredImage || doc.coverImage || '',
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : (doc.date ? new Date(doc.date) : new Date()),
+      updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : (doc.lastModified ? new Date(doc.lastModified) : new Date()),
       userId: doc.userId || '',
       tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? [doc.tags] : []),
-      isFeatured: !!doc.featured,
-      isPublished: !doc.draft,
+      isFeatured: doc.isFeatured !== undefined ? !!doc.isFeatured : !!doc.featured,
+      isPublished: doc.isPublished !== undefined ? !!doc.isPublished : !doc.draft,
       readTime: this.calculateReadTime(doc.content || ''),
       // Author information removed
     };
@@ -341,19 +341,30 @@ export class MongoStorage implements IStorage {
       andConditions.push({
         $or: [
           { isPublished: true },
-          { isPublished: { $exists: false }, draft: { $ne: true } } // Backward compatibility
+          { draft: false },
+          { isPublished: { $exists: false }, draft: { $exists: false } } // Default to published if neither exists
         ]
       });
     }
     
     if (featured !== undefined) {
-      // Support both schema field and legacy field for backward compatibility
-      andConditions.push({
-        $or: [
-          { isFeatured: featured },
-          { isFeatured: { $exists: false }, featured: featured }
-        ]
-      });
+      if (featured === true) {
+        // If searching for featured posts, include if EITHER isFeatured is true OR legacy featured is true
+        andConditions.push({
+          $or: [
+            { isFeatured: true },
+            { featured: true }
+          ]
+        });
+      } else {
+        // If searching for non-featured posts, BOTH must be false (or not true)
+        andConditions.push({
+          $and: [
+            { isFeatured: { $ne: true } },
+            { featured: { $ne: true } }
+          ]
+        });
+      }
     }
 
     if (categorySlug) {
