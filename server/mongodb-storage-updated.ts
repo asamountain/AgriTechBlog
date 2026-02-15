@@ -905,4 +905,16 @@ export class MongoStorage implements IStorage {
     
     return this.mapProjectDocument({ ...projectData, _id: result.insertedId, id: generatedId });
   }
+
+  async updatePortfolioProject(id: number | string, updateData: Partial<InsertPortfolioProject>): Promise<PortfolioProject> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const result = await this.projectsCollection.findOneAndUpdate(
+      { id: numericId },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    
+    if (!result) throw new Error("Project not found");
+    return this.mapProjectDocument(result);
+  }
 }

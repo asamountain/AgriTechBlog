@@ -4,7 +4,7 @@ import { getMongoConfig } from './_shared/post-helpers.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
 
@@ -62,6 +62,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
       return res.status(201).json({ id: generatedId, ...newProject });
+    }
+
+    if (req.method === 'PATCH') {
+      const { id } = req.query;
+      const updateData = req.body;
+      
+      if (!id || Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
+
+      const numericId = parseInt(id as string);
+      
+      const result = await projectsCollection.findOneAndUpdate(
+        { id: numericId },
+        { $set: { ...updateData, updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      );
+
+      if (!result) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+
+      const { _id, ...rest } = result;
+      return res.status(200).json({ id: result.id, ...rest });
     }
 
     res.status(405).json({ message: 'Method not allowed' });

@@ -49,6 +49,7 @@ export interface IStorage {
   // Portfolio methods
   getPortfolioProjects(options?: { limit?: number; includeDrafts?: boolean }): Promise<PortfolioProject[]>;
   createPortfolioProject(insertProject: InsertPortfolioProject): Promise<PortfolioProject>;
+  updatePortfolioProject(id: number | string, updates: Partial<InsertPortfolioProject>): Promise<PortfolioProject>;
 }
 
 // MONGODB-ONLY STORAGE CREATION

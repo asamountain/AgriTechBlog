@@ -2304,6 +2304,18 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     }
   });
 
+  app.patch("/api/portfolio/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const projectData = req.body;
+      const project = await activeStorage.updatePortfolioProject(id, projectData);
+      res.json(project);
+    } catch (error) {
+      console.error("Error updating portfolio project:", error);
+      res.status(500).json({ message: "Failed to update portfolio project" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

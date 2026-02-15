@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,13 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Briefcase, ExternalLink, Sparkles, Eye } from "lucide-react";
+import { Plus, Trash2, Briefcase, Eye, Edit } from "lucide-react";
 import type { PortfolioProject } from "@shared/schema";
 import { AdaptiveLoader } from "@/components/loading";
 
 export default function PortfolioManagement() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -30,47 +31,62 @@ export default function PortfolioManagement() {
     queryKey: ["/api/portfolio"],
   });
 
+  const resetForm = () => {
+    setFormData({ title: "", description: "", content: "Project details...", category: "AgriTech", impact: "", featuredImage: "", technologies: "" });
+    setEditingId(null);
+  };
+
+  const openEdit = (project: PortfolioProject) => {
+    setEditingId(project.id);
+    setFormData({
+      title: project.title,
+      description: project.description,
+      content: project.content || "Project details...",
+      category: project.category,
+      impact: project.impact || "",
+      featuredImage: project.featuredImage,
+      technologies: project.technologies.join(", ")
+    });
+    setIsOpen(true);
+  };
+
   const createMutation = useMutation({
-    mutationFn: async (newProject: any) => {
-      if (!newProject.title || !newProject.description) {
+    mutationFn: async (data: any) => {
+      if (!data.title || !data.description) {
         throw new Error("Title and Description are required");
       }
 
-      const response = await fetch("/api/portfolio", {
-        method: "POST",
+      const isEditing = editingId !== null;
+      const url = isEditing ? `/api/portfolio/${editingId}` : "/api/portfolio";
+      const method = isEditing ? "PATCH" : "POST";
+
+      const payload = {
+        ...data,
+        content: data.content || data.description,
+        slug: data.title.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+        technologies: data.technologies.split(",").map((t: string) => t.trim()).filter(Boolean)
+      };
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newProject,
-          content: newProject.content || newProject.description, // Ensure content is present
-          slug: newProject.title.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-          technologies: newProject.technologies.split(",").map((t: string) => t.trim()).filter(Boolean)
-        }),
+        body: JSON.stringify(payload),
       });
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create project");
+        throw new Error(errorData.message || "Operation failed");
       }
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "Project added to portfolio" });
+      toast({ title: "Success", description: editingId ? "Project updated" : "Project added" });
       queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
       setIsOpen(false);
-      setFormData({ title: "", description: "", content: "Project details...", category: "AgriTech", impact: "", featuredImage: "", technologies: "" });
+      resetForm();
     },
     onError: (error: Error) => {
-      toast({ 
-        title: "Validation Error", 
-        description: error.message,
-        variant: "destructive" 
-      });
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      // Logic for delete would go here, for now we simulate
-      toast({ title: "Note", description: "Delete functionality requires backend expansion, but project added successfully!" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   });
 
@@ -84,7 +100,10 @@ export default function PortfolioManagement() {
           <p className="text-sm text-gray-500">Showcase your successful AgriTech implementations</p>
         </div>
         
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-forest-green hover:bg-forest-green/90">
               <Plus className="w-4 h-4 mr-2" />
@@ -93,7 +112,7 @@ export default function PortfolioManagement() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
-              <DialogTitle>Add Portfolio Project</DialogTitle>
+              <DialogTitle>{editingId ? "Edit Portfolio Project" : "Add Portfolio Project"}</DialogTitle>
               <DialogDescription>
                 Fill in the details to showcase your work on the portfolio page.
               </DialogDescription>
@@ -164,7 +183,7 @@ export default function PortfolioManagement() {
                 className="bg-forest-green"
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "Adding..." : "Save Project"}
+                {createMutation.isPending ? "Saving..." : (editingId ? "Update Project" : "Save Project")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -174,7 +193,7 @@ export default function PortfolioManagement() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {projects.length > 0 ? (
           projects.map((project) => (
-            <Card key={project.id} className="overflow-hidden border-2 hover:border-forest-green transition-all">
+            <Card key={project.id} className="overflow-hidden border-2 hover:border-forest-green transition-all group">
               <div className="aspect-video relative overflow-hidden bg-gray-100">
                 <img 
                   src={project.featuredImage || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80'} 
@@ -195,9 +214,12 @@ export default function PortfolioManagement() {
                     <Badge key={t} variant="secondary" className="text-[9px] px-1 py-0">{t}</Badge>
                   ))}
                 </div>
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex justify-end gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="outline" size="sm" onClick={() => window.open(`/portfolio`, '_blank')}>
                     <Eye className="w-3 h-3" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => openEdit(project)}>
+                    <Edit className="w-3 h-3" />
                   </Button>
                   <Button variant="outline" size="sm" className="text-red-600 border-red-100 hover:bg-red-50">
                     <Trash2 className="w-3 h-3" />
