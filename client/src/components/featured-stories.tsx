@@ -76,7 +76,7 @@ function StoryCard({ story }: { story: BlogPostWithDetails }) {
 
 export default function FeaturedStories() {
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts/featured", { includeDrafts: false }],
+    queryKey: ["/api/blog-posts/featured", { includeDrafts: false, postType: 'blog' }],
   });
 
   if (isLoading) {

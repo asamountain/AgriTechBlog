@@ -243,6 +243,9 @@ export class MongoStorage implements IStorage {
       tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? [doc.tags] : []),
       isFeatured: doc.isFeatured !== undefined ? !!doc.isFeatured : !!doc.featured,
       isPublished: doc.isPublished !== undefined ? !!doc.isPublished : !doc.draft,
+      postType: doc.postType || 'blog',
+      client: doc.client,
+      impact: doc.impact,
       readTime: this.calculateReadTime(doc.content || ''),
       // Author information removed
     };
@@ -333,10 +336,19 @@ export class MongoStorage implements IStorage {
   }
 
   // Blog Post methods
-  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string; categorySlug?: string } = {}): Promise<BlogPostWithDetails[]> {
-    const { limit = 1000, offset = 0, featured, includeDrafts = false, userId, categorySlug } = options;
+  async getBlogPosts(options: { limit?: number; offset?: number; featured?: boolean; includeDrafts?: boolean; userId?: string; categorySlug?: string; postType?: string } = {}): Promise<BlogPostWithDetails[]> {
+    const { limit = 1000, offset = 0, featured, includeDrafts = false, userId, categorySlug, postType } = options;
     let query: any = {};
     let andConditions: any[] = [];
+    
+    // Filter by postType
+    if (postType) {
+      andConditions.push({ postType });
+    } else {
+      // Default to blog if no type specified, or allow all if requested? 
+      // For backward compatibility with existing posts, we allow blog type OR missing postType
+      // andConditions.push({ $or: [{ postType: 'blog' }, { postType: { $exists: false } }] });
+    }
     
     // Use correct schema field: isPublished instead of draft
     if (!includeDrafts) {
@@ -450,6 +462,9 @@ export class MongoStorage implements IStorage {
       updatedAt: now,                         // Use schema field name
       isPublished: insertPost.isPublished !== false, // Use schema field name
       isFeatured: insertPost.isFeatured || false,     // Use schema field name
+      postType: insertPost.postType || 'blog',
+      client: insertPost.client,
+      impact: insertPost.impact,
       userId: insertPost.userId,
       tags: insertPost.tags || [],
       readTime: insertPost.readTime || this.calculateReadTime(insertPost.content),
@@ -559,6 +574,11 @@ export class MongoStorage implements IStorage {
       if (updateData.isFeatured !== undefined) updateDoc.featured = updateData.isFeatured;
       if (updateData.isPublished !== undefined) updateDoc.draft = !updateData.isPublished;
       if (updateData.featuredImage !== undefined) updateDoc.coverImage = updateData.featuredImage;
+      
+      // Ensure these are explicitly set if they exist in updateData
+      if (updateData.postType) updateDoc.postType = updateData.postType;
+      if (updateData.client) updateDoc.client = updateData.client;
+      if (updateData.impact) updateDoc.impact = updateData.impact;
 
       const result = await this.blogPostsCollection.findOneAndUpdate(
         query,

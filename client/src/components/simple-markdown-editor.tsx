@@ -25,6 +25,9 @@ interface SimpleMarkdownEditorProps {
   initialTags?: string[];
   initialExcerpt?: string;
   initialFeaturedImage?: string;
+  initialPostType?: 'blog' | 'portfolio';
+  initialClient?: string;
+  initialImpact?: string;
   postId?: string | number; // Add post ID for AI features
   onSave?: (data: {
     title: string;
@@ -33,6 +36,9 @@ interface SimpleMarkdownEditorProps {
     tags: string[];
     featuredImage: string;
     isPublished: boolean;
+    postType: 'blog' | 'portfolio';
+    client?: string;
+    impact?: string;
   }) => Promise<void>;
   onAutoSave?: (data: {
     title: string;
@@ -41,6 +47,9 @@ interface SimpleMarkdownEditorProps {
     tags: string[];
     featuredImage: string;
     isPublished: boolean;
+    postType: 'blog' | 'portfolio';
+    client?: string;
+    impact?: string;
   }) => Promise<void>;
 }
 
@@ -50,6 +59,9 @@ export default function SimpleMarkdownEditor({
   initialTags = [],
   initialExcerpt = '',
   initialFeaturedImage = '',
+  initialPostType = 'blog',
+  initialClient = '',
+  initialImpact = '',
   postId,
   onSave,
   onAutoSave
@@ -59,6 +71,9 @@ export default function SimpleMarkdownEditor({
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
   const [featuredImage, setFeaturedImage] = useState(initialFeaturedImage);
+  const [postType, setPostType] = useState<'blog' | 'portfolio'>(initialPostType);
+  const [client, setClient] = useState(initialClient);
+  const [impact, setImpact] = useState(initialImpact);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [newTag, setNewTag] = useState('');
   const [published, setPublished] = useState(false);
@@ -96,16 +111,22 @@ export default function SimpleMarkdownEditor({
     featuredImage,
     tags,
     isPublished: published,
-  }), [title, content, excerpt, featuredImage, tags, published]);
+    postType,
+    client,
+    impact,
+  }), [title, content, excerpt, featuredImage, tags, published, postType, client, impact]);
 
   // Check if content has actually changed
   const hasContentChanged = useCallback(() => {
     const currentData = getCurrentData();
     return (
       currentData.title !== lastSavedTitle.current ||
-      currentData.content !== lastSavedContent.current
+      currentData.content !== lastSavedContent.current ||
+      currentData.postType !== (postType) || // This is a bit redundant but safe
+      currentData.client !== (client) ||
+      currentData.impact !== (impact)
     );
-  }, [getCurrentData]);
+  }, [getCurrentData, postType, client, impact]);
 
   // Auto-save function with proper memoization
   const autoSave = useCallback(async (force = false) => {
@@ -217,8 +238,11 @@ export default function SimpleMarkdownEditor({
     setContent(initialContent);
     setExcerpt(initialExcerpt);
     setFeaturedImage(initialFeaturedImage);
+    setPostType(initialPostType);
+    setClient(initialClient);
+    setImpact(initialImpact);
     setTags(initialTags);
-  }, [postId]); // Only depend on postId to avoid cursor jumps
+  }, [postId, initialPostType, initialClient, initialImpact]); // Only depend on postId to avoid cursor jumps
 
   // Load draft from localStorage on mount (only for new posts)
   useEffect(() => {
@@ -232,6 +256,9 @@ export default function SimpleMarkdownEditor({
           setContent(containsHtml(draftContent) ? ensureMarkdown(draftContent) : draftContent);
           setExcerpt(draft.excerpt || '');
           setFeaturedImage(draft.featuredImage || '');
+          setPostType(draft.postType || 'blog');
+          setClient(draft.client || '');
+          setImpact(draft.impact || '');
           setTags(draft.tags || []);
           setPublished(draft.isPublished || false);
         } catch (error) {
@@ -369,6 +396,57 @@ export default function SimpleMarkdownEditor({
           <CardContent className="p-6">
             {!showPreview ? (
               <div className="space-y-6">
+
+                {/* Post Configuration */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-4">
+                  <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Post Configuration
+                  </label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Content Type</label>
+                      <div className="flex bg-white border rounded-md p-1">
+                        <button
+                          onClick={() => setPostType('blog')}
+                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-all ${postType === 'blog' ? 'bg-forest-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                          Blog Post
+                        </button>
+                        <button
+                          onClick={() => setPostType('portfolio')}
+                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-all ${postType === 'portfolio' ? 'bg-forest-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                          Portfolio Project
+                        </button>
+                      </div>
+                    </div>
+
+                    {postType === 'portfolio' && (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client (Optional)</label>
+                          <Input 
+                            value={client} 
+                            onChange={(e) => { setClient(e.target.value); isDirty.current = true; }} 
+                            placeholder="e.g. Green Valley Farms"
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Project Impact (Optional)</label>
+                          <Input 
+                            value={impact} 
+                            onChange={(e) => { setImpact(e.target.value); isDirty.current = true; }} 
+                            placeholder="e.g. 20% Yield Increase"
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
 
                 {/* Title Input */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-white">

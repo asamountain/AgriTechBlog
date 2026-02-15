@@ -39,6 +39,9 @@ export default function CreatePost() {
       featuredImage: string;
       isPublished: boolean;
       isFeatured: boolean;
+      postType: 'blog' | 'portfolio';
+      client?: string;
+      impact?: string;
     }) => {
       const payload = {
         ...data,
@@ -97,6 +100,9 @@ export default function CreatePost() {
       featuredImage: string;
       isPublished: boolean;
       isFeatured: boolean;
+      postType: 'blog' | 'portfolio';
+      client?: string;
+      impact?: string;
     }) => {
       const payload = {
         ...data,
@@ -176,7 +182,10 @@ export default function CreatePost() {
     excerpt: postData?.excerpt || '',
     featuredImage: postData?.featuredImage || '',
     isPublished: postData?.isPublished || false,
-    isFeatured: postData?.isFeatured || false
+    isFeatured: postData?.isFeatured || false,
+    postType: postData?.postType || 'blog',
+    client: postData?.client || '',
+    impact: postData?.impact || ''
   };
 
   // Debug logging for initial values
@@ -191,11 +200,13 @@ export default function CreatePost() {
     tags: string[];
     featuredImage: string;
     isPublished: boolean;
-    isFeatured: boolean;
+    postType: 'blog' | 'portfolio';
+    client?: string;
+    impact?: string;
   }) => {
     // Only auto-save if there's content to save
     if (data.title.trim() || data.content.trim()) {
-      await autoSaveMutation.mutateAsync(data);
+      await autoSaveMutation.mutateAsync({ ...data, isFeatured: initialValues.isFeatured });
     }
   };
 
@@ -206,9 +217,11 @@ export default function CreatePost() {
     tags: string[];
     featuredImage: string;
     isPublished: boolean;
-    isFeatured: boolean;
+    postType: 'blog' | 'portfolio';
+    client?: string;
+    impact?: string;
   }) => {
-    await saveMutation.mutateAsync(data);
+    await saveMutation.mutateAsync({ ...data, isFeatured: initialValues.isFeatured });
   };
 
   // Render loading state
@@ -257,9 +270,12 @@ export default function CreatePost() {
           initialTags={initialValues.tags}
           initialExcerpt={initialValues.excerpt}
           initialFeaturedImage={initialValues.featuredImage}
+          initialPostType={initialValues.postType}
+          initialClient={initialValues.client}
+          initialImpact={initialValues.impact}
           postId={id}
-          onAutoSave={(data) => handleAutoSave({ ...data, isFeatured: initialValues.isFeatured })}
-          onSave={(data) => handleSave({ ...data, isFeatured: initialValues.isFeatured })}
+          onAutoSave={(data) => handleAutoSave(data)}
+          onSave={(data) => handleSave(data)}
         />
       </div>
     </div>

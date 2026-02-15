@@ -20,19 +20,13 @@ export default function Footer({ variant = "simple" }: FooterProps) {
       enabled: true,
     },
     {
-      href: "https://www.youtube.com/@like-san",
-      icon: Youtube,
-      label: "YouTube",
-      enabled: true,
-    },
-    {
       href: "https://github.com/asamountain",
       icon: Github,
       label: "GitHub",
       enabled: true,
     },
     {
-      href: "https://portfolio.asamountain.com",
+      href: "https://asamountain.myportfolio.com/",
       icon: Camera,
       label: "Photo Portfolio",
       enabled: true,

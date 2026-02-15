@@ -57,6 +57,9 @@ export interface BlogPost {
   readTime: number;
   isFeatured: boolean;
   isPublished: boolean;
+  postType: 'blog' | 'portfolio';
+  client?: string;
+  impact?: string;
   summary?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -288,6 +291,9 @@ export const insertBlogPostSchema = z.object({
   readTime: z.number().positive().default(5),
   isFeatured: z.boolean().default(false),
   isPublished: z.boolean().default(true),
+  postType: z.enum(['blog', 'portfolio']).default('blog'),
+  client: z.string().optional(),
+  impact: z.string().optional(),
   summary: z.string().optional(),
   // AI Generation fields
   sourceNotionId: z.string().optional(),

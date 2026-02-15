@@ -532,13 +532,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POSTS GRID PAGE: /posts - All published posts with pagination/filtering
   app.get("/api/blog-posts", async (req, res) => {
     try {
-      const { category, limit, offset, featured, includeDrafts } = req.query;
+      const { category, limit, offset, featured, includeDrafts, postType } = req.query;
       const options = {
         categorySlug: category as string,
         limit: limit ? parseInt(limit as string) : undefined,
         offset: offset ? parseInt(offset as string) : undefined,
         featured: featured ? featured === "true" : undefined,
         includeDrafts: includeDrafts === "true", // Respect query parameter
+        postType: postType as string,
       };
       
       console.log("📄 POSTS GRID: Fetching blog posts with options:", options);

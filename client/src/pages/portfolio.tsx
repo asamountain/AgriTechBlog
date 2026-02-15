@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import type { PortfolioProject } from "@shared/schema";
+import type { BlogPostWithDetails } from "@shared/schema";
 import { AdaptiveLoader } from "@/components/loading";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 
-function ProjectCard({ project }: { project: PortfolioProject }) {
+function ProjectCard({ project }: { project: BlogPostWithDetails }) {
   return (
     <div className="flex flex-col group h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="relative overflow-hidden aspect-[16/10]">
@@ -23,32 +23,34 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
 
       <div className="p-8 flex flex-col flex-1">
         <div className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-3">
-          {project.category}
+          {project.tags?.[0] || 'AgriTech'}
         </div>
         
-        <h2 className="text-2xl font-playfair font-bold text-gray-900 mb-4 italic leading-tight">
-          {project.title}
+        <h2 className="text-2xl font-playfair font-bold text-gray-900 mb-4 italic leading-tight hover:text-forest-green cursor-pointer transition-colors">
+          <Link href={`/blog/${project.slug}`}>{project.title}</Link>
         </h2>
         
         <p className="text-sm text-gray-600 leading-relaxed mb-6 line-clamp-3">
-          {project.description}
+          {project.excerpt}
         </p>
 
-        {project.technologies && project.technologies.length > 0 && (
+        {project.tags && project.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-8">
-            {project.technologies.map((tech) => (
-              <span key={tech} className="text-[9px] font-medium text-gray-500 bg-gray-50 px-2 py-1 border border-gray-100 uppercase tracking-wider">
-                {tech}
+            {project.tags.map((tag) => (
+              <span key={tag} className="text-[9px] font-medium text-gray-500 bg-gray-50 px-2 py-1 border border-gray-100 uppercase tracking-wider">
+                {tag}
               </span>
             ))}
           </div>
         )}
         
         <div className="mt-auto pt-6 border-t border-gray-50">
-          <span className="inline-flex items-center text-[10px] font-bold tracking-widest text-forest-green hover:opacity-70 transition-opacity cursor-pointer uppercase group">
-            View Case Study
-            <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
-          </span>
+          <Link href={`/blog/${project.slug}`}>
+            <span className="inline-flex items-center text-[10px] font-bold tracking-widest text-forest-green hover:opacity-70 transition-opacity cursor-pointer uppercase group">
+              View Case Study
+              <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
+            </span>
+          </Link>
         </div>
       </div>
     </div>
@@ -56,8 +58,8 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
 }
 
 export default function PortfolioPage() {
-  const { data: projects, isLoading } = useQuery<PortfolioProject[]>({
-    queryKey: ["/api/portfolio"],
+  const { data: projects, isLoading } = useQuery<BlogPostWithDetails[]>({
+    queryKey: ["/api/blog-posts", { postType: 'portfolio', includeDrafts: false }],
   });
 
   return (
