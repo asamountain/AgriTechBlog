@@ -2304,11 +2304,13 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     }
   });
 
-  app.patch("/api/portfolio/:id", async (req, res) => {
+  app.patch("/api/portfolio", async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ message: "ID is required" });
+      
       const projectData = req.body;
-      const project = await activeStorage.updatePortfolioProject(id, projectData);
+      const project = await activeStorage.updatePortfolioProject(id as string, projectData);
       res.json(project);
     } catch (error) {
       console.error("Error updating portfolio project:", error);

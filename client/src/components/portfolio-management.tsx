@@ -57,7 +57,7 @@ export default function PortfolioManagement() {
       }
 
       const isEditing = editingId !== null;
-      const url = isEditing ? `/api/portfolio/${editingId}` : "/api/portfolio";
+      const url = isEditing ? `/api/portfolio?id=${editingId}` : "/api/portfolio";
       const method = isEditing ? "PATCH" : "POST";
 
       const payload = {
@@ -94,10 +94,10 @@ export default function PortfolioManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Portfolio Management</h2>
-          <p className="text-sm text-gray-500">Showcase your successful AgriTech implementations</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Portfolio</h2>
+          <p className="text-xs sm:text-sm text-gray-500">Manage your AgriTech projects</p>
         </div>
         
         <Dialog open={isOpen} onOpenChange={(open) => {
@@ -105,9 +105,9 @@ export default function PortfolioManagement() {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-forest-green hover:bg-forest-green/90">
+            <Button className="w-full xs:w-auto bg-forest-green hover:bg-forest-green/90 h-9 text-xs sm:text-sm px-4">
               <Plus className="w-4 h-4 mr-2" />
-              Add New Project
+              Add Project
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[525px]">

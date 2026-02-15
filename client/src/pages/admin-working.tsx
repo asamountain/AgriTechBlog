@@ -88,61 +88,49 @@ export default function AdminDashboard() {
       <Navigation />
       
       <main className="container mx-auto px-6 py-24">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-forest-green mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user.name}!</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-forest-green mb-1">Admin</h1>
+            <p className="text-sm text-gray-600">Welcome, {user.name}!</p>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button 
               onClick={() => window.location.href = '/create-post'}
-              className="bg-forest-green hover:bg-forest-green/90"
+              className="flex-1 sm:flex-none bg-forest-green hover:bg-forest-green/90 text-xs sm:text-sm h-9 px-3"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Post (Advanced Editor)
+              <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Create</span>
+              <span className="inline xs:hidden">New</span>
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
+            <Button variant="outline" onClick={handleLogout} className="flex-1 sm:flex-none text-xs sm:text-sm h-9 px-3">
+              <LogOut className="w-4 h-4 mr-1 sm:mr-2" />
               Logout
             </Button>
           </div>
         </div>
 
         <Tabs defaultValue="posts" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="posts" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Posts
-            </TabsTrigger>
-            <TabsTrigger value="portfolio" className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4" />
-              Portfolio
-            </TabsTrigger>
-            <TabsTrigger value="notion" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Notion
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="comments" className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              Comments
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="migration" className="flex items-center gap-2">
-              <Upload className="w-4 h-4" />
-              Migration
-            </TabsTrigger>
-            <TabsTrigger value="ai-tagging" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              AI Tagging
-            </TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto p-1 bg-white/50 backdrop-blur-sm border border-gray-200">
+            {[
+              { value: "posts", icon: FileText, label: "Posts" },
+              { value: "portfolio", icon: Briefcase, label: "Portfolio" },
+              { value: "notion", icon: Sparkles, label: "Notion" },
+              { value: "analytics", icon: BarChart3, label: "Stats" },
+              { value: "comments", icon: MessageCircle, label: "Chat" },
+              { value: "profile", icon: User, label: "Profile" },
+              { value: "migration", icon: Upload, label: "Migrate" },
+              { value: "ai-tagging", icon: Sparkles, label: "AI" },
+            ].map((tab) => (
+              <TabsTrigger 
+                key={tab.value}
+                value={tab.value} 
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs data-[state=active]:bg-forest-green data-[state=active]:text-white"
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="posts">
