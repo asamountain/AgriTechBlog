@@ -122,12 +122,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const limitNum = parseInt(limit as string) || 3;
       console.log('⭐ POSTS: Fetching featured posts with limit:', limitNum, '(IncludeDrafts:', shouldIncludeDrafts, ')');
       
-      const filter: any = { featured: true };
+      const filter: any = {
+        $and: [
+          {
+            $or: [
+              { isFeatured: true },
+              { featured: true }
+            ]
+          }
+        ]
+      };
       if (!shouldIncludeDrafts) {
-        filter.$or = [
-          { isPublished: true },
-          { isPublished: { $exists: false }, draft: { $ne: true } }
-        ];
+        filter.$and.push({
+          $or: [
+            { isPublished: true },
+            { isPublished: { $exists: false }, draft: { $ne: true } }
+          ]
+        });
       }
       
       let docs = await postsCollection

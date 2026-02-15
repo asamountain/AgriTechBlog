@@ -210,7 +210,10 @@ export default function CommentSection({ postId, postTitle }: CommentSectionProp
             </Button>
           </div>
         ) : (
-          <Button onClick={() => setShowLoginModal(true)}>
+          <Button 
+            onClick={() => setShowLoginModal(true)}
+            className="bg-forest-green hover:bg-forest-green/90 text-white"
+          >
             <LogIn className="mr-2 h-4 w-4" />
             Sign in to comment
           </Button>

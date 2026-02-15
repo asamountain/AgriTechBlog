@@ -39,7 +39,8 @@ import {
   FileX,
   Star,
   StarOff,
-  ArrowUpDown
+  ArrowUpDown,
+  Briefcase
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -51,6 +52,7 @@ import MigrationPanel from "@/components/migration-panel";
 import { NotionPagesPanel } from "@/components/notion-pages-panel";
 import CommentManagement from "@/components/comment-management";
 import { AITaggingPanel } from "@/components/ai-tagging-panel";
+import PortfolioManagement from "@/components/portfolio-management";
 import { AdaptiveLoader, ContentSkeleton } from "@/components/loading";
 
 interface Post {
@@ -108,10 +110,14 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="posts" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="posts" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Posts
+            </TabsTrigger>
+            <TabsTrigger value="portfolio" className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" />
+              Portfolio
             </TabsTrigger>
             <TabsTrigger value="notion" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -141,6 +147,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="posts">
             <PostManagement />
+          </TabsContent>
+
+          <TabsContent value="portfolio">
+            <PortfolioManagement />
           </TabsContent>
 
           <TabsContent value="notion">

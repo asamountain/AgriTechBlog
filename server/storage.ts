@@ -7,7 +7,8 @@ import {
   type BlogPost, type InsertBlogPost,
   type Comment, type InsertComment,
   type BlogPostWithDetails,
-  type Annotation, type InsertAnnotation
+  type Annotation, type InsertAnnotation,
+  type PortfolioProject, type InsertPortfolioProject
 } from "@shared/schema";
 import { MongoStorage } from "./mongodb-storage-updated";
 
@@ -44,6 +45,10 @@ export interface IStorage {
   createAnnotation(insertAnnotation: InsertAnnotation): Promise<Annotation>;
   deleteAnnotation(id: string, userId: string, isAdmin?: boolean, adminEmail?: string): Promise<void>;
   toggleAnnotationLike(annotationId: string, userId: string): Promise<{ likes: number; hasLiked: boolean }>;
+
+  // Portfolio methods
+  getPortfolioProjects(options?: { limit?: number; includeDrafts?: boolean }): Promise<PortfolioProject[]>;
+  createPortfolioProject(insertProject: InsertPortfolioProject): Promise<PortfolioProject>;
 }
 
 // MONGODB-ONLY STORAGE CREATION

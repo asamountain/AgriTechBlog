@@ -96,6 +96,36 @@ export interface InsertBlogPost {
   processingStatus?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
+// Portfolio Project interfaces
+export interface PortfolioProject {
+  id: number | string;
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  featuredImage: string;
+  client?: string;
+  impact?: string;
+  technologies: string[];
+  category: string;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface InsertPortfolioProject {
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  featuredImage: string;
+  client?: string;
+  impact?: string;
+  technologies?: string[];
+  category: string;
+  isPublished?: boolean;
+}
+
 // Processing Queue interfaces (for Notion-to-Blog automation)
 export interface ProcessingQueue {
   id: number | string;
@@ -269,6 +299,19 @@ export const insertBlogPostSchema = z.object({
     imagesAnalyzed: z.number(),
   }).optional(),
   processingStatus: z.enum(['pending', 'processing', 'completed', 'failed']).optional(),
+});
+
+export const insertPortfolioProjectSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().min(1, "Description is required"),
+  content: z.string().min(1, "Content is required"),
+  featuredImage: z.string().url("Valid image URL is required").or(z.literal("")),
+  client: z.string().optional(),
+  impact: z.string().optional(),
+  technologies: z.array(z.string()).default([]),
+  category: z.string().min(1, "Category is required"),
+  isPublished: z.boolean().default(true),
 });
 
 export const insertCommentSchema = z.object({

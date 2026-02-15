@@ -18,6 +18,7 @@ const BlogPost = lazy(() => import("@/pages/blog-post"));
 const AdminDashboard = lazy(() => import("@/pages/admin-working"));
 const AdminSEODashboard = lazy(() => import("@/pages/admin-seo-dashboard"));
 const CreatePost = lazy(() => import("@/pages/create-post"));
+const Portfolio = lazy(() => import("@/pages/portfolio"));
 const OpenGraphTester = lazy(() => import("@/pages/og-tester"));
 const TaggedPosts = lazy(() => import("@/pages/tagged-posts"));
 const AuthCallback = lazy(() => import("@/pages/auth-callback"));
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/seo" component={AdminSEODashboard} />
         <Route path="/create-post" component={CreatePost} />
+        <Route path="/portfolio" component={Portfolio} />
         <Route path="/edit-post/:id" component={CreatePost} />
         <Route path="/og-test" component={OpenGraphTester} />
         <Route path="/auth/callback" component={AuthCallback} />

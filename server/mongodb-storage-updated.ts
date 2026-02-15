@@ -136,6 +136,7 @@ export class MongoStorage implements IStorage {
   private blogPostsCollection: Collection;
   private commentsCollection: Collection;
   private annotationsCollection: Collection;
+  private projectsCollection: Collection;
 
   constructor(connectionString: string, databaseName: string) {
     console.log(`Initializing MongoDB connection to database: ${databaseName}`);
@@ -146,6 +147,7 @@ export class MongoStorage implements IStorage {
     this.blogPostsCollection = this.db.collection("posts");
     this.commentsCollection = this.db.collection("comments");
     this.annotationsCollection = this.db.collection("inline-comments");
+    this.projectsCollection = this.db.collection("projects");
   }
 
   async connect(): Promise<void> {
@@ -840,5 +842,67 @@ export class MongoStorage implements IStorage {
       likes: (updated as any)?.likes || 0,
       hasLiked: !hasLiked,
     };
+  }
+
+  // Portfolio Project methods
+  private mapProjectDocument(doc: any): PortfolioProject {
+    if (!doc) throw new Error("Document is null");
+    
+    let numericId: number;
+    if (doc.id !== undefined && doc.id !== null) {
+      numericId = typeof doc.id === 'number' ? doc.id : parseInt(doc.id);
+    } else {
+      const objectIdStr = doc._id.toString();
+      const timestamp = parseInt(objectIdStr.substring(0, 8), 16);
+      const sequence = parseInt(objectIdStr.substring(16, 24), 16);
+      numericId = Math.abs(timestamp + sequence);
+    }
+
+    return {
+      id: numericId,
+      title: doc.title || '',
+      slug: doc.slug || '',
+      description: doc.description || '',
+      content: doc.content || '',
+      featuredImage: doc.featuredImage || '',
+      client: doc.client,
+      impact: doc.impact,
+      technologies: Array.isArray(doc.technologies) ? doc.technologies : [],
+      category: doc.category || 'General',
+      isPublished: doc.isPublished !== false,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
+    };
+  }
+
+  async getPortfolioProjects(options: { limit?: number; includeDrafts?: boolean } = {}): Promise<PortfolioProject[]> {
+    const { limit = 100, includeDrafts = false } = options;
+    let query: any = {};
+    if (!includeDrafts) {
+      query.isPublished = true;
+    }
+    
+    const docs = await this.projectsCollection.find(query).sort({ createdAt: -1 }).limit(limit).toArray();
+    return docs.map(doc => this.mapProjectDocument(doc));
+  }
+
+  async createPortfolioProject(insertProject: InsertPortfolioProject): Promise<PortfolioProject> {
+    const now = new Date();
+    const projectData = {
+      ...insertProject,
+      createdAt: now,
+      updatedAt: now,
+      isPublished: insertProject.isPublished !== false
+    };
+    
+    const result = await this.projectsCollection.insertOne(projectData);
+    const generatedId = parseInt(result.insertedId.toString().substring(0, 8), 16);
+    
+    await this.projectsCollection.updateOne(
+      { _id: result.insertedId },
+      { $set: { id: generatedId } }
+    );
+    
+    return this.mapProjectDocument({ ...projectData, _id: result.insertedId, id: generatedId });
   }
 }

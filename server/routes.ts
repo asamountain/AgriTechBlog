@@ -2271,6 +2271,33 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
     }
   });
 
+  // Portfolio API Routes
+  app.get("/api/portfolio", async (req, res) => {
+    try {
+      const projects = await activeStorage.getPortfolioProjects({ includeDrafts: false });
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching portfolio projects:", error);
+      res.status(500).json({ message: "Failed to fetch portfolio projects" });
+    }
+  });
+
+  app.post("/api/portfolio", async (req, res) => {
+    try {
+      // Basic manual validation for now, could use zod in future
+      const projectData = req.body;
+      if (!projectData.title || !projectData.description) {
+        return res.status(400).json({ message: "Title and description are required" });
+      }
+
+      const project = await activeStorage.createPortfolioProject(projectData);
+      res.status(201).json(project);
+    } catch (error) {
+      console.error("Error creating portfolio project:", error);
+      res.status(500).json({ message: "Failed to create portfolio project" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

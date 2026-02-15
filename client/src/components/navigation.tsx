@@ -14,6 +14,7 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/posts", label: "Posts" },
+    { href: "/portfolio", label: "Portfolio" },
   ];
 
   useEffect(() => {
@@ -58,12 +59,15 @@ export default function Navigation() {
               <div className="flex items-center space-x-8">
                 {navItems.map((item) => (
                   <Link key={item.href} href={item.href}>
-                    <span className={`transition-colors cursor-pointer ${
+                    <span className={`transition-colors cursor-pointer flex items-center gap-1.5 ${
                       location === item.href 
                         ? "text-forest-green font-medium" 
                         : "text-gray-700 hover:text-forest-green"
                     }`}>
                       {item.label}
+                      {item.href === '/portfolio' && (
+                        <span className="w-1 h-1 bg-forest-green rounded-full"></span>
+                      )}
                     </span>
                   </Link>
                 ))}
