@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Briefcase, ExternalLink, Sparkles } from "lucide-react";
+import { Plus, Trash2, Briefcase, ExternalLink, Sparkles, Eye } from "lucide-react";
 import type { PortfolioProject } from "@shared/schema";
 import { AdaptiveLoader } from "@/components/loading";
 
@@ -32,16 +32,24 @@ export default function PortfolioManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (newProject: any) => {
+      if (!newProject.title || !newProject.description) {
+        throw new Error("Title and Description are required");
+      }
+
       const response = await fetch("/api/portfolio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newProject,
+          content: newProject.content || newProject.description, // Ensure content is present
           slug: newProject.title.toLowerCase().replace(/[^a-z0-9]/g, "-"),
           technologies: newProject.technologies.split(",").map((t: string) => t.trim()).filter(Boolean)
         }),
       });
-      if (!response.ok) throw new Error("Failed to create project");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create project");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -50,6 +58,13 @@ export default function PortfolioManagement() {
       setIsOpen(false);
       setFormData({ title: "", description: "", content: "Project details...", category: "AgriTech", impact: "", featuredImage: "", technologies: "" });
     },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Validation Error", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    }
   });
 
   const deleteMutation = useMutation({

@@ -40,7 +40,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const now = new Date();
       
       const newProject = {
-        ...projectData,
+        title: projectData.title || 'Untitled Project',
+        description: projectData.description || '',
+        content: projectData.content || projectData.description || '',
+        category: projectData.category || 'AgriTech',
+        impact: projectData.impact || '',
+        featuredImage: projectData.featuredImage || '',
+        technologies: Array.isArray(projectData.technologies) ? projectData.technologies : [],
+        slug: projectData.slug || (projectData.title || 'project').toLowerCase().replace(/[^a-z0-9]/g, '-'),
         createdAt: now,
         updatedAt: now,
         isPublished: projectData.isPublished !== false

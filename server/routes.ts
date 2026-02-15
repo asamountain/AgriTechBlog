@@ -2284,13 +2284,19 @@ Sitemap: ${req.protocol}://${req.get('host')}/rss.xml
 
   app.post("/api/portfolio", async (req, res) => {
     try {
-      // Basic manual validation for now, could use zod in future
       const projectData = req.body;
       if (!projectData.title || !projectData.description) {
         return res.status(400).json({ message: "Title and description are required" });
       }
 
-      const project = await activeStorage.createPortfolioProject(projectData);
+      const formattedData = {
+        ...projectData,
+        content: projectData.content || projectData.description,
+        slug: projectData.slug || projectData.title.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+        technologies: Array.isArray(projectData.technologies) ? projectData.technologies : []
+      };
+
+      const project = await activeStorage.createPortfolioProject(formattedData);
       res.status(201).json(project);
     } catch (error) {
       console.error("Error creating portfolio project:", error);
