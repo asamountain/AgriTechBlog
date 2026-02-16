@@ -69,12 +69,12 @@ export default function PortfolioPage() {
       <main className="pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
-          <div className="max-w-3xl mb-20">
+          <div className="mb-20">
             <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">Our Impact</span>
             <h1 className="text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight">
               AgriTech <span className="italic">Portfolio</span>
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
               Showcasing my journey in transforming agriculture through innovative technology and sustainable practices.
             </p>
           </div>

@@ -113,16 +113,17 @@ export default function PostsPage() {
         author="San"
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
+      <div className="min-h-screen bg-faint-lime/30">
         <Navigation />
         
-        <main className="container mx-auto px-6 pt-24 pb-12">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair mb-4">
-              All Blog Posts
+          <div className="mb-20">
+            <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">Knowledge Base</span>
+            <h1 className="text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight">
+              All Blog <span className="italic">Posts</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
               Discover insights on agricultural technology, sustainable farming practices, and innovative solutions for modern agriculture.
             </p>
           </div>

@@ -343,11 +343,17 @@ export class MongoStorage implements IStorage {
     
     // Filter by postType
     if (postType) {
-      andConditions.push({ postType });
-    } else {
-      // Default to blog if no type specified, or allow all if requested? 
-      // For backward compatibility with existing posts, we allow blog type OR missing postType
-      // andConditions.push({ $or: [{ postType: 'blog' }, { postType: { $exists: false } }] });
+      if (postType === 'blog') {
+        // For blog posts, include both explicit 'blog' type and legacy posts without a type
+        andConditions.push({ 
+          $or: [
+            { postType: 'blog' }, 
+            { postType: { $exists: false } }
+          ] 
+        });
+      } else {
+        andConditions.push({ postType });
+      }
     }
     
     // Use correct schema field: isPublished instead of draft

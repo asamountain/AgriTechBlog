@@ -47,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db(dbName);
     const postsCollection = db.collection('posts');
     
-    const { slug, id, category, limit = '1000', offset = '0', featured, includeDrafts } = req.query;
+    const { slug, id, category, limit = '1000', offset = '0', featured, includeDrafts, postType } = req.query;
     const shouldIncludeDrafts = includeDrafts === 'true';
     
     // --- Single post by slug or ID ---
@@ -122,24 +122,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const limitNum = parseInt(limit as string) || 3;
       console.log('⭐ POSTS: Fetching featured posts with limit:', limitNum, '(IncludeDrafts:', shouldIncludeDrafts, ')');
       
-      const filter: any = {
-        $and: [
-          {
-            $or: [
-              { isFeatured: true },
-              { featured: true }
-            ]
-          }
-        ]
-      };
+      const andConditions: any[] = [
+        {
+          $or: [
+            { isFeatured: true },
+            { featured: true }
+          ]
+        }
+      ];
+
       if (!shouldIncludeDrafts) {
-        filter.$and.push({
+        andConditions.push({
           $or: [
             { isPublished: true },
             { isPublished: { $exists: false }, draft: { $ne: true } }
           ]
         });
       }
+
+      if (postType === 'blog') {
+        andConditions.push({
+          $or: [
+            { postType: 'blog' },
+            { postType: { $exists: false } }
+          ]
+        });
+      } else if (postType) {
+        andConditions.push({ postType });
+      }
+      
+      const filter = { $and: andConditions };
       
       let docs = await postsCollection
         .find(filter)
@@ -159,20 +171,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const offsetNum = parseInt(offset as string) || 0;
     
     console.log('📄 POSTS: Fetching posts with params:', {
-      category, limit: limitNum, offset: offsetNum, includeDrafts: shouldIncludeDrafts
+      category, limit: limitNum, offset: offsetNum, includeDrafts: shouldIncludeDrafts, postType
     });
     
-    const filter: any = {};
+    const andConditions: any[] = [];
+
     if (!shouldIncludeDrafts) {
-      filter.$or = [
-        { isPublished: true },
-        { isPublished: { $exists: false }, draft: { $ne: true } }
-      ];
+      andConditions.push({
+        $or: [
+          { isPublished: true },
+          { isPublished: { $exists: false }, draft: { $ne: true } }
+        ]
+      });
+    }
+
+    if (postType === 'blog') {
+      andConditions.push({
+        $or: [
+          { postType: 'blog' },
+          { postType: { $exists: false } }
+        ]
+      });
+    } else if (postType) {
+      andConditions.push({ postType });
     }
     
     if (category) {
-      filter.tags = category;
+      andConditions.push({ tags: category });
     }
+    
+    const filter = andConditions.length > 0 ? { $and: andConditions } : {};
     
     const docs = await postsCollection
       .find(filter)

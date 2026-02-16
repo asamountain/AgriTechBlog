@@ -90,6 +90,32 @@ export default function PortfolioManagement() {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number | string) => {
+      const response = await fetch(`/api/portfolio?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Delete failed");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Project deleted" });
+      queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const handleDelete = (id: number | string) => {
+    if (confirm("Are you sure you want to delete this project?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
   if (isLoading) return <AdaptiveLoader size="lg" text="Loading portfolio..." />;
 
   return (
@@ -221,7 +247,13 @@ export default function PortfolioManagement() {
                   <Button variant="outline" size="sm" onClick={() => openEdit(project)}>
                     <Edit className="w-3 h-3" />
                   </Button>
-                  <Button variant="outline" size="sm" className="text-red-600 border-red-100 hover:bg-red-50">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-red-600 border-red-100 hover:bg-red-50"
+                    onClick={() => handleDelete(project.id)}
+                    disabled={deleteMutation.isPending}
+                  >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
