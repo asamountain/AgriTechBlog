@@ -124,7 +124,7 @@ export default function PostsPage() {
               All Blog <span className="italic">Posts</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
-              Discover insights on agricultural technology, sustainable farming practices, and innovative solutions for modern agriculture.
+              Discover insights on agricultural technology, sustainable farming practices, and solutions.
             </p>
           </div>
 

@@ -21,7 +21,7 @@ export class UserProfileService {
 
   // Get or create user profile
   async getUserProfile(uid: string): Promise<UserProfile | null> {
-    if (!isFirebaseConfigured) return null;
+    if (!isFirebaseConfigured || !db) return null;
     try {
       const profileRef = doc(db, 'userProfiles', uid);
       const profileDoc = await getDoc(profileRef);
@@ -51,7 +51,7 @@ export class UserProfileService {
 
   // Create or update user profile from Firebase Auth
   async createOrUpdateProfile(authUser: AuthUser): Promise<UserProfile> {
-    if (!isFirebaseConfigured) throw new Error('Firebase is not configured');
+    if (!isFirebaseConfigured || !db) throw new Error('Firebase is not configured');
     try {
       const profileRef = doc(db, 'userProfiles', authUser.uid);
       const existingProfile = await getDoc(profileRef);
@@ -115,6 +115,7 @@ export class UserProfileService {
   // Increment user's comment count
   async incrementCommentCount(uid: string): Promise<void> {
     try {
+      if (!db) return;
       const profileRef = doc(db, 'userProfiles', uid);
       await updateDoc(profileRef, {
         commentCount: increment(1),

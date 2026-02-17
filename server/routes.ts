@@ -2,10 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import passport from "passport";
 import { storage, getStorage, type IStorage } from "./storage";
+import { 
+  type User, type InsertUser,
+  type Author, type InsertAuthor,
+  type BlogPost, type InsertBlogPost,
+  type Comment, type InsertComment,
+  type BlogPostWithDetails,
+  type Annotation, type InsertAnnotation,
+  type PortfolioProject, type InsertPortfolioProject
+} from "@shared/schema";
 import { insertBlogPostSchema, insertAuthorSchema, insertCommentSchema, insertAnnotationSchema } from "@shared/schema";
-import { requireAuth } from "./auth";
-import { getAITaggingService } from "./ai-tagging";
-import { insertUserSchema, type User, type BlogPost, type Author, type Annotation } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -16,7 +22,6 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { Request, Response, NextFunction } from "express";
 import { setupVite, log } from "./vite";
-import type { BlogPostWithDetails, InsertBlogPost, InsertAuthor, Comment, InsertComment, InsertUser } from "@shared/schema";
 import { NotionContentExtractor } from './services/notion-content-extractor';
 import { BlogAutomationPipeline } from './services/blog-automation-pipeline';
 import { config as notionConfig, validateConfig as validateNotionConfig, getConfigSummary } from './config/notion-claude.config';
@@ -197,7 +202,8 @@ function createMockStorage(): IStorage {
       tags: ["test", "editing", "mock"],
       isFeatured: false,
       isPublished: false,
-      readTime: 2
+      readTime: 2,
+      postType: 'blog'
     }
   ];
 
@@ -291,19 +297,32 @@ function createMockStorage(): IStorage {
       throw new Error("Mock storage: Comment approval not implemented");
     },
     async deleteComment(id: number): Promise<void> {
-      console.log("Mock storage: Comment deletion not implemented");
+      throw new Error("Mock storage: Comment deletion not implemented");
     },
-    async getAnnotations(postId: number, options?: any): Promise<any[]> {
+
+    // Annotation methods
+    async getAnnotations(postId: number, options?: { type?: string; parentId?: string; userId?: string }): Promise<Annotation[]> {
       return [];
     },
-    async createAnnotation(insertAnnotation: any): Promise<any> {
+    async createAnnotation(insertAnnotation: InsertAnnotation): Promise<Annotation> {
       throw new Error("Mock storage: Annotation creation not implemented");
     },
     async deleteAnnotation(id: string, userId: string, isAdmin?: boolean, adminEmail?: string): Promise<void> {
-      console.log("Mock storage: Annotation deletion not implemented");
+      throw new Error("Mock storage: Annotation deletion not implemented");
     },
     async toggleAnnotationLike(annotationId: string, userId: string): Promise<{ likes: number; hasLiked: boolean }> {
       return { likes: 0, hasLiked: false };
+    },
+
+    // Portfolio methods
+    async getPortfolioProjects(options?: { limit?: number; includeDrafts?: boolean }): Promise<PortfolioProject[]> {
+      return [];
+    },
+    async createPortfolioProject(insertProject: InsertPortfolioProject): Promise<PortfolioProject> {
+      throw new Error("Mock storage: Portfolio creation not implemented");
+    },
+    async updatePortfolioProject(id: number | string, updates: Partial<InsertPortfolioProject>): Promise<PortfolioProject> {
+      throw new Error("Mock storage: Portfolio update not implemented");
     }
   };
 }
@@ -1240,7 +1259,8 @@ ${publishedPosts.map(post => `  <url>
         tags: [],
         isFeatured: false,
         isPublished: false,
-        readTime: 0
+        readTime: 0,
+        postType: 'blog' as 'blog' | 'portfolio'
       };
 
       const aiService = getAITaggingService();

@@ -86,6 +86,9 @@ export interface InsertBlogPost {
   readTime?: number;
   isFeatured?: boolean;
   isPublished?: boolean;
+  postType?: 'blog' | 'portfolio';
+  client?: string;
+  impact?: string;
   summary?: string;
   // AI Generation fields
   sourceNotionId?: string;

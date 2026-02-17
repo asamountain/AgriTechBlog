@@ -7,7 +7,8 @@ import {
   type BlogPost, type InsertBlogPost,
   type Comment, type InsertComment,
   type BlogPostWithDetails,
-  type Annotation, type InsertAnnotation
+  type Annotation, type InsertAnnotation,
+  type PortfolioProject, type InsertPortfolioProject
 } from "@shared/schema";
 
 // Comprehensive HTML tag removal with entity decoding
@@ -506,6 +507,9 @@ export class MongoStorage implements IStorage {
       readTime: insertPost.readTime || this.calculateReadTime(insertPost.content),
       isFeatured: insertPost.isFeatured || false,
       isPublished: insertPost.isPublished !== false,
+      postType: insertPost.postType || 'blog',
+      client: insertPost.client,
+      impact: insertPost.impact,
       createdAt: now,
       updatedAt: now
     };

@@ -10,7 +10,7 @@ interface BlogGridProps {}
 
 export default function BlogGrid({}: BlogGridProps) {
   const [page, setPage] = useState(0);
-  const limit = 6;
+  const limit = 9;
 
   const { data: blogPosts, isLoading, error } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts", { limit: (page + 1) * limit + 5, offset: 0, includeDrafts: false, postType: 'blog' }],

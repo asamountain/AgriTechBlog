@@ -231,6 +231,7 @@ export class CommentService {
   // Like a comment
   async likeComment(commentId: string): Promise<void> {
     try {
+      if (!db) throw new Error('Firebase not initialized');
       const commentRef = doc(db, 'comments', commentId);
       await updateDoc(commentRef, {
         likes: (await this.getCommentLikes(commentId)) + 1
@@ -244,6 +245,7 @@ export class CommentService {
   // Get comment likes count
   private async getCommentLikes(commentId: string): Promise<number> {
     try {
+      if (!db) return 0;
       const commentRef = doc(db, 'comments', commentId);
       const commentDoc = await getDocs(query(collection(db, 'comments'), where('__name__', '==', commentId)));
       if (!commentDoc.empty) {
@@ -264,6 +266,7 @@ export class CommentService {
       }
 
       // TODO: Add authorization check to ensure user owns the comment
+      if (!db) throw new Error('Firebase not initialized');
       await deleteDoc(doc(db, 'comments', commentId));
     } catch (error) {
       console.error('Error deleting comment:', error);
