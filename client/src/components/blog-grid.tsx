@@ -29,12 +29,14 @@ export default function BlogGrid({}: BlogGridProps) {
             <h2 className="text-3xl font-playfair font-bold text-gray-900 italic mb-4">
               Latest Articles
             </h2>
-            <div className="flex items-center space-x-3">
-              <div className="w-16 h-1 bg-forest-green"></div>
-              <AdaptiveLoader size="md" text="Loading content..." showMessage={false} />
-            </div>
+            <div className="w-16 h-1 bg-forest-green"></div>
           </div>
-          <div className="space-y-3">
+          
+          <div className="flex flex-col items-center justify-center py-12 mb-12">
+            <AdaptiveLoader size="md" text="Loading articles..." />
+          </div>
+
+          <div className="space-y-3 opacity-50">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <CompactNatureSkeleton key={i} lines={2} />
             ))}

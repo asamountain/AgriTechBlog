@@ -82,7 +82,7 @@ export default function FeaturedStories() {
   if (isLoading) {
     return (
       <section id="featured-stories" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-[400px]">
           <AdaptiveLoader size="lg" text="Loading featured content..." />
         </div>
       </section>
