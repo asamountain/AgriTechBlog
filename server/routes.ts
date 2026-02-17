@@ -9,9 +9,11 @@ import {
   type Comment, type InsertComment,
   type BlogPostWithDetails,
   type Annotation, type InsertAnnotation,
-  type PortfolioProject, type InsertPortfolioProject
+  type PortfolioProject, type InsertPortfolioProject,
+  insertBlogPostSchema, insertAuthorSchema, insertCommentSchema, insertAnnotationSchema, insertUserSchema
 } from "@shared/schema";
-import { insertBlogPostSchema, insertAuthorSchema, insertCommentSchema, insertAnnotationSchema } from "@shared/schema";
+import { requireAuth } from "./auth";
+import { getAITaggingService } from "./ai-tagging";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
