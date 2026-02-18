@@ -16,7 +16,7 @@ import type { BlogPostWithDetails, Annotation } from "@shared/schema";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import TagDisplay from "@/components/tag-display";
-import { ContentSkeleton, AdaptiveLoader } from "@/components/loading";
+import { ContentSkeleton, BlogPostSkeleton } from "@/components/loading";
 import ReactMarkdown from 'react-markdown';
 import { stableParagraphId, extractTextFromChildren } from '@/lib/paragraph-utils';
 import remarkGfm from 'remark-gfm';
@@ -238,14 +238,7 @@ export default function BlogPost() {
   }, [highlightedParagraph]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <AdaptiveLoader size="lg" text="Loading article..." color="text-forest-green" />
-        </div>
-      </div>
-    );
+    return <BlogPostSkeleton />;
   }
 
   if (error || !post) {

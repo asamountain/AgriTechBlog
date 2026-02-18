@@ -143,7 +143,6 @@ export function isLocalDevelopment(): boolean {
   return process.env.NODE_ENV === 'development' && !process.env.VERCEL;
 }
 
-// Helper function to display environment status
 export function displayEnvironmentStatus(): void {
   console.log('\n🔧 Environment Status:');
   console.log('========================');
@@ -151,6 +150,8 @@ export function displayEnvironmentStatus(): void {
   console.log(`MongoDB URI: ${maskCredentials(process.env.MONGODB_URI || 'Not set')}`);
   console.log(`Database: ${process.env.MONGODB_DATABASE || 'Not set'}`);
   console.log(`Port: ${process.env.PORT || 'Not set'}`);
+  console.log(`Cloudinary Cloud: ${process.env.CLOUDINARY_CLOUD_NAME || '❌ NOT SET'}`);
+  console.log(`Cloudinary API Key: ${process.env.CLOUDINARY_API_KEY ? '✅ SET' : '❌ NOT SET'}`);
   console.log(`Local Development: ${isLocalDevelopment() ? 'Yes' : 'No'}`);
   console.log('========================\n');
 } 

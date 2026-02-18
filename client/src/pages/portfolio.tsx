@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { AdaptiveLoader } from "@/components/loading";
+import { ProjectCardSkeleton } from "@/components/loading";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 
@@ -80,8 +80,10 @@ export default function PortfolioPage() {
           </div>
 
           {isLoading ? (
-            <div className="py-24 text-center">
-              <AdaptiveLoader size="lg" text="Loading projects..." />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <ProjectCardSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">

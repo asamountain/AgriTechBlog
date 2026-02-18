@@ -46,9 +46,10 @@ export async function uploadToCloudinary(
       },
       (error, result) => {
         if (error) {
-          console.error('Cloudinary upload error:', error);
+          console.error('❌ Cloudinary SDK error:', error);
           reject(error);
         } else if (result) {
+          console.log('✅ Cloudinary upload success:', result.secure_url);
           resolve({
             url: result.secure_url,
             publicId: result.public_id,
@@ -56,11 +57,13 @@ export async function uploadToCloudinary(
             height: result.height,
           });
         } else {
+          console.error('❌ No result or error from Cloudinary');
           reject(new Error('No result from Cloudinary'));
         }
       }
     );
 
+    console.log('📤 Sending buffer to Cloudinary...');
     uploadStream.end(fileBuffer);
   });
 }

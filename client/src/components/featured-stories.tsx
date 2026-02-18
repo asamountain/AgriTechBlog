@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatDate, stripMarkdown } from "@/lib/utils";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { AdaptiveLoader } from "@/components/loading";
+import { FeaturedStorySkeleton } from "@/components/loading";
 
 function formatDateEnglish(date: string | Date): string {
   const d = new Date(date);
@@ -82,8 +82,17 @@ export default function FeaturedStories() {
   if (isLoading) {
     return (
       <section id="featured-stories" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-[400px]">
-          <AdaptiveLoader size="lg" text="Loading featured content..." />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 border-b border-gray-100 pb-8">
+            <h2 className="text-3xl font-playfair font-bold text-gray-900 italic">
+              Featured Stories
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+            {[1, 2, 3].map((i) => (
+              <FeaturedStorySkeleton key={i} />
+            ))}
+          </div>
         </div>
       </section>
     );

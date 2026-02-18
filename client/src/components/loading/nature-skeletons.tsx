@@ -412,6 +412,356 @@ export const CommentNatureSkeleton: React.FC<CommentNatureSkeletonProps> = ({
   );
 };
 
+// ============================================================================
+// FEATURED STORY SKELETON - Matches StoryCard in featured-stories.tsx
+// ============================================================================
+
+interface FeaturedStorySkeletonProps {
+  className?: string;
+}
+
+export const FeaturedStorySkeleton: React.FC<FeaturedStorySkeletonProps> = ({
+  className = '',
+}) => {
+  return (
+    <div className={`flex flex-col h-full ${className}`}>
+      <NatureSkeletonStyles />
+      
+      {/* Image aspect ratio 4:3 */}
+      <div 
+        className="nature-skeleton-shimmer mb-8"
+        style={{
+          aspectRatio: '4/3',
+          width: '100%',
+          background: `linear-gradient(135deg, ${LOADING_COLORS.GRADIENT_START} 0%, ${LOADING_COLORS.GRADIENT_END} 100%)`,
+        }}
+      />
+      
+      {/* Content Area */}
+      <div className="flex flex-col flex-1 px-1 space-y-4">
+        {/* Title */}
+        <div 
+          className="nature-skeleton-shimmer rounded-sm"
+          style={{
+            height: '28px',
+            width: '90%',
+            background: LOADING_COLORS.BACKGROUND_BASE,
+          }}
+        />
+        
+        {/* Metadata */}
+        <div 
+          className="nature-skeleton-shimmer rounded-sm"
+          style={{
+            height: '12px',
+            width: '40%',
+            background: LOADING_COLORS.BACKGROUND_BASE,
+            animationDelay: '100ms',
+          }}
+        />
+        
+        {/* Excerpt */}
+        <div className="space-y-2">
+          <div 
+            className="nature-skeleton-shimmer rounded-sm"
+            style={{
+              height: '14px',
+              width: '100%',
+              background: LOADING_COLORS.BACKGROUND_BASE,
+              animationDelay: '200ms',
+            }}
+          />
+          <div 
+            className="nature-skeleton-shimmer rounded-sm"
+            style={{
+              height: '14px',
+              width: '100%',
+              background: LOADING_COLORS.BACKGROUND_BASE,
+              animationDelay: '250ms',
+            }}
+          />
+          <div 
+            className="nature-skeleton-shimmer rounded-sm"
+            style={{
+              height: '14px',
+              width: '60%',
+              background: LOADING_COLORS.BACKGROUND_BASE,
+              animationDelay: '300ms',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// GLOBAL PAGE SKELETON - For Suspense fallbacks during route changes
+// ============================================================================
+
+export const GlobalPageSkeleton: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-white">
+      <NatureSkeletonStyles />
+      {/* Navbar Placeholder */}
+      <div className="h-16 border-b border-gray-100 px-8 flex items-center justify-between">
+        <div className="h-6 w-16 bg-gray-50 rounded animate-pulse" />
+        <div className="flex gap-8">
+          <div className="h-4 w-12 bg-gray-50 rounded animate-pulse" />
+          <div className="h-4 w-12 bg-gray-50 rounded animate-pulse" />
+          <div className="h-8 w-8 bg-gray-50 rounded animate-pulse" />
+        </div>
+      </div>
+      
+      {/* Content Placeholder */}
+      <div className="container mx-auto px-6 pt-24 space-y-8">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <div className="h-12 w-3/4 bg-gray-50 rounded animate-pulse" />
+          <div className="h-6 w-1/2 bg-gray-50 rounded animate-pulse" />
+          <div className="pt-8 space-y-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-4 w-full bg-gray-50 rounded animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// BLOG POST SKELETON - Matches blog-post.tsx
+// ============================================================================
+
+interface BlogPostSkeletonProps {
+  className?: string;
+}
+
+export const BlogPostSkeleton: React.FC<BlogPostSkeletonProps> = ({
+  className = '',
+}) => {
+  return (
+    <div className={`min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50 ${className}`}>
+      <NatureSkeletonStyles />
+      <div className="container mx-auto px-6 pt-24">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Sidebar Left */}
+            <aside className="lg:col-span-1 hidden lg:block space-y-4">
+              <div 
+                className="nature-skeleton-shimmer rounded-md"
+                style={{ height: '30px', width: '80%', background: LOADING_COLORS.BACKGROUND_BASE }}
+              />
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="nature-skeleton-shimmer rounded-md" style={{ height: '14px', width: '60%', background: LOADING_COLORS.BACKGROUND_BASE, animationDelay: `${i * 100}ms` }} />
+              ))}
+            </aside>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              {/* Header */}
+              <div className="space-y-6 mb-8">
+                <div 
+                  className="nature-skeleton-shimmer rounded-md"
+                  style={{ height: '48px', width: '90%', background: LOADING_COLORS.BACKGROUND_BASE }}
+                />
+                <div 
+                  className="nature-skeleton-shimmer rounded-md"
+                  style={{ height: '16px', width: '40%', background: LOADING_COLORS.BACKGROUND_BASE, animationDelay: '100ms' }}
+                />
+              </div>
+
+              {/* Summary Box */}
+              <div className="bg-white/50 border-l-4 border-forest-green/20 rounded-lg p-6 mb-8 space-y-3">
+                <div className="nature-skeleton-shimmer rounded-md" style={{ height: '20px', width: '30%', background: LOADING_COLORS.BACKGROUND_BASE }} />
+                <div className="nature-skeleton-shimmer rounded-md" style={{ height: '14px', width: '100%', background: LOADING_COLORS.BACKGROUND_BASE }} />
+                <div className="nature-skeleton-shimmer rounded-md" style={{ height: '14px', width: '80%', background: LOADING_COLORS.BACKGROUND_BASE }} />
+              </div>
+
+              {/* Featured Image placeholder */}
+              <div 
+                className="nature-skeleton-shimmer mb-8"
+                style={{
+                  height: '400px',
+                  width: '100%',
+                  background: `linear-gradient(135deg, ${LOADING_COLORS.GRADIENT_START} 0%, ${LOADING_COLORS.GRADIENT_END} 100%)`,
+                }}
+              />
+
+              {/* Text lines */}
+              <div className="space-y-4">
+                {[100, 95, 88, 92, 78, 95, 90, 85].map((width, i) => (
+                  <div
+                    key={i}
+                    className="nature-skeleton-shimmer rounded-md"
+                    style={{
+                      height: '16px',
+                      width: `${width}%`,
+                      background: LOADING_COLORS.BACKGROUND_BASE,
+                      animationDelay: `${i * 100}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Sidebar Right */}
+            <aside className="lg:col-span-1 hidden lg:block">
+              <div 
+                className="nature-skeleton-shimmer rounded-md"
+                style={{ height: '200px', width: '100%', background: LOADING_COLORS.BACKGROUND_BASE }}
+              />
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// PROJECT CARD SKELETON - Matches ProjectCard in portfolio.tsx
+// ============================================================================
+
+interface ProjectCardSkeletonProps {
+  className?: string;
+}
+
+export const ProjectCardSkeleton: React.FC<ProjectCardSkeletonProps> = ({
+  className = '',
+}) => {
+  return (
+    <div className={`flex flex-col h-full bg-white border border-gray-100 shadow-sm ${className}`}>
+      <NatureSkeletonStyles />
+      
+      {/* Image aspect ratio 16/10 */}
+      <div 
+        className="nature-skeleton-shimmer"
+        style={{
+          aspectRatio: '16/10',
+          width: '100%',
+          background: `linear-gradient(135deg, ${LOADING_COLORS.GRADIENT_START} 0%, ${LOADING_COLORS.GRADIENT_END} 100%)`,
+        }}
+      />
+      
+      <div className="p-8 flex flex-col flex-1 space-y-4">
+        {/* Category tag */}
+        <div 
+          className="nature-skeleton-shimmer rounded-sm"
+          style={{
+            height: '10px',
+            width: '60px',
+            background: LOADING_COLORS.BACKGROUND_BASE,
+          }}
+        />
+        
+        {/* Title */}
+        <div 
+          className="nature-skeleton-shimmer rounded-sm"
+          style={{
+            height: '32px',
+            width: '90%',
+            background: LOADING_COLORS.BACKGROUND_BASE,
+            animationDelay: '100ms',
+          }}
+        />
+        
+        {/* Excerpt */}
+        <div className="space-y-2">
+          <div 
+            className="nature-skeleton-shimmer rounded-sm"
+            style={{
+              height: '14px',
+              width: '100%',
+              background: LOADING_COLORS.BACKGROUND_BASE,
+              animationDelay: '200ms',
+            }}
+          />
+          <div 
+            className="nature-skeleton-shimmer rounded-sm"
+            style={{
+              height: '14px',
+              width: '100%',
+              background: LOADING_COLORS.BACKGROUND_BASE,
+              animationDelay: '250ms',
+            }}
+          />
+        </div>
+
+        {/* Tags row */}
+        <div className="flex gap-2 py-4">
+          {[1, 2, 3].map((i) => (
+            <div 
+              key={i}
+              className="nature-skeleton-shimmer rounded-sm"
+              style={{
+                height: '20px',
+                width: '50px',
+                background: LOADING_COLORS.BACKGROUND_BASE,
+                animationDelay: `${300 + (i * 50)}ms`,
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Footer link */}
+        <div className="mt-auto pt-6 border-t border-gray-50">
+          <div 
+            className="nature-skeleton-shimmer rounded-sm"
+            style={{
+              height: '10px',
+              width: '100px',
+              background: LOADING_COLORS.BACKGROUND_BASE,
+              animationDelay: '500ms',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// BLOG LIST ITEM SKELETON - For list view of posts
+// ============================================================================
+
+interface BlogListItemSkeletonProps {
+  className?: string;
+}
+
+export const BlogListItemSkeleton: React.FC<BlogListItemSkeletonProps> = ({
+  className = '',
+}) => {
+  return (
+    <>
+      <NatureSkeletonStyles />
+      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 ${className}`}>
+        {/* Title skeleton */}
+        <div 
+          className="nature-skeleton-shimmer rounded-md"
+          style={{
+            height: '20px',
+            width: '70%',
+            maxWidth: '400px',
+            background: LOADING_COLORS.BACKGROUND_BASE,
+          }}
+        />
+        
+        {/* Date skeleton */}
+        <div 
+          className="nature-skeleton-shimmer rounded-md mt-2 sm:mt-0"
+          style={{
+            height: '14px',
+            width: '80px',
+            background: LOADING_COLORS.BACKGROUND_BASE,
+            animationDelay: '100ms',
+          }}
+        />
+      </div>
+    </>
+  );
+};
+
 // Export all skeleton components
 export {
   NatureContentSkeleton as ContentSkeleton, // Alias for backwards compatibility

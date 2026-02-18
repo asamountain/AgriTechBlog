@@ -28,6 +28,11 @@ export {
   CompactNatureSkeleton,
   CardNatureSkeleton,
   GridNatureSkeleton,
+  FeaturedStorySkeleton,
+  ProjectCardSkeleton,
+  BlogPostSkeleton,
+  BlogListItemSkeleton,
+  GlobalPageSkeleton,
   TextNatureSkeleton,
   CommentNatureSkeleton,
   ContentSkeleton, // Backwards compatibility alias
