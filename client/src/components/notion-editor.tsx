@@ -80,6 +80,18 @@ const turndownService = new TurndownService({
   codeBlockStyle: 'fenced',
   fence: '```',
   preformattedCode: true, // Better whitespace preservation
+  bulletListMarker: '-',
+  blankReplacement: (content, node) => {
+    return (node as any).isBlock ? '\n\n' : '';
+  },
+});
+
+// Ensure blank lines before headings and other blocks for proper markdown parsing
+turndownService.addRule('headings-newline', {
+  filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'ul', 'ol', 'pre'],
+  replacement: (content, node) => {
+    return '\n\n' + content + '\n\n';
+  }
 });
 
 // Convert TipTap task list items to GFM task list syntax
@@ -153,10 +165,11 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
       attributes: {
         class: 'notion-editor-content',
       },
-      handlePaste: (view: any, event: any) => {
+      handlePaste: (view: EditorView, event: ClipboardEvent) => {
         const items = Array.from(event.clipboardData?.items || []);
-        const imageItem = items.find((item: any) => item.type.startsWith('image'));
-
+        
+        // 1. Handle image paste (existing logic)
+        const imageItem = items.find(item => item.type.startsWith('image'));
         if (imageItem) {
           const file = imageItem.getAsFile();
           if (file) {
@@ -186,6 +199,34 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
             return true;
           }
         }
+
+        // 2. Handle Markdown paste from text/plain
+        const text = event.clipboardData?.getData('text/plain');
+        const html = event.clipboardData?.getData('text/html');
+
+        // If we have markdown-like text and NO HTML (or minimal HTML), convert it
+        // Claude often provides both, but the HTML should be preferred if it's rich.
+        // If the user is specifically pasting markdown (e.g. from a code block), 
+        // we detect common markdown patterns.
+        const isMarkdown = text && (
+          text.match(/^#+\s/m) || // Headings
+          text.match(/^\s*[-*+]\s/m) || // Lists
+          text.match(/\[.*\]\(.*\)/) || // Links
+          text.match(/^\s*>\s/m) || // Blockquotes
+          text.match(/(\*\*|__)(.*?)\1/) // Bold
+        );
+
+        if (text && isMarkdown && (!html || html.length < text.length)) {
+          event.preventDefault();
+          try {
+            const convertedHtml = marked(text) as string;
+            editor?.commands.insertContent(convertedHtml);
+            return true;
+          } catch (e) {
+            console.error('Failed to convert pasted markdown:', e);
+          }
+        }
+
         return false;
       },
       handleDrop: (view: any, event: any, _slice: any, moved: boolean) => {
@@ -264,7 +305,8 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
 
       // Normal HTML→Markdown conversion
       const html = editor.getHTML();
-      const markdown = turndownService.turndown(html);
+      // Clean up multiple newlines created by turndown block rules
+      const markdown = turndownService.turndown(html).replace(/\n{3,}/g, '\n\n').trim();
       onChange(markdown);
     },
   });
