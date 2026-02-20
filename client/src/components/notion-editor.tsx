@@ -153,8 +153,74 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
       attributes: {
         class: 'notion-editor-content',
       },
+      handlePaste: (view: any, event: any) => {
+        const items = Array.from(event.clipboardData?.items || []);
+        const imageItem = items.find((item: any) => item.type.startsWith('image'));
+
+        if (imageItem) {
+          const file = imageItem.getAsFile();
+          if (file) {
+            event.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('/api/admin/upload-image', {
+              method: 'POST',
+              body: formData,
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.url) {
+                  view.dispatch(
+                    view.state.tr.replaceSelectionWith(
+                      view.state.schema.nodes.image.create({ src: data.url })
+                    )
+                  );
+                }
+              })
+              .catch(err => {
+                console.error('Failed to upload pasted image:', err);
+              });
+            
+            return true;
+          }
+        }
+        return false;
+      },
+      handleDrop: (view: any, event: any, _slice: any, moved: boolean) => {
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.startsWith('image/')) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('/api/admin/upload-image', {
+              method: 'POST',
+              body: formData,
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.url) {
+                  const { schema } = view.state;
+                  const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
+                  const node = schema.nodes.image.create({ src: data.url });
+                  const transaction = view.state.tr.insert(coordinates?.pos ?? view.state.selection.from, node);
+                  view.dispatch(transaction);
+                }
+              })
+              .catch(err => {
+                console.error('Failed to upload dropped image:', err);
+              });
+            return true;
+          }
+        }
+        return false;
+      },
     },
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: { editor: any }) => {
       // Auto-convert bullet items starting with [ ] or [x] to task items
       const { state } = editor;
       const { $from } = state.selection;
