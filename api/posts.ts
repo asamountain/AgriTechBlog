@@ -47,9 +47,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = client.db(dbName);
     const postsCollection = db.collection('posts');
     
-    const { slug, id, category, limit = '1000', offset = '0', featured, includeDrafts, postType } = req.query;
+    const { slug, id, category, limit = '1000', offset = '0', featured, includeDrafts, postType, relatedTo } = req.query;
     const shouldIncludeDrafts = includeDrafts === 'true';
     
+    // --- Related posts by ID ---
+    if (relatedTo) {
+      const targetId = parseInt(relatedTo as string);
+      console.log('🔗 POSTS: Fetching related posts for ID:', targetId);
+      
+      const targetPost = await postsCollection.findOne({ id: targetId });
+      if (!targetPost) {
+        res.status(200).json([]);
+        return;
+      }
+      
+      const tags = targetPost.tags || [];
+      if (tags.length === 0) {
+        res.status(200).json([]);
+        return;
+      }
+
+      const filter: any = {
+        id: { $ne: targetId },
+        tags: { $in: tags },
+        draft: { $ne: true }
+      };
+
+      const docs = await postsCollection
+        .find(filter)
+        .limit(3)
+        .toArray();
+
+      const posts = docs.map(mapPostDocument).filter(Boolean);
+      res.status(200).json(posts);
+      return;
+    }
+
     // --- Single post by slug or ID ---
     if (slug || id) {
       const identifier = (slug || id) as string;

@@ -77,21 +77,21 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
         console.log('TOC Debug - Parsed items:', items.length);
         console.log('TOC Debug - Actual headings found:', actualHeadings.length);
         
-        actualHeadings.forEach((heading, index) => {
-          if (items[index]) {
-            const expectedId = items[index].id;
-            const currentId = heading.id;
-            
-            if (!currentId) {
-              heading.id = expectedId;
-              console.log(`TOC Debug - Assigned ID "${expectedId}" to heading "${items[index].text}"`);
-            } else if (currentId !== expectedId) {
-              console.log(`TOC Debug - Heading already has different ID: "${currentId}" vs expected "${expectedId}"`);
+        // Update items with actual IDs from DOM (rehype-slug generated)
+        const updatedItems = items.map((item, index) => {
+          if (actualHeadings[index]) {
+            const actualId = actualHeadings[index].id;
+            if (actualId) {
+              console.log(`TOC Debug - Found actual ID for "${item.text}": ${actualId}`);
+              return { ...item, id: actualId };
             }
           }
+          return item;
         });
+        
+        setTocItems(updatedItems);
       }
-    }, 100);
+    }, 500); // Increased delay for rehype-slug to complete
   }, [content]);
 
   useEffect(() => {
@@ -120,13 +120,14 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       const blogContent = document.querySelector('.blog-content');
       if (blogContent) {
         tocItems.forEach(({ id }) => {
-          const element = blogContent.querySelector(`#${CSS.escape(id)}`);
+          // IDs from rehype-slug can contain special characters
+          const element = blogContent.querySelector(`[id="${id}"]`) || blogContent.querySelector(`#${CSS.escape(id)}`);
           if (element) {
             observer.observe(element);
           }
         });
       }
-    }, 200);
+    }, 500);
 
     return () => {
       clearTimeout(timeoutId);
@@ -140,12 +141,10 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
     let element = null;
     
     if (blogContent) {
-      element = blogContent.querySelector(`#${CSS.escape(id)}`);
-    }
-    
-    // Fallback to document-wide search if not found
-    if (!element) {
-      element = document.getElementById(id);
+      // Try multiple selection methods for robustness
+      element = blogContent.querySelector(`[id="${id}"]`) || 
+                blogContent.querySelector(`#${CSS.escape(id)}`) ||
+                document.getElementById(id);
     }
     
     if (element) {
@@ -158,6 +157,14 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       });
     } else {
       console.error(`TOC Debug - Element with id "${id}" not found`);
+      
+      // Fallback: try to find by text content if ID fails
+      const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+        .find(h => h.textContent?.trim() === id.replace(/-/g, ' ').trim());
+      
+      if (heading) {
+        heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 

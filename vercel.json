@@ -45,6 +45,10 @@
       "destination": "/api/admin/inline-comments?postId=:postId"
     },
     {
+      "source": "/api/blog-posts/:id/related",
+      "destination": "/api/posts?relatedTo=:id"
+    },
+    {
       "source": "/api/admin/blog-posts/:id",
       "destination": "/api/admin/blog-posts?id=:id"
     },
