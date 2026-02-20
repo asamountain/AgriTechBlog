@@ -375,6 +375,30 @@ export default function SimpleMarkdownEditor({
                     </>
                   )}
                 </div>
+
+                {/* Quick Publish Toggle */}
+                <div className="flex flex-col items-end border-l pl-4 border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="header-published"
+                      checked={published}
+                      onChange={(e) => {
+                        setPublished(e.target.checked);
+                        isDirty.current = true;
+                      }}
+                      className="rounded border-gray-300 text-forest-green focus:ring-forest-green h-4 w-4 cursor-pointer"
+                    />
+                    <label htmlFor="header-published" className="text-xs font-semibold text-gray-700 cursor-pointer">
+                      Publish immediately
+                    </label>
+                  </div>
+                  <p className="text-[10px] text-gray-500 font-medium">
+                    Status: <span className={published ? "text-forest-green" : "text-amber-600"}>
+                      {published ? 'Will be published' : 'Will be saved as draft'}
+                    </span>
+                  </p>
+                </div>
                 
                 <Button
                   onClick={() => setShowPreview(!showPreview)}
@@ -574,25 +598,6 @@ export default function SimpleMarkdownEditor({
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Tags help readers find your content and improve SEO. Current tags: {tags.length}
-                  </p>
-                </div>
-
-                {/* Publish Toggle */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="published"
-                      checked={published}
-                      onChange={(e) => setPublished(e.target.checked)}
-                      className="rounded border-gray-300 text-forest-green focus:ring-forest-green"
-                    />
-                    <label htmlFor="published" className="text-sm font-medium text-gray-700">
-                      Publish immediately (uncheck to save as draft)
-                    </label>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Current status: {published ? 'Will be published' : 'Will be saved as draft'}
                   </p>
                 </div>
 
