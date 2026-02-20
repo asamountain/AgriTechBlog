@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/rss.xml",
+      "destination": "/api/feed?type=rss"
+    },
+    {
+      "source": "/api/sitemap.xml",
+      "destination": "/api/feed?type=sitemap"
+    },
+    {
       "source": "/api/blog-posts/featured",
       "destination": "/api/posts?featured=true"
     },
