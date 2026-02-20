@@ -41,6 +41,10 @@
       "destination": "/api/admin/blog-posts?id=:id"
     },
     {
+      "source": "/api/admin/upload-image/:publicId",
+      "destination": "/api/admin/upload-image?publicId=:publicId"
+    },
+    {
       "source": "/((?!api|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
       "destination": "/index.html"
     }
