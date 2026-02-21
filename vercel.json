@@ -58,7 +58,17 @@
     },
     {
       "source": "/",
+      "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/",
       "destination": "/api/meta?type=home"
+    },
+    {
+      "source": "/posts",
+      "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
+      "destination": "/index.html"
     },
     {
       "source": "/posts",
@@ -66,7 +76,17 @@
     },
     {
       "source": "/portfolio",
+      "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/portfolio",
       "destination": "/api/meta?type=portfolio"
+    },
+    {
+      "source": "/portfolio/:slug",
+      "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
+      "destination": "/index.html"
     },
     {
       "source": "/portfolio/:slug",
@@ -74,10 +94,15 @@
     },
     {
       "source": "/blog/:slug",
+      "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/blog/:slug",
       "destination": "/api/meta?type=blog&slug=:slug"
     },
     {
-      "source": "/((?!api|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
+      "source": "/((?!api|admin|sitemap.*\\.xml|rss\\.xml|robots\\.txt|create-post|edit-post|auth|tags|user|og-test).*)",
       "destination": "/index.html"
     }
   ]
