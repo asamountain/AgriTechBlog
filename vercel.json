@@ -57,6 +57,26 @@
       "destination": "/api/admin/upload-image?publicId=:publicId"
     },
     {
+      "source": "/",
+      "destination": "/api/meta?type=home"
+    },
+    {
+      "source": "/posts",
+      "destination": "/api/meta?type=posts"
+    },
+    {
+      "source": "/portfolio",
+      "destination": "/api/meta?type=portfolio"
+    },
+    {
+      "source": "/portfolio/:slug",
+      "destination": "/api/meta?type=portfolio&slug=:slug"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/meta?type=blog&slug=:slug"
+    },
+    {
       "source": "/((?!api|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
       "destination": "/index.html"
     }

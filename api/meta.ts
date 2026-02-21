@@ -24,110 +24,166 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function generateMetaHtml(post: any): string {
-  const currentUrl = `https://tech-san.vercel.app/blog/${post.slug}`;
-  const ogImageUrl = post.featuredImage || post.coverImage || 
-    `https://tech-san.vercel.app/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=${encodeURIComponent(post.author?.name || 'San')}&excerpt=${encodeURIComponent((post.excerpt || '').substring(0, 100))}`;
+const HERO_IMAGE = "https://cdn.myportfolio.com/e5b750a4-50d3-4551-bd7b-c4c4e3e39d73/8b70ddf3-e9a7-49a7-a1cd-b84056520f4a.jpg?h=23852e2440450a21161999cbfb84a425";
+
+function generateMetaHtml(data: any): string {
+  const { 
+    title, 
+    description, 
+    url, 
+    image, 
+    type = 'website', 
+    author = 'San', 
+    publishedTime, 
+    modifiedTime, 
+    tags = [], 
+    category = 'Technology' 
+  } = data;
+
+  const escapedTitle = escapeHtml(title);
+  const escapedDesc = escapeHtml(description || '');
+  const ogImageUrl = image || `https://tech-san.vercel.app/api/og-image?title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}`;
   
-  const title = escapeHtml(post.title);
-  const excerpt = escapeHtml(post.excerpt || '');
-  const authorName = escapeHtml(post.author?.name || 'San');
-  const category = escapeHtml(post.tags?.[0] || 'Technology');
-  
-  const articleTags = (post.tags || [])
-    .map((tag: string) => `  <meta property="article:tag" content="${escapeHtml(tag)}">`)
-    .join('\n');
+  const articleMeta = type === 'article' ? `
+  <meta property="article:author" content="${escapeHtml(author)}">
+  <meta property="article:published_time" content="${publishedTime || ''}">
+  <meta property="article:modified_time" content="${modifiedTime || ''}">
+  <meta property="article:section" content="${escapeHtml(category)}">
+  ${tags.map((tag: string) => `<meta property="article:tag" content="${escapeHtml(tag)}">`).join('\n  ')}` : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} | San's Agricultural Technology Blog</title>
-  <meta name="description" content="${excerpt}">
+  <title>${escapedTitle} | San's AgriTech Blog</title>
+  <meta name="description" content="${escapedDesc}">
   
   <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${excerpt}">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="${currentUrl}">
+  <meta property="og:title" content="${escapedTitle}">
+  <meta property="og:description" content="${escapedDesc}">
+  <meta property="og:type" content="${type}">
+  <meta property="og:url" content="${url}">
   <meta property="og:site_name" content="San's Agricultural Technology Blog">
   <meta property="og:image" content="${ogImageUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  
-  <!-- Article Meta Tags -->
-  <meta property="article:author" content="${authorName}">
-  <meta property="article:published_time" content="${post.createdAt || post.date || ''}">
-  <meta property="article:modified_time" content="${post.updatedAt || post.lastModified || ''}">
-  <meta property="article:section" content="${category}">
-${articleTags}
+  ${articleMeta}
   
   <!-- Twitter Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${excerpt}">
+  <meta name="twitter:title" content="${escapedTitle}">
+  <meta name="twitter:description" content="${escapedDesc}">
   <meta name="twitter:image" content="${ogImageUrl}">
   
-  <!-- Keywords -->
-  <meta name="keywords" content="${escapeHtml((post.tags || []).join(', '))}, agricultural technology, precision farming, smart agriculture">
-  
-  <!-- Redirect to actual blog post -->
   <script>
-    window.location.href = '/blog/${post.slug}';
+    // Redirect to the actual SPA route
+    const path = window.location.pathname;
+    if (path === '/api/meta') {
+       // If accessed directly via API, don't redirect to root
+    } else {
+       window.location.href = path + window.location.search;
+    }
   </script>
   <noscript>
-    <meta http-equiv="refresh" content="0; url=/blog/${post.slug}">
+    <meta http-equiv="refresh" content="0; url=${url}">
   </noscript>
 </head>
 <body>
   <div id="root">
-    <p>Redirecting to blog post...</p>
+    <h1>${escapedTitle}</h1>
+    <p>${escapedDesc}</p>
+    <p>Redirecting to content...</p>
   </div>
-  <p>If you are not redirected automatically, <a href="/blog/${post.slug}">click here</a>.</p>
 </body>
 </html>`;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+  const { slug, type: pageType } = req.query;
+  const userAgent = req.headers['user-agent'] || '';
+  const isBot = /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|twitterbot|slackbot|discordbot/i.test(userAgent);
 
-  const { slug } = req.query;
-  
-  if (!slug || typeof slug !== 'string') {
-    return res.status(400).json({ message: 'Slug parameter is required' });
-  }
+  // If not a bot and not explicitly requesting meta, we might just let it fall through 
+  // but for Vercel rewrites, this handler will be the primary entry point.
 
-  let client: MongoClient | null = null;
-  
+  const { uri, dbName } = getMongoConfig();
+  const client = new MongoClient(uri);
+
   try {
-    const { uri, dbName } = getMongoConfig();
-    client = new MongoClient(uri);
     await client.connect();
     const db = client.db(dbName);
-    const collection = db.collection('posts');
     
-    const post = await collection.findOne({ 
-      slug: slug,
-      draft: { $ne: true }
-    });
+    let metaData: any = {
+      title: "San's Agricultural Technology Blog",
+      description: "Smart farming technology, IoT engineering insights, and agricultural innovation.",
+      url: "https://tech-san.vercel.app/",
+      image: HERO_IMAGE,
+      type: "website"
+    };
 
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+    if (pageType === 'blog' && slug) {
+      const post = await db.collection('posts').findOne({ slug, isPublished: { $ne: false } });
+      if (post) {
+        metaData = {
+          title: post.title,
+          description: post.excerpt || post.summary,
+          url: `https://tech-san.vercel.app/blog/${post.slug}`,
+          image: post.featuredImage || HERO_IMAGE,
+          type: "article",
+          publishedTime: post.createdAt,
+          modifiedTime: post.updatedAt,
+          tags: post.tags,
+          category: post.tags?.[0] || 'Technology'
+        };
+      }
+    } else if (pageType === 'portfolio') {
+      if (slug) {
+        // Individual project
+        const project = await db.collection('projects').findOne({ slug, isPublished: { $ne: false } });
+        if (project) {
+          metaData = {
+            title: project.title,
+            description: project.description,
+            url: `https://tech-san.vercel.app/portfolio/${project.slug}`,
+            image: project.featuredImage || HERO_IMAGE,
+            type: "article",
+            category: project.category
+          };
+        }
+      } else {
+        // Portfolio list
+        metaData = {
+          title: "Project Portfolio | San's AgriTech",
+          description: "Explore our innovative AgriTech projects, from IoT sensor networks to autonomous farming solutions.",
+          url: "https://tech-san.vercel.app/portfolio",
+          image: HERO_IMAGE
+        };
+      }
+    } else if (pageType === 'posts') {
+      metaData = {
+        title: "Agricultural Technology Articles",
+        description: "In-depth articles on IoT, smart farming, and precision agriculture engineering.",
+        url: "https://tech-san.vercel.app/posts",
+        image: HERO_IMAGE
+      };
     }
 
-    const html = generateMetaHtml(post);
-
+    const html = generateMetaHtml(metaData);
     res.setHeader('Content-Type', 'text/html');
-    return res.send(html);
+    return res.status(200).send(html);
+
   } catch (error) {
-    console.error('Error generating blog post meta:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error('SEO Meta Handler Error:', error);
+    // Return default meta on error
+    return res.status(200).send(generateMetaHtml({
+      title: "San's AgriTech Blog",
+      description: "Agricultural technology and IoT engineering.",
+      url: "https://tech-san.vercel.app/",
+      image: HERO_IMAGE
+    }));
   } finally {
-    if (client) {
-      await client.close();
-    }
+    await client.close();
   }
 }
+
