@@ -22,6 +22,10 @@ function getTurndownService(): TurndownService {
         linkReferenceStyle: 'full'
       });
 
+      // Disable escaping to prevent "##" from becoming "\#\#"
+      // This is crucial when the source HTML contains already-formatted Markdown
+      _turndownService.escape = (text: string) => text;
+
       // Add custom rules for better conversion
       _turndownService.addRule('lineBreaks', {
         filter: 'br',
@@ -112,6 +116,26 @@ function stripHtmlTags(content: string): string {
 }
 
 /**
+ * Clean up markdown syntax to ensure block-level elements (headers, rules)
+ * are correctly separated from surrounding text, preventing them from "trapping" 
+ * the entire content.
+ * 
+ * @param markdown - The raw markdown string to clean
+ * @returns Cleaned markdown string
+ */
+export function cleanMarkdownSyntax(markdown: string): string {
+  if (!markdown || typeof markdown !== 'string') return '';
+  
+  return markdown
+    .replace(/([^\n])\s*(#{1,6}\s+)/g, '$1\n\n$2') // Ensure newlines before headers
+    .replace(/^(#{1,6}\s+[^\n]+?)([^\n#])/gm, '$1\n\n$2') // Ensure newlines after headers
+    .replace(/([^\n])\s*(\* \* \*|\*\*\*|---)\s*/g, '$1\n\n$2\n\n') // Ensure newlines around rules
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]+/g, ' ')
+    .trim();
+}
+
+/**
  * Convert HTML content to markdown format
  * @param htmlContent - The HTML content to convert
  * @returns Markdown formatted content
@@ -134,11 +158,8 @@ export function htmlToMarkdown(htmlContent: string): string {
     const turndownService = getTurndownService();
     const markdown = turndownService.turndown(cleanHtml);
     
-    // Clean up excessive whitespace
-    return markdown
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/[ \t]+/g, ' ')
-      .trim();
+    // Use the enhanced cleaning logic
+    return cleanMarkdownSyntax(markdown);
   } catch (error) {
     console.warn('HTML to markdown conversion failed:', error);
     // Fallback to simple HTML tag removal

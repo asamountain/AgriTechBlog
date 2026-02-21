@@ -9,6 +9,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import { useEffect } from 'react';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
+import { cleanMarkdownSyntax } from '@/lib/html-to-markdown';
 import './notion-editor.css';
 
 // Custom Emoji Input Rules Extension
@@ -94,7 +95,18 @@ turndownService.addRule('headings-newline', {
   }
 });
 
-// Convert TipTap task list items to GFM task list syntax
+// IMPORTANT: Disable character escaping to support mixed Markdown + HTML
+turndownService.escape = (text: string) => text;
+
+// Ensure paragraphs always have double newlines to prevent collapsing
+turndownService.addRule('paragraphs', {
+  filter: 'p',
+  replacement: function (content: string) {
+    return '\n\n' + content + '\n\n';
+  }
+});
+
+// Custom TipTap to Markdown rules...
 turndownService.addRule('taskItem', {
   filter: (node) => {
     return node.nodeName === 'LI' && node.getAttribute('data-type') === 'taskItem';
@@ -305,9 +317,10 @@ export default function NotionEditor({ content, onChange, placeholder = 'Type "/
 
       // Normal HTML→Markdown conversion
       const html = editor.getHTML();
-      // Clean up multiple newlines created by turndown block rules
-      const markdown = turndownService.turndown(html).replace(/\n{3,}/g, '\n\n').trim();
-      onChange(markdown);
+      const markdown = turndownService.turndown(html);
+      
+      // Use our enhanced cleaning logic to prevent header collapsing
+      onChange(cleanMarkdownSyntax(markdown));
     },
   });
 

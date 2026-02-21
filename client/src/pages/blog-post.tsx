@@ -190,7 +190,7 @@ export default function BlogPost() {
   const markdownComponents = useMemo(() => {
     let paragraphIndex = 0;
     return {
-      p: ({ children, ...props }: any) => {
+      p: ({ children, node, ...props }: any) => {
         const textContent = extractTextFromChildren(children);
         const pid = stableParagraphId(textContent, paragraphIndex++);
         return (
@@ -199,7 +199,7 @@ export default function BlogPost() {
           </p>
         );
       },
-      li: ({ children, ...props }: any) => {
+      li: ({ children, node, ...props }: any) => {
         const textContent = extractTextFromChildren(children);
         const pid = stableParagraphId(textContent, paragraphIndex++);
         return (
