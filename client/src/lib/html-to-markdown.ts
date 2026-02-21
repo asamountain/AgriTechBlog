@@ -128,7 +128,6 @@ export function cleanMarkdownSyntax(markdown: string): string {
   
   return markdown
     .replace(/([^\n])\s*(#{1,6}\s+)/g, '$1\n\n$2') // Ensure newlines before headers
-    .replace(/^(#{1,6}\s+[^\n]+?)([^\n#])/gm, '$1\n\n$2') // Ensure newlines after headers
     .replace(/([^\n])\s*(\* \* \*|\*\*\*|---)\s*/g, '$1\n\n$2\n\n') // Ensure newlines around rules
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]+/g, ' ')

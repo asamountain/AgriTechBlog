@@ -87,14 +87,6 @@ const turndownService = new TurndownService({
   },
 });
 
-// Ensure blank lines before headings and other blocks for proper markdown parsing
-turndownService.addRule('headings-newline', {
-  filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'ul', 'ol', 'pre'],
-  replacement: (content, node) => {
-    return '\n\n' + content + '\n\n';
-  }
-});
-
 // IMPORTANT: Disable character escaping to support mixed Markdown + HTML
 turndownService.escape = (text: string) => text;
 
