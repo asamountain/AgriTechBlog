@@ -1,4 +1,5 @@
 import { useEditor, EditorContent, Extension } from '@tiptap/react';
+import { EditorView } from '@tiptap/pm/view';
 import { InputRule } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
