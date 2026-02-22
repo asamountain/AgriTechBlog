@@ -57,6 +57,14 @@
       "destination": "/api/admin/upload-image?publicId=:publicId"
     },
     {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/:subpath*",
+      "destination": "/index.html"
+    },
+    {
       "source": "/",
       "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
       "destination": "/index.html"
