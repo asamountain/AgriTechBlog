@@ -18,6 +18,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import { ensureMarkdown, containsHtml } from '@/lib/html-to-markdown';
 import { InlineNatureSpinner } from '@/components/loading';
+import MermaidRenderer from '@/components/mermaid-renderer';
 
 interface SimpleMarkdownEditorProps {
   initialContent?: string;
@@ -619,6 +620,22 @@ export default function SimpleMarkdownEditor({
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeSlug]}
                   className="prose-headings:text-forest-green prose-a:text-blue-600 prose-strong:text-forest-green"
+                  components={{
+                    code: ({ node, inline, className, children, ...props }: any) => {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const isMermaid = match && match[1] === 'mermaid';
+                      
+                      if (!inline && isMermaid) {
+                        return <MermaidRenderer content={String(children).replace(/\n$/, '')} />;
+                      }
+                      
+                      return (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    }
+                  }}
                 >
                   {content || 'No content yet...'}
                 </ReactMarkdown>

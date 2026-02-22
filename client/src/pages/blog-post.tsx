@@ -32,6 +32,7 @@ import { useAnonymousUser } from "@/hooks/useAnonymousUser";
 import { applyHighlights } from "@/lib/highlight-utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import MermaidRenderer from "@/components/mermaid-renderer";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -206,6 +207,20 @@ export default function BlogPost() {
           <li {...props} data-paragraph-id={pid}>
             {children}
           </li>
+        );
+      },
+      code: ({ node, inline, className, children, ...props }: any) => {
+        const match = /language-(\w+)/.exec(className || '');
+        const isMermaid = match && match[1] === 'mermaid';
+        
+        if (!inline && isMermaid) {
+          return <MermaidRenderer content={String(children).replace(/\n$/, '')} />;
+        }
+        
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
         );
       },
     };

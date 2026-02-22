@@ -27,6 +27,7 @@ import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
 import { InlineNatureSpinner } from '@/components/loading';
+import MermaidRenderer from '@/components/mermaid-renderer';
 
 interface MarkdownEditorProps {
   initialContent?: string;
