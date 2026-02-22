@@ -57,14 +57,6 @@
       "destination": "/api/admin/upload-image?publicId=:publicId"
     },
     {
-      "source": "/admin",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/admin/:subpath*",
-      "destination": "/index.html"
-    },
-    {
       "source": "/",
       "has": [ { "type": "query", "key": "bypass", "value": "true" } ],
       "destination": "/index.html"
@@ -110,7 +102,7 @@
       "destination": "/api/meta?type=blog&slug=:slug"
     },
     {
-      "source": "/((?!api|admin|sitemap.*\\.xml|rss\\.xml|robots\\.txt|create-post|edit-post|auth|tags|user|og-test).*)",
+      "source": "/((?!api|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
       "destination": "/index.html"
     }
   ]
