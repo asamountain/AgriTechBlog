@@ -13,36 +13,36 @@ interface JourneyNode {
 const milestones: JourneyNode[] = [
   {
     year: "2012-2015",
-    title: "The Industrial Foundation",
-    description: "Built the mental models for system architecture through traditional manufacturing and engineering.",
+    title: "Lorem Ipsum 1",
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     icon: <Database className="w-6 h-6" />,
     color: "bg-blue-600"
   },
   {
     year: "2016-2020",
-    title: "Digital Awakening",
-    description: "Deep immersion into full-stack development and complex communication protocols.",
+    title: "Lorem Ipsum 2",
+    description: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     icon: <Zap className="w-6 h-6" />,
     color: "bg-yellow-500"
   },
   {
     year: "2021-2023",
-    title: "IoT & Field Systems",
-    description: "Deploying and ensuring the reliability of sensors and nodes in harsh agricultural environments.",
+    title: "Lorem Ipsum 3",
+    description: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
     icon: <Cpu className="w-6 h-6" />,
     color: "bg-green-600"
   },
   {
     year: "2024",
-    title: "Soil to Silicon",
-    description: "Orchestrating the multi-layered flow of data from earth to cloud at iocrops.",
+    title: "Lorem Ipsum 4",
+    description: "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
     icon: <Sprout className="w-6 h-6" />,
     color: "bg-forest-green"
   },
   {
     year: "Future",
-    title: "Sustainable Abundance",
-    description: "Leading the next generation of Tech Farms where nature and code harmonize.",
+    title: "Lorem Ipsum 5",
+    description: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
     icon: <Globe className="w-6 h-6" />,
     color: "bg-indigo-600"
   }
