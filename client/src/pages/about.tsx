@@ -1,6 +1,7 @@
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
+import VisualJourney from "@/components/visual-journey";
 import { Cpu, Sprout, Zap, Globe, MessageSquare, Database } from "lucide-react";
 
 export default function About() {
@@ -17,10 +18,10 @@ export default function About() {
       />
       <Navigation />
       
-      <main className="pt-32 pb-20 min-h-[70vh] flex items-center">
-        <div className="max-w-4xl mx-auto px-6 w-full text-center">
+      <main className="pt-32 pb-20 min-h-[70vh]">
+        <div className="max-w-7xl mx-auto px-6 w-full">
           {/* Hero Section */}
-          <section className="mb-12">
+          <section className="mb-12 text-center">
             <h1 className="text-5xl md:text-6xl font-serif font-bold text-gray-900 mb-6 italic">
               Soil to Silicon
             </h1>
@@ -28,18 +29,22 @@ export default function About() {
               <Sprout className="w-4 h-4 animate-bounce" />
               <span>Vision Under Cultivation</span>
             </div>
-            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              The bridge between nature and technology is being carefully engineered.
+            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed mb-12">
+              The bridge between nature and technology is being carefully engineered. 
+              Explore the journey that led to this intersection.
             </p>
           </section>
 
-          <div className="py-20 border-y border-gray-100 mb-12">
-            <h2 className="text-3xl font-serif text-gray-400 italic">Coming Soon</h2>
+          {/* Linear Journey Diagram */}
+          <VisualJourney />
+
+          <div className="py-20 border-y border-gray-100 mb-12 text-center">
+            <h2 className="text-3xl font-serif text-gray-400 italic">Story In Progress / 준비 중</h2>
             <p className="mt-4 text-gray-500">I am currently refining the communication protocols for this page.</p>
           </div>
 
-          {/* Professional Context for HR - Keeping this as it's useful for recruiters even during construction */}
-          <section className="bg-gray-900 text-white p-10 rounded-3xl overflow-hidden relative text-left">
+          {/* Professional Context for HR */}
+          <section className="bg-gray-900 text-white p-10 rounded-3xl overflow-hidden relative text-left max-w-4xl mx-auto">
             <div className="relative z-10">
               <h2 className="text-3xl font-serif font-bold mb-6">Let's Build the Future</h2>
               <p className="text-gray-300 text-lg mb-8 max-w-xl">
