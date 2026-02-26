@@ -14,6 +14,7 @@ import { GlobalPageSkeleton } from "@/components/loading";
 // Lazy load pages for better code splitting
 const Home = lazy(() => import("@/pages/home"));
 const Posts = lazy(() => import("@/pages/posts"));
+const About = lazy(() => import("@/pages/about"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
 const AdminDashboard = lazy(() => import("@/pages/admin-working"));
 const AdminSEODashboard = lazy(() => import("@/pages/admin-seo-dashboard"));
@@ -35,6 +36,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/posts" component={Posts} />
+        <Route path="/about" component={About} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/seo" component={AdminSEODashboard} />
         <Route path="/create-post" component={CreatePost} />
