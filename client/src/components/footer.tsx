@@ -172,7 +172,7 @@ export default function Footer({ variant = "simple" }: FooterProps) {
             
             <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl">
               Pioneering the future of agriculture through innovative technology solutions, 
-              sustainable farming practices all world.
+              sustainable farming practices to generate the greatest abundance for every lives.
             </p>
           </div>
 
@@ -212,14 +212,6 @@ export default function Footer({ variant = "simple" }: FooterProps) {
               <p className="text-gray-400">
                 &copy; 2025 San. All rights reserved.
               </p>
-            </div>
-            <div className="flex space-x-6 text-sm text-gray-400">
-              <a href="/privacy" className="hover:text-forest-green transition-colors duration-300">
-                Privacy Policy
-              </a>
-              <a href="/terms" className="hover:text-forest-green transition-colors duration-300">
-                Terms of Service
-              </a>
             </div>
           </div>
         </div>

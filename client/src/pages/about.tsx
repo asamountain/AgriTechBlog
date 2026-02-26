@@ -34,7 +34,7 @@ export default function About() {
           </section>
 
           <div className="py-20 border-y border-gray-100 mb-12">
-            <h2 className="text-3xl font-serif text-gray-400 italic">Coming Soon / 준비 중</h2>
+            <h2 className="text-3xl font-serif text-gray-400 italic">Coming Soon</h2>
             <p className="mt-4 text-gray-500">I am currently refining the communication protocols for this page.</p>
           </div>
 
@@ -52,9 +52,9 @@ export default function About() {
                     LinkedIn Profile
                   </button>
                 </a>
-                <a href="mailto:yoonseungjin@gmail.com">
+                <a href="https://discord.gg/3crTf7nqUk" target="_blank" rel="noopener noreferrer">
                   <button className="px-6 py-3 bg-transparent border border-white text-white font-bold rounded-lg hover:bg-white/10 transition-colors">
-                    Get in Touch
+                    Join Discord Community
                   </button>
                 </a>
               </div>
