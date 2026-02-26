@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { stripMarkdown } from "@/lib/utils";
 import { 
   Twitter, 
   Facebook, 
@@ -24,7 +25,8 @@ export default function SocialShare({ title, url, excerpt, className = "" }: Soc
 
   // Ensure absolute URL for sharing
   const absoluteUrl = url.startsWith('http') ? url : `${window.location.origin}${url.startsWith('/') ? url : `/${url}`}`;
-  const shareText = excerpt ? `${title} - ${excerpt}` : title;
+  const cleanExcerpt = excerpt ? stripMarkdown(excerpt) : "";
+  const shareText = cleanExcerpt ? `${title} - ${cleanExcerpt}` : title;
   const encodedTitle = encodeURIComponent(title);
   const encodedUrl = encodeURIComponent(absoluteUrl);
   const encodedText = encodeURIComponent(shareText);

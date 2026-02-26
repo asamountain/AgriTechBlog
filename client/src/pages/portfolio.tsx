@@ -4,8 +4,11 @@ import type { BlogPostWithDetails } from "@shared/schema";
 import { ProjectCardSkeleton } from "@/components/loading";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
+import { stripMarkdown } from "@/lib/utils";
 
 function ProjectCard({ project }: { project: BlogPostWithDetails }) {
+  const excerptText = stripMarkdown(project.excerpt || "");
+
   return (
     <div className="flex flex-col group h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="relative overflow-hidden aspect-[16/10]">
@@ -31,7 +34,7 @@ function ProjectCard({ project }: { project: BlogPostWithDetails }) {
         </h2>
         
         <p className="text-sm text-gray-600 leading-relaxed mb-6 line-clamp-3">
-          {project.excerpt}
+          {excerptText}
         </p>
 
         {project.tags && project.tags.length > 0 && (

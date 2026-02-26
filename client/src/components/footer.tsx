@@ -172,7 +172,7 @@ export default function Footer({ variant = "simple" }: FooterProps) {
             
             <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-2xl">
               Pioneering the future of agriculture through innovative technology solutions, 
-              sustainable farming practices, and smart agricultural systems recover all world.
+              sustainable farming practices all world.
             </p>
           </div>
 

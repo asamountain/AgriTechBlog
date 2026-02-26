@@ -277,7 +277,7 @@ export default function BlogPost() {
 
   // Generate enhanced OG image URL with post-specific data
   const ogImageUrl = post ? 
-    `${window.location.origin}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=San&excerpt=${encodeURIComponent(post.excerpt.substring(0, 100))}` :
+    `${window.location.origin}/api/og-image?title=${encodeURIComponent(post.title)}&category=${encodeURIComponent(post.tags?.[0] || 'Technology')}&author=San&excerpt=${encodeURIComponent(stripMarkdown(post.excerpt).substring(0, 100))}` :
     `${window.location.origin}/api/og-image?title=Blog Post`;
 
   // Use featured image if available, otherwise use generated OG image
@@ -289,7 +289,7 @@ export default function BlogPost() {
     <>
       <SEOHead
         title={`${post.title} - San's Agricultural Technology Blog`}
-        description={post.excerpt}
+        description={stripMarkdown(post.excerpt)}
         keywords={keywords}
         image={socialImage}
         url={currentUrl}
@@ -471,7 +471,7 @@ export default function BlogPost() {
               <SocialShare 
                   url={`/blog/${post.slug}`}
                   title={post.title}
-                  excerpt={post.excerpt}
+                  excerpt={stripMarkdown(post.excerpt)}
                />
             </div>
             {/* Related Posts */}

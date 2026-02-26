@@ -76,6 +76,15 @@ function generateMetaHtml(data: any, isBot: boolean): string {
   <title>${escapedTitle} | San's AgriTech Blog</title>
   <meta name="description" content="${escapedDesc}">
   
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LM04J3WC3L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LM04J3WC3L');
+  </script>
+
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="${escapedTitle}">
   <meta property="og:description" content="${escapedDesc}">
