@@ -1,0 +1,6 @@
+# Python dependencies for journal import script
+# Install with: pip install -r scripts/requirements-journal-import.txt
+
+notion-client>=2.0.0
+python-frontmatter>=1.0.0
+python-dotenv>=1.0.0
