@@ -28,6 +28,7 @@ import { NotionContentExtractor } from './services/notion-content-extractor';
 import { BlogAutomationPipeline } from './services/blog-automation-pipeline';
 import { config as notionConfig, validateConfig as validateNotionConfig, getConfigSummary } from './config/notion-claude.config';
 import { uploadToCloudinary, deleteFromCloudinary, isCloudinaryConfigured } from './config/cloudinary.config';
+import { MongoClient } from 'mongodb';
 
 // Function to initialize sample data if database is empty
 async function initializeSampleData(storage: any) {
@@ -1384,6 +1385,57 @@ ${publishedPosts.map(post => `  <url>
 
   app.get("/api/admin/cloudinary-status", (_req, res) => {
     res.json({ configured: isCloudinaryConfigured() });
+  });
+
+  // Timeline image management
+  const getTimelineCollection = async () => {
+    const uri = process.env.MONGODB_URI!;
+    const dbName = process.env.MONGODB_DATABASE || 'blog_database';
+    const client = new MongoClient(uri);
+    await client.connect();
+    return { client, collection: client.db(dbName).collection('timeline-images') };
+  };
+
+  app.get("/api/admin/timeline-images", async (_req, res) => {
+    const { client, collection } = await getTimelineCollection();
+    try {
+      const docs = await collection.find({}).toArray();
+      const map: Record<string, { images: string[] }> = {};
+      for (const doc of docs) {
+        const images: string[] = Array.isArray(doc.images)
+          ? doc.images
+          : doc.imageUrl ? [doc.imageUrl] : [];
+        map[doc.entryId] = { images };
+      }
+      res.json(map);
+    } finally {
+      await client.close();
+    }
+  });
+
+  app.post("/api/admin/timeline-images", async (req, res) => {
+    const { entryId, images } = req.body || {};
+    if (!entryId || !Array.isArray(images)) return res.status(400).json({ message: 'entryId and images[] required' });
+    const filtered = (images as string[]).filter(Boolean).slice(0, 3);
+    const { client, collection } = await getTimelineCollection();
+    try {
+      await collection.updateOne({ entryId }, { $set: { entryId, images: filtered, updatedAt: new Date() } }, { upsert: true });
+      res.json({ ok: true });
+    } finally {
+      await client.close();
+    }
+  });
+
+  app.delete("/api/admin/timeline-images", async (req, res) => {
+    const entryId = Array.isArray(req.query.entryId) ? req.query.entryId[0] : req.query.entryId;
+    if (!entryId) return res.status(400).json({ message: 'entryId query param required' });
+    const { client, collection } = await getTimelineCollection();
+    try {
+      await collection.deleteOne({ entryId });
+      res.json({ ok: true });
+    } finally {
+      await client.close();
+    }
   });
 
   app.post("/api/admin/blog-posts", async (req, res) => {

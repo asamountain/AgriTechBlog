@@ -53,6 +53,7 @@ import { NotionPagesPanel } from "@/components/notion-pages-panel";
 import CommentManagement from "@/components/comment-management";
 import { AITaggingPanel } from "@/components/ai-tagging-panel";
 import PortfolioManagement from "@/components/portfolio-management";
+import TimelineImageManager from "@/components/timeline-image-manager";
 import { AdaptiveLoader, ContentSkeleton } from "@/components/loading";
 
 interface Post {
@@ -115,6 +116,7 @@ export default function AdminDashboard() {
             {[
               { value: "posts", icon: FileText, label: "Posts" },
               { value: "portfolio", icon: Briefcase, label: "Portfolio" },
+              { value: "timeline", icon: Camera, label: "Timeline" },
               { value: "notion", icon: Sparkles, label: "Notion" },
               { value: "analytics", icon: BarChart3, label: "Stats" },
               { value: "comments", icon: MessageCircle, label: "Chat" },
@@ -139,6 +141,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="portfolio">
             <PortfolioManagement />
+          </TabsContent>
+
+          <TabsContent value="timeline">
+            <TimelineImageManager />
           </TabsContent>
 
           <TabsContent value="notion">
