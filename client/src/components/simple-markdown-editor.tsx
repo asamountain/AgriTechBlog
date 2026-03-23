@@ -336,8 +336,9 @@ export default function SimpleMarkdownEditor({
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
       <div className="container mx-auto px-6 py-8">
         <Card className="shadow-xl">
-          <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
+          <CardHeader className="border-b bg-white/50 backdrop-blur-sm space-y-3">
+            {/* Row 1: Title + Save Status */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
               <CardTitle className="text-2xl font-bold text-forest-green flex items-center gap-2">
                 {postId ? (
                   <>
@@ -351,61 +352,61 @@ export default function SimpleMarkdownEditor({
                   </>
                 )}
               </CardTitle>
-              <div className="flex items-center gap-4">
-                {/* Save Status Indicator */}
-                <div className="flex items-center gap-2 text-sm">
-                  {saveStatus === 'saving' && (
-                    <>
-                      <InlineNatureSpinner size="sm" />
-                      <span className="text-blue-600">Saving...</span>
-                    </>
-                  )}
-                  {saveStatus === 'saved' && (
-                    <>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-green-600">Saved</span>
-                    </>
-                  )}
-                  {saveStatus === 'error' && (
-                    <>
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <span className="text-red-600">Save failed</span>
-                    </>
-                  )}
-                  {saveStatus === 'idle' && lastSaved && (
-                    <>
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-500">
-                        Last saved: {lastSaved.toLocaleTimeString()}
-                      </span>
-                    </>
-                  )}
-                </div>
 
-                {/* Quick Publish Toggle */}
-                <div className="flex flex-col items-end border-l pl-4 border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="header-published"
-                      checked={published}
-                      onChange={(e) => {
-                        setPublished(e.target.checked);
-                        isDirty.current = true;
-                      }}
-                      className="rounded border-gray-300 text-forest-green focus:ring-forest-green h-4 w-4 cursor-pointer"
-                    />
-                    <label htmlFor="header-published" className="text-xs font-semibold text-gray-700 cursor-pointer">
-                      Publish immediately
-                    </label>
-                  </div>
-                  <p className="text-[10px] text-gray-500 font-medium">
-                    Status: <span className={published ? "text-forest-green" : "text-amber-600"}>
-                      {published ? 'Will be published' : 'Will be saved as draft'}
+              <div className="flex items-center gap-2 text-sm">
+                {saveStatus === 'saving' && (
+                  <>
+                    <InlineNatureSpinner size="sm" />
+                    <span className="text-blue-600">Saving...</span>
+                  </>
+                )}
+                {saveStatus === 'saved' && (
+                  <>
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Saved</span>
+                  </>
+                )}
+                {saveStatus === 'error' && (
+                  <>
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <span className="text-red-600">Save failed</span>
+                  </>
+                )}
+                {saveStatus === 'idle' && lastSaved && (
+                  <>
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-500">
+                      Last saved: {lastSaved.toLocaleTimeString()}
                     </span>
-                  </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Row 2: Publish Toggle + Action Buttons */}
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="header-published"
+                    checked={published}
+                    onChange={(e) => {
+                      setPublished(e.target.checked);
+                      isDirty.current = true;
+                    }}
+                    className="rounded border-gray-300 text-forest-green focus:ring-forest-green h-4 w-4 cursor-pointer"
+                  />
+                  <label htmlFor="header-published" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Publish immediately
+                  </label>
                 </div>
-                
+                <span className={`text-xs font-medium ${published ? "text-forest-green" : "text-amber-600"}`}>
+                  {published ? 'Will be published' : 'Draft'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <Button
                   onClick={() => setShowPreview(!showPreview)}
                   variant="outline"
@@ -414,7 +415,7 @@ export default function SimpleMarkdownEditor({
                   {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                   {showPreview ? 'Hide Preview' : 'Show Preview'}
                 </Button>
-                
+
                 <Button onClick={handleSave} className="bg-forest-green hover:bg-forest-green/90">
                   <Save className="h-4 w-4 mr-2" />
                   {published ? 'Publish' : 'Save Draft'}
