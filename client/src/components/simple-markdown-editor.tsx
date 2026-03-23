@@ -7,11 +7,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
 import NotionEditor from '@/components/notion-editor';
 import ImageUpload from '@/components/image-upload';
-import { 
+import {
   Bold, Italic, Heading1, Heading2, Heading3,
-  List, Quote, Image as ImageIcon, Eye, EyeOff, 
+  List, Quote, Image as ImageIcon, Eye, EyeOff,
   Save, Clock, CheckCircle, AlertCircle, Wand2,
-  Tag, FileText, Image, Settings
+  Tag, FileText, Image, Settings, Plus
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -334,7 +334,7 @@ export default function SimpleMarkdownEditor({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-3 sm:px-6 py-8">
         <Card className="shadow-xl">
           <CardHeader className="border-b bg-white/50 backdrop-blur-sm space-y-3">
             {/* Row 1: Title + Save Status */}
@@ -411,14 +411,15 @@ export default function SimpleMarkdownEditor({
                   onClick={() => setShowPreview(!showPreview)}
                   variant="outline"
                   size="sm"
+                  title={showPreview ? 'Hide Preview' : 'Show Preview'}
                 >
-                  {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                  {showPreview ? 'Hide Preview' : 'Show Preview'}
+                  {showPreview ? <EyeOff className="h-4 w-4 sm:mr-2" /> : <Eye className="h-4 w-4 sm:mr-2" />}
+                  <span className="hidden sm:inline">{showPreview ? 'Hide Preview' : 'Show Preview'}</span>
                 </Button>
 
-                <Button onClick={handleSave} className="bg-forest-green hover:bg-forest-green/90">
-                  <Save className="h-4 w-4 mr-2" />
-                  {published ? 'Publish' : 'Save Draft'}
+                <Button onClick={handleSave} className="bg-forest-green hover:bg-forest-green/90" title={published ? 'Publish' : 'Save Draft'}>
+                  <Save className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{published ? 'Publish' : 'Save Draft'}</span>
                 </Button>
               </div>
             </div>
@@ -596,8 +597,9 @@ export default function SimpleMarkdownEditor({
                       placeholder="Add a tag..."
                       onKeyPress={(e) => e.key === 'Enter' && addTag()}
                     />
-                    <Button onClick={addTag} variant="outline" size="sm">
-                      Add Tag
+                    <Button onClick={addTag} variant="outline" size="sm" title="Add Tag">
+                      <Plus className="h-4 w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Add</span>
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
