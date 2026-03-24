@@ -15,7 +15,6 @@ export default function Navigation() {
   const navItems = [
     { href: "/posts", label: "Posts" },
     { href: "/portfolio", label: "Portfolio" },
-    { href: "/about", label: "About" },
   ];
 
   useEffect(() => {

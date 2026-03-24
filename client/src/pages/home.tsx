@@ -47,13 +47,8 @@ export default function Home() {
           <h2 className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-6">The Story</h2>
           <h3 className="text-4xl md:text-5xl font-serif mb-8 text-gray-900 italic">"Soil to Silicon"</h3>
           <p className="text-xl text-gray-600 leading-relaxed font-light mb-10 max-w-2xl mx-auto">
-            Creating the abundance by spontaneously combining in between nature and machine. 
+            Creating the abundance by spontaneously combining in between nature and machine.
           </p>
-          <div className="flex justify-center">
-            <a href="/about" className="group flex items-center gap-2 text-forest-green font-medium hover:gap-4 transition-all">
-              Learn about the vision <span className="text-xl">→</span>
-            </a>
-          </div>
         </div>
       </section>
 
