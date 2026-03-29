@@ -18,6 +18,8 @@ import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import { ensureMarkdown, containsHtml } from '@/lib/html-to-markdown';
 import { InlineNatureSpinner } from '@/components/loading';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface SimpleMarkdownEditorProps {
   initialContent?: string;
@@ -81,6 +83,10 @@ export default function SimpleMarkdownEditor({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [htmlDetected, setHtmlDetected] = useState(false);
+  const [activePanel, setActivePanel] = useState<'config' | 'excerpt' | 'image' | 'tags' | null>(null);
+  const togglePanel = (panel: 'config' | 'excerpt' | 'image' | 'tags') => {
+    setActivePanel(prev => prev === panel ? null : panel);
+  };
 
   // Debug logging for field values
   useEffect(() => {
@@ -425,62 +431,167 @@ export default function SimpleMarkdownEditor({
             </div>
           </CardHeader>
 
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {!showPreview ? (
-              <div className="space-y-6">
+              <div className="space-y-4">
 
-                {/* Post Configuration */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-4">
-                  <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Post Configuration
-                  </label>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Content Type</label>
-                      <div className="flex bg-white border rounded-md p-1">
-                        <button
-                          onClick={() => setPostType('blog')}
-                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-all ${postType === 'blog' ? 'bg-forest-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                          Blog Post
-                        </button>
-                        <button
-                          onClick={() => setPostType('portfolio')}
-                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-all ${postType === 'portfolio' ? 'bg-forest-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                          Portfolio Project
-                        </button>
-                      </div>
-                    </div>
-
-                    {postType === 'portfolio' && (
-                      <>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client (Optional)</label>
-                          <Input 
-                            value={client} 
-                            onChange={(e) => { setClient(e.target.value); isDirty.current = true; }} 
-                            placeholder="e.g. Green Valley Farms"
-                            className="h-9 text-sm"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Project Impact (Optional)</label>
-                          <Input 
-                            value={impact} 
-                            onChange={(e) => { setImpact(e.target.value); isDirty.current = true; }} 
-                            placeholder="e.g. 20% Yield Increase"
-                            className="h-9 text-sm"
-                          />
-                        </div>
-                      </>
-                    )}
+                {/* Compact Toolbar */}
+                <TooltipProvider delayDuration={300}>
+                  <div className="flex items-center gap-1 p-1.5 bg-gray-50 border border-gray-200 rounded-lg">
+                    {[
+                      { key: 'config' as const, icon: Settings, label: 'Post Config' },
+                      { key: 'excerpt' as const, icon: FileText, label: 'Excerpt' },
+                      { key: 'image' as const, icon: ImageIcon, label: 'Featured Image', hasIndicator: !!featuredImage },
+                      { key: 'tags' as const, icon: Tag, label: `Tags`, count: tags.length },
+                    ].map(({ key, icon: Icon, label, hasIndicator, count }) => (
+                      <Tooltip key={key}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={activePanel === key ? 'default' : 'ghost'}
+                            size="icon"
+                            className={cn(
+                              'h-9 w-9 shrink-0 relative',
+                              activePanel === key
+                                ? 'bg-forest-green text-white hover:bg-forest-green/90'
+                                : 'text-gray-500 hover:text-gray-700'
+                            )}
+                            onClick={() => togglePanel(key)}
+                            aria-label={label}
+                            aria-expanded={activePanel === key}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {hasIndicator && (
+                              <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-forest-green rounded-full border-2 border-white" />
+                            )}
+                            {count !== undefined && count > 0 && (
+                              <span className="absolute -top-1 -right-1 h-4 w-4 bg-forest-green rounded-full text-[9px] text-white flex items-center justify-center border-2 border-white">
+                                {count}
+                              </span>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <p>{label}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
                   </div>
-                </div>
+                </TooltipProvider>
 
-                {/* Title Input */}
+                {/* Expandable Panels */}
+                {activePanel === 'config' && (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Content Type</label>
+                        <div className="flex bg-white border rounded-md p-1">
+                          <button
+                            onClick={() => setPostType('blog')}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded transition-all ${postType === 'blog' ? 'bg-forest-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          >
+                            Blog Post
+                          </button>
+                          <button
+                            onClick={() => setPostType('portfolio')}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded transition-all ${postType === 'portfolio' ? 'bg-forest-green text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          >
+                            Portfolio Project
+                          </button>
+                        </div>
+                      </div>
+                      {postType === 'portfolio' && (
+                        <>
+                          <div className="space-y-2">
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client (Optional)</label>
+                            <Input
+                              value={client}
+                              onChange={(e) => { setClient(e.target.value); isDirty.current = true; }}
+                              placeholder="e.g. Green Valley Farms"
+                              className="h-9 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Project Impact (Optional)</label>
+                            <Input
+                              value={impact}
+                              onChange={(e) => { setImpact(e.target.value); isDirty.current = true; }}
+                              placeholder="e.g. 20% Yield Increase"
+                              className="h-9 text-sm"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activePanel === 'excerpt' && (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                    <textarea
+                      value={excerpt}
+                      onChange={(e) => {
+                        setExcerpt(e.target.value);
+                        isDirty.current = true;
+                      }}
+                      placeholder="Brief description of your post..."
+                      className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Appears in blog previews and social shares. Length: {excerpt.length}
+                    </p>
+                  </div>
+                )}
+
+                {activePanel === 'image' && (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                    <ImageUpload
+                      value={featuredImage}
+                      onChange={(url) => {
+                        setFeaturedImage(url);
+                        isDirty.current = true;
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      1200x630px recommended for social sharing
+                    </p>
+                  </div>
+                )}
+
+                {activePanel === 'tags' && (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-white space-y-2">
+                    <div className="flex gap-2 mb-2 flex-wrap">
+                      {tags.map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="bg-forest-green/10 text-forest-green border-forest-green/20"
+                        >
+                          {tag}
+                          <button
+                            onClick={() => removeTag(tag)}
+                            className="ml-2 text-forest-green/60 hover:text-forest-green"
+                          >
+                            x
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        placeholder="Add a tag..."
+                        onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                      />
+                      <Button onClick={addTag} variant="outline" size="sm" title="Add Tag">
+                        <Plus className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Add</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Title Input — always visible */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-white">
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Heading1 className="h-4 w-4" />
@@ -501,7 +612,7 @@ export default function SimpleMarkdownEditor({
                   </p>
                 </div>
 
-                {/* Content Editor - Notion-like WYSIWYG */}
+                {/* Content Editor — always visible */}
                 <div className="border border-gray-200 rounded-lg p-4 bg-white">
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
@@ -526,84 +637,6 @@ export default function SimpleMarkdownEditor({
                   )}
                   <p className="text-xs text-gray-500 mt-2">
                     Current length: {content.length} characters
-                  </p>
-                </div>
-
-                {/* Excerpt Input */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Excerpt
-                  </label>
-                  <textarea
-                    value={excerpt}
-                    onChange={(e) => {
-                      setExcerpt(e.target.value);
-                      isDirty.current = true;
-                    }}
-                    placeholder="Brief description of your post..."
-                    className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-forest-green focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This will appear in blog previews and social media shares. Current length: {excerpt.length} characters
-                  </p>
-                </div>
-
-                {/* Featured Image */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Image className="h-4 w-4" />
-                    Featured Image (Thumbnail)
-                  </label>
-                  <ImageUpload
-                    value={featuredImage}
-                    onChange={(url) => {
-                      setFeaturedImage(url);
-                      isDirty.current = true;
-                    }}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This image will appear in blog listings and social media shares (1200×630px recommended)
-                  </p>
-                </div>
-
-                {/* Tags */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
-                    Tags
-                  </label>
-                  <div className="flex gap-2 mb-2 flex-wrap">
-                    {tags.map((tag, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="bg-forest-green/10 text-forest-green border-forest-green/20"
-                      >
-                        {tag}
-                        <button
-                          onClick={() => removeTag(tag)}
-                          className="ml-2 text-forest-green/60 hover:text-forest-green"
-                        >
-                          ×
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      placeholder="Add a tag..."
-                      onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                    />
-                    <Button onClick={addTag} variant="outline" size="sm" title="Add Tag">
-                      <Plus className="h-4 w-4 sm:mr-1" />
-                      <span className="hidden sm:inline">Add</span>
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Tags help readers find your content and improve SEO. Current tags: {tags.length}
                   </p>
                 </div>
 
