@@ -11,7 +11,7 @@ import {
   Bold, Italic, Heading1, Heading2, Heading3,
   List, Quote, Image as ImageIcon, Eye, EyeOff,
   Save, Clock, CheckCircle, AlertCircle, Wand2,
-  Tag, FileText, Image, Settings, Plus
+  Tag, FileText, Image, Settings, Plus, Globe, Send
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -342,102 +342,13 @@ export default function SimpleMarkdownEditor({
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
       <div className="container mx-auto px-3 sm:px-6 py-8">
         <Card className="shadow-xl">
-          <CardHeader className="border-b bg-white/50 backdrop-blur-sm space-y-3">
-            {/* Row 1: Title + Save Status */}
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <CardTitle className="text-2xl font-bold text-forest-green flex items-center gap-2">
-                {postId ? (
-                  <>
-                    <Settings className="h-6 w-6" />
-                    Edit Post #{postId}
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-6 w-6" />
-                    Create New Post
-                  </>
-                )}
-              </CardTitle>
+          <CardContent className="p-2 sm:p-4">
+            <div className="space-y-3">
 
-              <div className="flex items-center gap-2 text-sm">
-                {saveStatus === 'saving' && (
-                  <>
-                    <InlineNatureSpinner size="sm" />
-                    <span className="text-blue-600">Saving...</span>
-                  </>
-                )}
-                {saveStatus === 'saved' && (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">Saved</span>
-                  </>
-                )}
-                {saveStatus === 'error' && (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <span className="text-red-600">Save failed</span>
-                  </>
-                )}
-                {saveStatus === 'idle' && lastSaved && (
-                  <>
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-gray-500">
-                      Last saved: {lastSaved.toLocaleTimeString()}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Row 2: Publish Toggle + Action Buttons */}
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="header-published"
-                    checked={published}
-                    onChange={(e) => {
-                      setPublished(e.target.checked);
-                      isDirty.current = true;
-                    }}
-                    className="rounded border-gray-300 text-forest-green focus:ring-forest-green h-4 w-4 cursor-pointer"
-                  />
-                  <label htmlFor="header-published" className="text-sm font-medium text-gray-700 cursor-pointer">
-                    Publish immediately
-                  </label>
-                </div>
-                <span className={`text-xs font-medium ${published ? "text-forest-green" : "text-amber-600"}`}>
-                  {published ? 'Will be published' : 'Draft'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setShowPreview(!showPreview)}
-                  variant="outline"
-                  size="sm"
-                  title={showPreview ? 'Hide Preview' : 'Show Preview'}
-                >
-                  {showPreview ? <EyeOff className="h-4 w-4 sm:mr-2" /> : <Eye className="h-4 w-4 sm:mr-2" />}
-                  <span className="hidden sm:inline">{showPreview ? 'Hide Preview' : 'Show Preview'}</span>
-                </Button>
-
-                <Button onClick={handleSave} className="bg-forest-green hover:bg-forest-green/90" title={published ? 'Publish' : 'Save Draft'}>
-                  <Save className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{published ? 'Publish' : 'Save Draft'}</span>
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-4 sm:p-6">
-            {!showPreview ? (
-              <div className="space-y-4">
-
-                {/* Compact Toolbar */}
-                <TooltipProvider delayDuration={300}>
+              {/* Unified Toolbar — always visible */}
+              <TooltipProvider delayDuration={300}>
                   <div className="flex items-center gap-1 p-1.5 bg-gray-50 border border-gray-200 rounded-lg">
+                    {/* Section toggles */}
                     {[
                       { key: 'config' as const, icon: Settings, label: 'Post Config' },
                       { key: 'excerpt' as const, icon: FileText, label: 'Excerpt' },
@@ -475,9 +386,83 @@ export default function SimpleMarkdownEditor({
                         </TooltipContent>
                       </Tooltip>
                     ))}
+
+                    {/* Divider */}
+                    <div className="w-px h-6 bg-gray-300 mx-0.5" />
+
+                    {/* Publish toggle */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            'h-9 w-9 shrink-0',
+                            published ? 'text-forest-green' : 'text-gray-400'
+                          )}
+                          onClick={() => {
+                            setPublished(!published);
+                            isDirty.current = true;
+                          }}
+                          aria-label={published ? 'Set as Draft' : 'Publish immediately'}
+                        >
+                          <Globe className={cn('h-4 w-4', published && 'fill-forest-green/20')} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{published ? 'Will publish' : 'Draft — tap to publish'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Preview toggle */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            'h-9 w-9 shrink-0',
+                            showPreview ? 'text-forest-green' : 'text-gray-500 hover:text-gray-700'
+                          )}
+                          onClick={() => setShowPreview(!showPreview)}
+                          aria-label={showPreview ? 'Hide Preview' : 'Show Preview'}
+                        >
+                          {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{showPreview ? 'Hide Preview' : 'Preview'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Save status indicator */}
+                    <div className="flex items-center ml-auto">
+                      {saveStatus === 'saving' && <InlineNatureSpinner size="sm" />}
+                      {saveStatus === 'saved' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                      {saveStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                    </div>
+
+                    {/* Save / Publish button */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          className="h-9 w-9 shrink-0 bg-forest-green hover:bg-forest-green/90 text-white"
+                          onClick={handleSave}
+                          aria-label={published ? 'Publish' : 'Save Draft'}
+                        >
+                          {published ? <Send className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{published ? 'Publish' : 'Save Draft'}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </TooltipProvider>
 
+              {!showPreview ? (
+                <>
                 {/* Expandable Panels */}
                 {activePanel === 'config' && (
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 space-y-4">
@@ -591,87 +576,67 @@ export default function SimpleMarkdownEditor({
                   </div>
                 )}
 
-                {/* Title Input — always visible */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Heading1 className="h-4 w-4" />
-                    Title *
-                  </label>
+                {/* Title Input — clean, no box */}
+                <div>
                   <Input
                     value={title}
                     onChange={(e) => {
                       setTitle(e.target.value);
                       isDirty.current = true;
                     }}
-                    placeholder="Enter your post title..."
-                    className="text-lg font-semibold"
+                    placeholder="Post title..."
+                    className="text-xl sm:text-2xl font-bold border-0 border-b border-gray-200 rounded-none px-1 py-2 focus-visible:ring-0 focus-visible:border-forest-green placeholder:text-gray-300"
                     onKeyDown={handleKeyDown}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Current length: {title.length} characters
-                  </p>
                 </div>
 
-                {/* Content Editor — always visible */}
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Content * (Type "/" for formatting options)
-                  </label>
-                  <div className="mb-2 flex gap-2 flex-wrap text-xs text-gray-600">
-                    <span>• Type <code className="px-1 bg-gray-100 rounded">#</code> for heading</span>
-                    <span>• Type <code className="px-1 bg-gray-100 rounded">**</code> for bold</span>
-                    <span>• Type <code className="px-1 bg-gray-100 rounded">*</code> for italic</span>
-                    <span>• Type <code className="px-1 bg-gray-100 rounded">-</code> for list</span>
-                    <span>• Type <code className="px-1 bg-gray-100 rounded">- [ ]</code> for task</span>
-                  </div>
+                {/* Content Editor — clean, no box */}
+                <div>
                   <NotionEditor
                     content={content}
                     onChange={handleContentChange}
-                    placeholder="Start typing your content... Use # for headings, **bold**, *italic*, - for lists..."
+                    placeholder="Start writing..."
                   />
                   {htmlDetected && (
-                    <p className="text-sm text-blue-600 mt-2">
-                      HTML content detected and converted to Markdown
+                    <p className="text-xs text-blue-600 mt-1">
+                      HTML converted to Markdown
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 mt-2">
-                    Current length: {content.length} characters
-                  </p>
                 </div>
 
-              </div>
-            ) : (
-              <div className="prose prose-lg max-w-none">
-                <h1>{title || 'Untitled Post'}</h1>
-                {excerpt && <p className="text-gray-600 italic">{excerpt}</p>}
-                {featuredImage && (
-                  <div className="my-4">
-                    <img
-                      src={featuredImage}
-                      alt="Featured image"
-                      className="w-full max-w-2xl h-auto rounded-lg shadow-md"
-                    />
-                  </div>
-                )}
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeSlug]}
-                  className="prose-headings:text-forest-green prose-a:text-blue-600 prose-strong:text-forest-green"
-                >
-                  {content || 'No content yet...'}
-                </ReactMarkdown>
-                {tags.length > 0 && (
-                  <div className="flex gap-2 mt-6">
-                    {tags.map((tag, index) => (
-                      <Badge key={index} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                </>
+              ) : (
+                <div className="prose prose-lg max-w-none">
+                  <h1>{title || 'Untitled Post'}</h1>
+                  {excerpt && <p className="text-gray-600 italic">{excerpt}</p>}
+                  {featuredImage && (
+                    <div className="my-4">
+                      <img
+                        src={featuredImage}
+                        alt="Featured image"
+                        className="w-full max-w-2xl h-auto rounded-lg shadow-md"
+                      />
+                    </div>
+                  )}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeSlug]}
+                    className="prose-headings:text-forest-green prose-a:text-blue-600 prose-strong:text-forest-green"
+                  >
+                    {content || 'No content yet...'}
+                  </ReactMarkdown>
+                  {tags.length > 0 && (
+                    <div className="flex gap-2 mt-6">
+                      {tags.map((tag, index) => (
+                        <Badge key={index} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
