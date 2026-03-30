@@ -761,11 +761,10 @@ ${publishedPosts.map(post => `  <url>
   });
 
   // Admin profile endpoints
-  app.get("/api/admin/profile", async (req, res) => {
+  app.get("/api/admin/profile", requireAuth, async (req: any, res) => {
     try {
-      // For demo purposes, use a default user ID until proper auth is implemented
-      const userId = "demo-user-001";
-      
+      const userId = (req.user as any)?.id;
+
       const author = await activeStorage.getAuthorByUserId(userId);
       res.json(author || {});
     } catch (error) {
@@ -774,10 +773,9 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.patch("/api/admin/profile", async (req, res) => {
+  app.patch("/api/admin/profile", requireAuth, async (req: any, res) => {
     try {
-      // For demo purposes, use a default user ID until proper auth is implemented
-      const userId = "demo-user-001";
+      const userId = (req.user as any)?.id;
 
       const profileData = req.body;
       
@@ -1277,7 +1275,7 @@ ${publishedPosts.map(post => `  <url>
   });
 
   // ADMIN PAGE: /admin - All posts including drafts for management
-  app.get("/api/admin/blog-posts", async (req, res) => {
+  app.get("/api/admin/blog-posts", requireAuth, async (req: any, res) => {
     try {
       const posts = await activeStorage.getBlogPosts({ 
         includeDrafts: true, // ADMIN PAGE: Include both published and draft posts
@@ -1292,7 +1290,7 @@ ${publishedPosts.map(post => `  <url>
   });
 
   // ADMIN EDIT: Get individual post for editing in admin panel
-  app.get("/api/admin/blog-posts/:id", async (req, res) => {
+  app.get("/api/admin/blog-posts/:id", requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       
@@ -1333,7 +1331,7 @@ ${publishedPosts.map(post => `  <url>
     },
   });
 
-  app.post("/api/admin/upload-image", imageUpload.single('image'), async (req: any, res) => {
+  app.post("/api/admin/upload-image", requireAuth, imageUpload.single('image'), async (req: any, res) => {
     try {
       if (!isCloudinaryConfigured()) {
         return res.status(503).json({
@@ -1366,7 +1364,7 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.delete("/api/admin/upload-image/:publicId", async (req, res) => {
+  app.delete("/api/admin/upload-image/:publicId", requireAuth, async (req: any, res) => {
     try {
       if (!isCloudinaryConfigured()) {
         return res.status(503).json({ message: "Cloudinary is not configured." });
@@ -1383,7 +1381,7 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.get("/api/admin/cloudinary-status", (_req, res) => {
+  app.get("/api/admin/cloudinary-status", requireAuth, (_req, res) => {
     res.json({ configured: isCloudinaryConfigured() });
   });
 
@@ -1396,7 +1394,7 @@ ${publishedPosts.map(post => `  <url>
     return { client, collection: client.db(dbName).collection('timeline-images') };
   };
 
-  app.get("/api/admin/timeline-images", async (_req, res) => {
+  app.get("/api/admin/timeline-images", requireAuth, async (_req, res) => {
     const { client, collection } = await getTimelineCollection();
     try {
       const docs = await collection.find({}).toArray();
@@ -1413,7 +1411,7 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.post("/api/admin/timeline-images", async (req, res) => {
+  app.post("/api/admin/timeline-images", requireAuth, async (req: any, res) => {
     const { entryId, images } = req.body || {};
     if (!entryId || !Array.isArray(images)) return res.status(400).json({ message: 'entryId and images[] required' });
     const filtered = (images as string[]).filter(Boolean).slice(0, 3);
@@ -1426,7 +1424,7 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.delete("/api/admin/timeline-images", async (req, res) => {
+  app.delete("/api/admin/timeline-images", requireAuth, async (req: any, res) => {
     const entryId = Array.isArray(req.query.entryId) ? req.query.entryId[0] : req.query.entryId;
     if (!entryId) return res.status(400).json({ message: 'entryId query param required' });
     const { client, collection } = await getTimelineCollection();
@@ -1438,15 +1436,16 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.post("/api/admin/blog-posts", async (req, res) => {
+  app.post("/api/admin/blog-posts", requireAuth, async (req: any, res) => {
     try {
       console.log("Creating/updating admin blog post with data:", req.body);
-      
+
       const postData = req.body;
-      
-      // Add default userId for demo purposes
+
+      // Use authenticated user's ID
+      const userId = (req.user as any)?.id;
       if (!postData.userId) {
-        postData.userId = "demo-user-001";
+        postData.userId = userId;
       }
       
       // If there's an existing post ID, update it; otherwise create new
@@ -1467,16 +1466,16 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.patch("/api/admin/blog-posts/:id", async (req, res) => {
+  app.patch("/api/admin/blog-posts/:id", requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const postId = isNaN(parseInt(id)) ? id : parseInt(id);
-      
+
       console.log("PATCH admin request for post:", postId, "with data:", req.body);
-      
+
       const updateData = req.body;
-      // Admin routes bypass user authorization - pass undefined for userId
-      const updatedPost = await activeStorage.updateBlogPost(postId, updateData, undefined);
+      const userId = (req.user as any)?.id;
+      const updatedPost = await activeStorage.updateBlogPost(postId, updateData, userId);
       console.log("Admin updated post result:", updatedPost);
       res.json(updatedPost);
     } catch (error) {
@@ -1485,7 +1484,7 @@ ${publishedPosts.map(post => `  <url>
     }
   });
 
-  app.delete("/api/admin/blog-posts/:id", async (req, res) => {
+  app.delete("/api/admin/blog-posts/:id", requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
       const postId = isNaN(parseInt(id)) ? id : parseInt(id);

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { MongoClient, ObjectId } from 'mongodb';
 import { stripHtmlTags, markdownToText, generateCleanExcerpt, mapPostDocument, deduplicatePosts } from '../_shared/post-helpers.js';
+import { requireAuth } from '../_shared/auth-helpers.js';
 
 const uri = process.env.MONGODB_URI;
 
@@ -14,11 +15,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
-  
+
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
+
+  // Require authentication for all admin endpoints
+  if (!requireAuth(req, res)) return;
   
   // IMMEDIATE TEST: Return simple response if test flag is present
   if (req.query.test === 'true') {
@@ -398,10 +402,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       
       const postData = req.body;
       
-      // Add default userId for demo purposes
-      if (!postData.userId) {
-        postData.userId = "demo-user-001";
-      }
+      // userId should come from the authenticated session or request body
       
       // Convert isPublished to draft status (invert)
       const mongoData = {

@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { MongoClient } from 'mongodb';
+import { requireAuth } from '../_shared/auth-helpers.js';
 
 const uri = process.env.MONGODB_URI!;
 const dbName = process.env.MONGODB_DATABASE || 'blog_database';
@@ -12,6 +13,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!uri) return res.status(500).json({ message: 'MONGODB_URI not set' });
+
+  // Require authentication for all admin endpoints
+  if (!requireAuth(req, res)) return;
 
   const client = new MongoClient(uri);
 
