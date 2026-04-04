@@ -21,18 +21,6 @@ export function usePersistentAuth() {
   useEffect(() => {
     const restoreAuthState = async () => {
       try {
-        // Check for demo auth first (for development)
-        const demoAuth = localStorage.getItem('auth-user');
-        const demoSession = localStorage.getItem('is-authenticated');
-        
-        if (demoAuth && demoSession === 'true') {
-          const userData = JSON.parse(demoAuth);
-          setUser(userData);
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return;
-        }
-
         // Check localStorage for stored auth
         const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
         const storedSession = localStorage.getItem(SESSION_STORAGE_KEY);
@@ -107,12 +95,7 @@ export function usePersistentAuth() {
   // Logout function
   const logout = async () => {
     try {
-      // Clear demo auth
-      localStorage.removeItem('auth-user');
-      localStorage.removeItem('is-authenticated');
-      
-      // Clear regular auth
-      await fetch('/api/auth/logout', {
+      await fetch('/api/admin/logout', {
         method: 'POST',
         credentials: 'include',
       });

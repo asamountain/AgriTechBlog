@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import multer from 'multer';
 import { uploadToCloudinary, isCloudinaryConfigured, deleteFromCloudinary } from '../../server/config/cloudinary.config.js';
+import { requireAuth } from '../_shared/auth-helpers.js';
 
 // Initialize multer with memory storage
 const storage = multer.memoryStorage();
@@ -47,6 +48,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).end();
     return;
   }
+
+  // Require authentication for all admin endpoints
+  if (!requireAuth(req, res)) return;
 
   try {
     if (!isCloudinaryConfigured()) {
