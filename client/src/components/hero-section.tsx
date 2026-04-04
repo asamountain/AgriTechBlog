@@ -2,8 +2,10 @@ import { ChevronDown, ExternalLink, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // import { trackEvent } from "@/lib/analytics"; // DISABLED
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function HeroSection() {
+  const { lang } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -68,7 +70,9 @@ export default function HeroSection() {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl mb-12 text-white/90 max-w-lg mx-auto leading-relaxed font-light">
-          Bridging Nature and Technology, One Data Point at a Time
+          {lang === "ko"
+            ? "자연과 기술을 잇다, 하나의 데이터 포인트씩"
+            : "Bridging Nature and Technology, One Data Point at a Time"}
         </p>
 
         {/* Photography Portfolio Link */}

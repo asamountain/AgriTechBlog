@@ -5,10 +5,12 @@ import { Link } from "wouter";
 import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { BlogListItemSkeleton } from "@/components/loading";
+import { useLanguage } from "@/contexts/language-context";
 
 interface BlogGridProps {}
 
 export default function BlogGrid({}: BlogGridProps) {
+  const { lang } = useLanguage();
   const [page, setPage] = useState(0);
   const limit = 9;
 
@@ -27,7 +29,7 @@ export default function BlogGrid({}: BlogGridProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-playfair font-bold text-gray-900 italic mb-4">
-              Latest Articles
+              {lang === "ko" ? "최신 글" : "Latest Articles"}
             </h2>
             <div className="w-16 h-1 bg-forest-green"></div>
           </div>
@@ -48,7 +50,7 @@ export default function BlogGrid({}: BlogGridProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-playfair font-bold text-gray-900 italic mb-4">
-              Latest Articles
+              {lang === "ko" ? "최신 글" : "Latest Articles"}
             </h2>
             <div className="w-16 h-1 bg-forest-green"></div>
           </div>
@@ -77,7 +79,7 @@ export default function BlogGrid({}: BlogGridProps) {
         {displayedPosts.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-2xl font-playfair font-bold text-gray-900 mb-4">
-              No posts found
+              {lang === "ko" ? "글이 없습니다" : "No posts found"}
             </h3>
             <p className="text-gray-600">
               Try selecting a different category or check back later for new content.

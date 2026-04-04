@@ -9,7 +9,19 @@
       "Bash(node scripts/check-firebase-env.js:*)",
       "Bash(xargs:*)",
       "Bash(del \"c:\\\\Users\\\\iocrops admin\\\\Coding\\\\AgriTechBlog\\\\scripts\\\\check-firebase-env.js\")",
-      "Bash(node scripts/check-env.js:*)"
+      "Bash(node scripts/check-env.js:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(npm run:*)",
+      "Bash(npx vite:*)",
+      "Bash(find /Users/test/Coding/AgriTechBlog -name \"*figma*\" -o -name \".figmarc\" 2>/dev/null | head -20)",
+      "mcp__claude_ai_Figma__get_design_context",
+      "mcp__claude_ai_Figma__whoami",
+      "mcp__claude_ai_Figma__get_metadata",
+      "Bash(npx localtunnel:*)",
+      "Bash(lsof -ti:5000 | xargs kill -9 2>/dev/null; echo \"done\")",
+      "WebFetch(domain:api.builder.io)",
+      "Bash(git checkout:*)"
     ]
   }
 }

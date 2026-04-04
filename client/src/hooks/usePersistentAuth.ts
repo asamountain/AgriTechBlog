@@ -112,7 +112,7 @@ export function usePersistentAuth() {
       localStorage.removeItem('is-authenticated');
       
       // Clear regular auth
-      await fetch('/api/admin/logout', {
+      await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });

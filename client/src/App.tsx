@@ -4,12 +4,17 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { LanguageProvider } from "@/contexts/language-context";
 import { useEffect, lazy, Suspense } from "react";
 // import { initGA } from "./lib/analytics"; // DISABLED
 // import { useAnalytics } from "./hooks/use-analytics"; // DISABLED
 import { debugTracker } from "./lib/debug-tracker";
 import "./lib/crash-detector"; // Initialize crash detector
 import { GlobalPageSkeleton } from "@/components/loading";
+import { ProgressBarProvider } from "@/hooks/useProgressBar";
+import { TopProgressBar } from "@/components/ui/top-progress-bar";
+import { useRouteProgress } from "@/hooks/useRouteProgress";
+import { useQueryProgress } from "@/hooks/useQueryProgress";
 
 // Lazy load pages for better code splitting
 const Home = lazy(() => import("@/pages/home"));
@@ -30,7 +35,9 @@ const DebugFlowVisualizer = lazy(() => import("@/components/debug-flow-visualize
 function Router() {
   // Analytics DISABLED to fix sitemap XML interference
   // useAnalytics(); // DISABLED
-  
+  useRouteProgress();
+  useQueryProgress();
+
   return (
     <Suspense fallback={<GlobalPageSkeleton />}>
       <Switch>
@@ -92,8 +99,11 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ProgressBarProvider>
+      <LanguageProvider>
       <AuthProvider>
         <TooltipProvider>
+          <TopProgressBar />
           <Toaster />
           <Router />
           {import.meta.env.DEV && isAdminPage && (
@@ -105,6 +115,8 @@ function App() {
           )}
         </TooltipProvider>
       </AuthProvider>
+      </LanguageProvider>
+      </ProgressBarProvider>
     </QueryClientProvider>
   );
 }

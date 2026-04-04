@@ -4,8 +4,10 @@ import FeaturedStories from "@/components/featured-stories";
 import BlogGrid from "@/components/blog-grid";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function Home() {
+  const { lang } = useLanguage();
   const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const keywords = [
     'agricultural technology',
@@ -44,14 +46,18 @@ export default function Home() {
       {/* Vision Section */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-6">The Story</h2>
+          <h2 className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-6">
+            {lang === "ko" ? "이야기" : "The Story"}
+          </h2>
           <h3 className="text-4xl md:text-5xl font-serif mb-8 text-gray-900 italic">"Soil to Silicon"</h3>
           <p className="text-xl text-gray-600 leading-relaxed font-light mb-10 max-w-2xl mx-auto">
-            Creating the abundance by spontaneously combining in between nature and machine. 
+            {lang === "ko"
+              ? "자연과 기계 사이에서 자발적으로 결합하여 풍요를 만들어갑니다."
+              : "Creating the abundance by spontaneously combining in between nature and machine."}
           </p>
           <div className="flex justify-center">
             <a href="/about" className="group flex items-center gap-2 text-forest-green font-medium hover:gap-4 transition-all">
-              Learn about the vision <span className="text-xl">→</span>
+              {lang === "ko" ? "비전 보기" : "Learn about the vision"} <span className="text-xl">→</span>
             </a>
           </div>
         </div>

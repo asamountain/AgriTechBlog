@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SearchOverlay from "./search-overlay";
+import { useLanguage } from "@/contexts/language-context";
+
+const NAV_ITEMS = [
+  { href: "/posts", ko: "글", en: "Posts" },
+  { href: "/portfolio", ko: "포트폴리오", en: "Portfolio" },
+  { href: "/about", ko: "소개", en: "About" },
+];
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -11,26 +18,19 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-
-  const navItems = [
-    { href: "/posts", label: "Posts" },
-    { href: "/portfolio", label: "Portfolio" },
-    { href: "/about", label: "About" },
-  ];
+  const { lang, setLang } = useLanguage();
 
   useEffect(() => {
     const controlNavbar = () => {
       const currentScrollY = window.scrollY;
-      
-      // Show navbar when scrolling up or at top
+
       if (currentScrollY < lastScrollY || currentScrollY < 10) {
         setIsVisible(true);
-      } 
-      // Hide navbar when scrolling down and past 100px
+      }
       else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -40,6 +40,8 @@ export default function Navigation() {
       window.removeEventListener('scroll', controlNavbar);
     };
   }, [lastScrollY]);
+
+  const toggleLang = () => setLang(lang === "en" ? "ko" : "en");
 
   return (
     <>
@@ -58,20 +60,39 @@ export default function Navigation() {
             {/* Desktop Navigation */}
             <div className="hidden md:block">
               <div className="flex items-center space-x-8">
-                {navItems.map((item) => (
+                {NAV_ITEMS.map((item) => (
                   <Link key={item.href} href={item.href}>
                     <span className={`transition-colors cursor-pointer flex items-center gap-1.5 ${
-                      location === item.href 
-                        ? "text-forest-green font-medium" 
+                      location === item.href
+                        ? "text-forest-green font-medium"
                         : "text-gray-700 hover:text-forest-green"
                     }`}>
-                      {item.label}
+                      {item[lang]}
                       {item.href === '/portfolio' && (
                         <span className="w-1 h-1 bg-forest-green rounded-full"></span>
                       )}
                     </span>
                   </Link>
                 ))}
+
+                {/* Language Toggle */}
+                <button
+                  onClick={toggleLang}
+                  className="relative flex items-center w-[52px] h-7 rounded-full border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer select-none overflow-hidden"
+                  aria-label="Toggle language"
+                >
+                  <span
+                    className="absolute top-0.5 w-6 h-6 rounded-full bg-forest-green transition-transform duration-200 ease-out"
+                    style={{ left: 1, transform: lang === "ko" ? "translateX(23px)" : "translateX(0)" }}
+                  />
+                  <span className={`relative z-10 flex-1 text-center text-xs font-medium transition-colors duration-200 ${lang === "en" ? "text-white" : "text-gray-500"}`}>
+                    EN
+                  </span>
+                  <span className={`relative z-10 flex-1 text-center text-xs font-medium transition-colors duration-200 ${lang === "ko" ? "text-white" : "text-gray-500"}`}>
+                    KO
+                  </span>
+                </button>
+
                 <Button
                   onClick={() => setIsSearchOpen(true)}
                   className="bg-forest-green text-white hover:opacity-80"
@@ -83,7 +104,14 @@ export default function Navigation() {
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-2">
+              {/* Mobile Language Toggle */}
+              <button
+                onClick={toggleLang}
+                className="px-2 py-1 rounded border border-gray-300 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                {lang === "en" ? "KO" : "EN"}
+              </button>
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -92,17 +120,17 @@ export default function Navigation() {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[300px]">
                   <div className="flex flex-col space-y-4 mt-6">
-                    {navItems.map((item) => (
+                    {NAV_ITEMS.map((item) => (
                       <Link key={item.href} href={item.href}>
-                        <span 
+                        <span
                           className={`block py-2 text-lg transition-colors cursor-pointer ${
-                            location === item.href 
-                              ? "text-forest-green font-medium" 
+                            location === item.href
+                              ? "text-forest-green font-medium"
                               : "text-gray-700 hover:text-forest-green"
                           }`}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          {item.label}
+                          {item[lang]}
                         </span>
                       </Link>
                     ))}
@@ -114,7 +142,7 @@ export default function Navigation() {
                       className="bg-forest-green text-white hover:bg-forest-green justify-start"
                     >
                       <Search className="h-4 w-4 mr-2" />
-                      Search
+                      {lang === "ko" ? "검색" : "Search"}
                     </Button>
                   </div>
                 </SheetContent>
@@ -124,9 +152,9 @@ export default function Navigation() {
         </div>
       </nav>
 
-      <SearchOverlay 
-        isOpen={isSearchOpen} 
-        onClose={() => setIsSearchOpen(false)} 
+      <SearchOverlay
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
       />
     </>
   );

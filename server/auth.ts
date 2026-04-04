@@ -93,43 +93,7 @@ export function setupAuth(app: Express) {
     done(null, user);
   });
 
-  // Auth routes
-  app.get('/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
-
-  app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/admin' }),
-    (req, res) => {
-      res.redirect('/admin');
-    }
-  );
-
-  app.get('/auth/github',
-    passport.authenticate('github', { scope: ['user:email'] })
-  );
-
-  app.get('/auth/github/callback',
-    passport.authenticate('github', { failureRedirect: '/admin' }),
-    (req, res) => {
-      res.redirect('/admin');
-    }
-  );
-
-  app.get('/auth/logout', (req, res) => {
-    req.logout(() => {
-      res.redirect('/');
-    });
-  });
-
-  // Get current user
-  app.get('/api/auth/user', (req, res) => {
-    if (req.isAuthenticated()) {
-      res.json(req.user);
-    } else {
-      res.status(401).json({ message: 'Not authenticated' });
-    }
-  });
+  // Auth routes are registered in server/routes.ts to avoid duplicates
 }
 
 // Middleware to require authentication

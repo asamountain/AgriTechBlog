@@ -8,26 +8,31 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Check if user is authenticated after OAuth redirect
-        const response = await fetch('/api/admin/verify-session', {
+        const response = await fetch('/api/auth/user', {
           method: 'GET',
           credentials: 'include',
         });
 
         if (response.ok) {
-          const data = await response.json();
-          if (data.authenticated && data.user) {
-            // Save the authenticated user to localStorage
-            saveAuthState(data.user, Date.now().toString());
-            
-            // Redirect to admin dashboard
+          const userData = await response.json();
+          if (userData && userData.id) {
+            saveAuthState(userData, Date.now().toString());
+
+            // Migrate unassigned posts to this user
+            try {
+              await fetch('/api/admin/migrate-posts', {
+                method: 'POST',
+                credentials: 'include',
+              });
+            } catch {
+              // Migration is best-effort, don't block login
+            }
+
             window.location.href = '/admin';
           } else {
-            // Authentication failed
             window.location.href = '/admin';
           }
         } else {
-          // Authentication failed
           window.location.href = '/admin';
         }
       } catch (error) {

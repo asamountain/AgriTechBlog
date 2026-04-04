@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "@/contexts/language-context";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -451,9 +451,14 @@ const ENTRIES: Entry[] = [
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function CareerTimeline() {
   const { lang } = useLanguage();
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [imageMap, setImageMap] = useState<Record<string, string[]>>({});
+
+  const setRowRef = useCallback((id: string) => (el: HTMLDivElement | null) => {
+    if (el) rowRefs.current.set(id, el);
+    else rowRefs.current.delete(id);
+  }, []);
 
   useEffect(() => {
     fetch('/api/admin/timeline-images')
@@ -469,8 +474,43 @@ export default function CareerTimeline() {
       .catch(() => {});
   }, []);
 
+  // Scroll-driven reveal / collapse
+  useEffect(() => {
+    const els = Array.from(rowRefs.current.entries());
+    if (els.length === 0) return;
+
+    // Reveal: fires when top of entry crosses 60% viewport height
+    const revealObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const id = (e.target as HTMLElement).dataset.entryId;
+            if (id) setRevealedIds((prev) => { const next = new Set(prev); next.add(id); return next; });
+          }
+        });
+      },
+      { rootMargin: "0px 0px -40% 0px", threshold: 0 }
+    );
+
+    // Collapse: fires when entry goes fully below viewport (scroll back up)
+    const collapseObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          // When the element is NOT intersecting AND its top is below viewport → it scrolled out downward
+          if (!e.isIntersecting && e.boundingClientRect.top > 0) {
+            const id = (e.target as HTMLElement).dataset.entryId;
+            if (id) setRevealedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+          }
+        });
+      },
+      { rootMargin: "200% 0px -5px 0px", threshold: 0 }
+    );
+
+    els.forEach(([, el]) => { revealObs.observe(el); collapseObs.observe(el); });
+    return () => { revealObs.disconnect(); collapseObs.disconnect(); };
+  }, [imageMap]); // re-attach after images load (DOM may shift)
+
   const t = (entry: Entry) => entry[lang];
-  const toggle = (id: string) => setActiveId((prev) => (prev === id ? null : id));
 
   const THREAD_LABELS: Record<"farm" | "tech" | "well", { ko: string; en: string }> = {
     farm: { ko: "농업인", en: "Farmer" },
@@ -489,17 +529,14 @@ export default function CareerTimeline() {
 
         {ENTRIES.map((entry, i) => {
           const content = t(entry);
-          const isActive = activeId === entry.id;
+          const isActive = revealedIds.has(entry.id);
 
           return (
-            <div key={entry.id} style={{ marginBottom: 13 }}>
+            <div key={entry.id} style={{ marginBottom: 13 }} ref={setRowRef(entry.id)} data-entry-id={entry.id}>
               {/* Row */}
               <div
-                className="relative flex items-start cursor-pointer"
+                className="relative flex items-start"
                 style={{ minHeight: 55 }}
-                onMouseEnter={() => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); setActiveId(entry.id); }}
-                onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveId(null), 150); }}
-                onClick={() => toggle(entry.id)}
               >
                 {/* Date — left */}
                 <div className="text-right pr-7" style={{ width: "calc(50% - 4px)" }}>
@@ -556,10 +593,8 @@ export default function CareerTimeline() {
 
               {/* Detail panel */}
               <div
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ maxHeight: isActive ? 700 : 0, opacity: isActive ? 1 : 0 }}
-                onMouseEnter={() => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); }}
-                onMouseLeave={() => setActiveId(null)}
+                className="relative overflow-hidden transition-all duration-300 ease-in-out"
+                style={{ maxHeight: isActive ? 700 : 0, opacity: isActive ? 1 : 0, zIndex: 1 }}
               >
                 <div
                   className="mb-4 rounded-xl p-5 border"

@@ -12,8 +12,10 @@ import SEOHead from "@/components/seo-head";
 import { markdownToText } from "@/lib/html-to-markdown";
 import { AdaptiveLoader } from "@/components/loading";
 import { stripMarkdown } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function PostsPage() {
+  const { lang } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
@@ -61,12 +63,13 @@ export default function PostsPage() {
 
   // Group posts by month for better organization
   const groupedPosts = useMemo(() => {
+    const allLabel = lang === "ko" ? "전체 글" : "All Posts";
     if (!filteredPosts.length || selectedTag || searchTerm) {
-      return { "All Posts": filteredPosts };
+      return { [allLabel]: filteredPosts };
     }
 
     const grouped = filteredPosts.reduce((acc: any, post: any) => {
-      const month = new Date(post.createdAt).toLocaleDateString('en-US', {
+      const month = new Date(post.createdAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
         year: 'numeric',
         month: 'long'
       });
@@ -119,12 +122,16 @@ export default function PostsPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
           {/* Header */}
           <div className="mb-20">
-            <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">Knowledge Base</span>
+            <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">
+              {lang === "ko" ? "지식 저장소" : "Knowledge Base"}
+            </span>
             <h1 className="text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight">
-              All Blog <span className="italic">Posts</span>
+              {lang === "ko" ? (<>모든 블로그 <span className="italic">글</span></>) : (<>All Blog <span className="italic">Posts</span></>)}
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
-              Discover insights on agricultural technology, sustainable farming practices, and solutions.
+              {lang === "ko"
+                ? "농업 기술, 지속 가능한 농업, 그리고 솔루션에 대한 인사이트를 탐색하세요."
+                : "Discover insights on agricultural technology, sustainable farming practices, and solutions."}
             </p>
           </div>
 
@@ -135,7 +142,7 @@ export default function PostsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search posts..."
+                placeholder={lang === "ko" ? "글 검색..." : "Search posts..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 border-sage-300 focus:border-forest-green focus:ring-forest-green"
@@ -144,7 +151,7 @@ export default function PostsPage() {
 
             {/* Filter Tags */}
             <div className="flex flex-wrap justify-center gap-2">
-              <span className="text-sm font-medium text-gray-700 mr-2">Filter by tag:</span>
+              <span className="text-sm font-medium text-gray-700 mr-2">{lang === "ko" ? "태그 필터:" : "Filter by tag:"}</span>
               {allTags.map(tag => (
                 <Button
                   key={tag}
@@ -163,7 +170,7 @@ export default function PostsPage() {
               <div className="text-center">
                 <Button onClick={clearFilters} variant="ghost" size="sm">
                   <X className="h-4 w-4 mr-2" />
-                  Clear filters
+                  {lang === "ko" ? "필터 초기화" : "Clear filters"}
                 </Button>
               </div>
             )}
@@ -172,7 +179,7 @@ export default function PostsPage() {
           {/* Posts List */}
           {Object.entries(groupedPosts).map(([period, posts]) => (
             <div key={period} className="mb-12">
-              {period !== "All Posts" && (
+              {period !== (lang === "ko" ? "전체 글" : "All Posts") && (
                 <h2 className="text-2xl font-bold text-forest-green mb-6 font-playfair">
                   {period}
                 </h2>
@@ -189,7 +196,7 @@ export default function PostsPage() {
                           {stripMarkdown(post.title)}
                         </h3>
                         <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
-                          {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          {new Date(post.createdAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
@@ -206,9 +213,11 @@ export default function PostsPage() {
           {/* No Results */}
           {filteredPosts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg mb-4">No posts found matching your criteria.</p>
+              <p className="text-gray-600 text-lg mb-4">
+                {lang === "ko" ? "조건에 맞는 글이 없습니다." : "No posts found matching your criteria."}
+              </p>
               <Button onClick={clearFilters} variant="outline">
-                Clear filters to see all posts
+                {lang === "ko" ? "필터를 초기화하여 모든 글 보기" : "Clear filters to see all posts"}
               </Button>
             </div>
           )}

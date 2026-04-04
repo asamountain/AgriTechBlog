@@ -5,8 +5,9 @@ import { ProjectCardSkeleton } from "@/components/loading";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { stripMarkdown } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
-function ProjectCard({ project }: { project: BlogPostWithDetails }) {
+function ProjectCard({ project, lang }: { project: BlogPostWithDetails; lang: "ko" | "en" }) {
   const excerptText = stripMarkdown(project.excerpt || "");
 
   return (
@@ -50,7 +51,7 @@ function ProjectCard({ project }: { project: BlogPostWithDetails }) {
         <div className="mt-auto pt-6 border-t border-gray-50">
           <Link href={`/blog/${project.slug}`}>
             <span className="inline-flex items-center text-[10px] font-bold tracking-widest text-forest-green hover:opacity-70 transition-opacity cursor-pointer uppercase group">
-              View Case Study
+              {lang === "ko" ? "사례 보기" : "View Case Study"}
               <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
             </span>
           </Link>
@@ -61,6 +62,7 @@ function ProjectCard({ project }: { project: BlogPostWithDetails }) {
 }
 
 export default function PortfolioPage() {
+  const { lang } = useLanguage();
   const { data: projects, isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts", { postType: 'portfolio', includeDrafts: false }],
   });
@@ -73,12 +75,14 @@ export default function PortfolioPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
           <div className="mb-20">
-            <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">Selected Work</span>
+            <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">
+              {lang === "ko" ? "주요 작업" : "Selected Work"}
+            </span>
             <h1 className="text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight">
               AgriTech <span className="italic">Portfolio</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
-              Case studies and technical implementations.
+              {lang === "ko" ? "사례 연구 및 기술 구현." : "Case studies and technical implementations."}
             </p>
           </div>
 
@@ -92,11 +96,13 @@ export default function PortfolioPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
               {projects && projects.length > 0 ? (
                 projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
+                  <ProjectCard key={project.id} project={project} lang={lang} />
                 ))
               ) : (
                 <div className="col-span-full py-24 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                  <p className="text-gray-500 italic">No projects added yet. Check back soon!</p>
+                  <p className="text-gray-500 italic">
+                    {lang === "ko" ? "아직 프로젝트가 없습니다. 곧 다시 확인해 주세요!" : "No projects added yet. Check back soon!"}
+                  </p>
                 </div>
               )}
             </div>

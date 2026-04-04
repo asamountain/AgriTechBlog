@@ -3,6 +3,7 @@ import { formatDate, stripMarkdown } from "@/lib/utils";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { FeaturedStorySkeleton } from "@/components/loading";
+import { useLanguage } from "@/contexts/language-context";
 
 function formatDateEnglish(date: string | Date): string {
   const d = new Date(date);
@@ -17,7 +18,7 @@ function formatDateEnglish(date: string | Date): string {
   return `${monthName} ${day}, ${year}`;
 }
 
-function StoryCard({ story }: { story: BlogPostWithDetails }) {
+function StoryCard({ story, lang }: { story: BlogPostWithDetails; lang: "ko" | "en" }) {
   const excerptText = stripMarkdown(story.excerpt || "");
   const tagText = story.tags?.[0] || 'TECH';
   const secondTagText = story.tags?.[1] ? `, ${story.tags[1].toUpperCase()}` : '';
@@ -64,7 +65,7 @@ function StoryCard({ story }: { story: BlogPostWithDetails }) {
         <div className="mt-auto">
           <Link href={`/blog/${story.slug}`}>
             <span className="inline-flex items-center text-[10px] font-bold tracking-widest text-forest-green hover:opacity-70 transition-opacity cursor-pointer uppercase group">
-              READ MORE 
+              {lang === "ko" ? "더 보기" : "READ MORE"}
               <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
             </span>
           </Link>
@@ -75,6 +76,7 @@ function StoryCard({ story }: { story: BlogPostWithDetails }) {
 }
 
 export default function FeaturedStories() {
+  const { lang } = useLanguage();
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts/featured", { includeDrafts: false, postType: 'blog' }],
   });
@@ -118,7 +120,7 @@ export default function FeaturedStories() {
         {/* Grid Layout - 3 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
           {displayPosts.map((story) => (
-            <StoryCard key={story.id} story={story} />
+            <StoryCard key={story.id} story={story} lang={lang} />
           ))}
         </div>
       </div>
