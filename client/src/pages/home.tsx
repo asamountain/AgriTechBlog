@@ -55,11 +55,6 @@ export default function Home() {
               ? "자연과 기계 사이에서 자발적으로 결합하여 풍요를 만들어갑니다."
               : "Creating the abundance by spontaneously combining in between nature and machine."}
           </p>
-          <div className="flex justify-center">
-            <a href="/about" className="group flex items-center gap-2 text-forest-green font-medium hover:gap-4 transition-all">
-              {lang === "ko" ? "비전 보기" : "Learn about the vision"} <span className="text-xl">→</span>
-            </a>
-          </div>
         </div>
       </section>
 

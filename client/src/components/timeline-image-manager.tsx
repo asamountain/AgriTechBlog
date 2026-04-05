@@ -75,7 +75,7 @@ export default function TimelineImageManager() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-500">
-        Upload up to 3 photos per entry. They appear as a photo strip in the detail panel on the About page.
+        Upload up to 3 photos per entry. They appear as a photo strip in the detail panel.
       </p>
       {ENTRIES.map(entry => {
         const slots = imageMap[entry.id] || ['', '', ''];

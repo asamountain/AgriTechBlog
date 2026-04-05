@@ -40,7 +40,9 @@ import {
   Star,
   StarOff,
   ArrowUpDown,
-  Briefcase
+  Briefcase,
+  RefreshCw,
+  Clock
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
@@ -88,7 +90,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
       <Navigation />
       
-      <main className="container mx-auto px-6 py-24">
+      <main className="container mx-auto px-3 sm:px-6 py-24">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-forest-green mb-1">Admin</h1>
@@ -104,9 +106,9 @@ export default function AdminDashboard() {
               <span className="hidden xs:inline">Create</span>
               <span className="inline xs:hidden">New</span>
             </Button>
-            <Button variant="outline" onClick={handleLogout} className="flex-1 sm:flex-none text-xs sm:text-sm h-9 px-3">
-              <LogOut className="w-4 h-4 mr-1 sm:mr-2" />
-              Logout
+            <Button variant="outline" onClick={handleLogout} className="flex-1 sm:flex-none text-xs sm:text-sm h-9 px-3" title="Logout">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
@@ -506,8 +508,9 @@ function PostManagement() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Manage Posts</h2>
         <div className="flex gap-2">
-          <Button onClick={handleRefresh} variant="outline" size="sm">
-            🔄 Refresh Posts
+          <Button onClick={handleRefresh} variant="outline" size="sm" title="Refresh Posts">
+            <RefreshCw className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Refresh Posts</span>
           </Button>
         </div>
       </div>
@@ -517,48 +520,51 @@ function PostManagement() {
         <div className="flex gap-1">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 px-2 sm:px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
               statusFilter === 'all'
                 ? 'bg-forest-green text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="All Posts"
           >
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
               <FileText className="w-4 h-4" />
-              <span>All Posts</span>
-              <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+              <span className="hidden sm:inline">All Posts</span>
+              <Badge variant="secondary" className="ml-0.5 sm:ml-1 bg-white/20 text-white text-xs">
                 {posts?.length || 0}
               </Badge>
             </div>
           </button>
           <button
             onClick={() => setStatusFilter('published')}
-            className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 px-2 sm:px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
               statusFilter === 'published'
                 ? 'bg-green-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="Published"
           >
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
               <Globe className="w-4 h-4" />
-              <span>Published</span>
-              <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+              <span className="hidden sm:inline">Published</span>
+              <Badge variant="secondary" className="ml-0.5 sm:ml-1 bg-white/20 text-white text-xs">
                 {posts?.filter(p => p.isPublished).length || 0}
               </Badge>
             </div>
           </button>
           <button
             onClick={() => setStatusFilter('drafts')}
-            className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 px-2 sm:px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
               statusFilter === 'drafts'
                 ? 'bg-orange-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="Drafts"
           >
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
               <FileX className="w-4 h-4" />
-              <span>Drafts</span>
-              <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+              <span className="hidden sm:inline">Drafts</span>
+              <Badge variant="secondary" className="ml-0.5 sm:ml-1 bg-white/20 text-white text-xs">
                 {posts?.filter(p => !p.isPublished).length || 0}
               </Badge>
             </div>
@@ -567,45 +573,49 @@ function PostManagement() {
       </Card>
 
       {/* Sorting Controls */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700">Sort by:</label>
-          <div className="flex gap-2">
+      <Card className="p-3 sm:p-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700 shrink-0">Sort by:</label>
+          <div className="flex flex-wrap gap-1 sm:gap-2">
             <Button
               variant={sortBy === 'newest' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('newest')}
-              className={`text-xs ${sortBy === 'newest' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              className={`text-xs h-8 px-2 sm:px-3 ${sortBy === 'newest' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              title="Newest First"
             >
-              <ArrowUpDown className="w-3 h-3 mr-1" />
-              Newest First
+              <ArrowUpDown className="w-3 h-3 sm:mr-1" />
+              <span className="hidden sm:inline">Newest First</span>
             </Button>
             <Button
               variant={sortBy === 'oldest' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('oldest')}
-              className={`text-xs ${sortBy === 'oldest' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              className={`text-xs h-8 px-2 sm:px-3 ${sortBy === 'oldest' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              title="Oldest First"
             >
-              <ArrowUpDown className="w-3 h-3 mr-1" />
-              Oldest First
+              <ArrowUpDown className="w-3 h-3 sm:mr-1 rotate-180" />
+              <span className="hidden sm:inline">Oldest First</span>
             </Button>
             <Button
               variant={sortBy === 'title' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('title')}
-              className={`text-xs ${sortBy === 'title' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              className={`text-xs h-8 px-2 sm:px-3 ${sortBy === 'title' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              title="Title A-Z"
             >
-              <ArrowUpDown className="w-3 h-3 mr-1" />
-              Title A-Z
+              <FileText className="w-3 h-3 sm:mr-1" />
+              <span className="hidden sm:inline">Title A-Z</span>
             </Button>
-            <Button 
+            <Button
               variant={sortBy === 'readTime' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('readTime')}
-              className="text-xs"
+              className={`text-xs h-8 px-2 sm:px-3 ${sortBy === 'readTime' ? 'bg-forest-green hover:bg-forest-green/90 text-white' : ''}`}
+              title="Read Time"
             >
-              <ArrowUpDown className="w-3 h-3 mr-1" />
-              Read Time
+              <Clock className="w-3 h-3 sm:mr-1" />
+              <span className="hidden sm:inline">Read Time</span>
             </Button>
           </div>
         </div>
@@ -613,73 +623,81 @@ function PostManagement() {
 
       {/* Bulk Actions Bar */}
       {selectedPosts.size > 0 && (
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-xs sm:text-sm font-medium">
                 {selectedPosts.size} post{selectedPosts.size !== 1 ? 's' : ''} selected
               </span>
               <Button
                 variant="outline"
                 size="sm"
+                className="h-8 px-2 sm:px-3 text-xs"
                 onClick={() => {
                   setSelectedPosts(new Set());
                   setSelectAll(false);
                 }}
+                title="Clear Selection"
               >
-                Clear Selection
+                <X className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Clear</span>
               </Button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBulkPublish}
                 disabled={bulkPublishMutation.isPending}
-                className="text-green-600 hover:text-green-700"
+                className="text-green-600 hover:text-green-700 h-8 px-2 sm:px-3 text-xs"
+                title="Publish"
               >
-                <Globe className="w-4 h-4 mr-1" />
-                Publish
+                <Globe className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Publish</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBulkUnpublish}
                 disabled={bulkPublishMutation.isPending}
-                className="text-orange-600 hover:text-orange-700"
+                className="text-orange-600 hover:text-orange-700 h-8 px-2 sm:px-3 text-xs"
+                title="Unpublish"
               >
-                <FileX className="w-4 h-4 mr-1" />
-                Unpublish
+                <FileX className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Unpublish</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBulkFeature}
                 disabled={bulkFeatureMutation.isPending}
-                className="text-yellow-600 hover:text-yellow-700"
+                className="text-yellow-600 hover:text-yellow-700 h-8 px-2 sm:px-3 text-xs"
+                title="Feature"
               >
-                <Star className="w-4 h-4 mr-1" />
-                Feature
+                <Star className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Feature</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBulkUnfeature}
                 disabled={bulkFeatureMutation.isPending}
-                className="text-gray-600 hover:text-gray-700"
+                className="text-gray-600 hover:text-gray-700 h-8 px-2 sm:px-3 text-xs"
+                title="Unfeature"
               >
-                <StarOff className="w-4 h-4 mr-1" />
-                Unfeature
+                <StarOff className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Unfeature</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBulkDelete}
                 disabled={bulkDeleteMutation.isPending}
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 h-8 px-2 sm:px-3 text-xs"
+                title="Delete"
               >
-                <Trash2 className="w-4 h-4 mr-1" />
-                Delete
+                <Trash2 className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Delete</span>
               </Button>
             </div>
           </div>

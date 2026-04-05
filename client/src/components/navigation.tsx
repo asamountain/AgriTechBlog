@@ -20,6 +20,11 @@ export default function Navigation() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const { lang, setLang } = useLanguage();
 
+  const navItems = [
+    { href: "/posts", label: "Posts" },
+    { href: "/portfolio", label: "Portfolio" },
+  ];
+
   useEffect(() => {
     const controlNavbar = () => {
       const currentScrollY = window.scrollY;
