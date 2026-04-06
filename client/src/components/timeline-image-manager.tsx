@@ -8,6 +8,7 @@ const ENTRIES = [
   { id: 'workaway', title: 'Workaway — Sahainan (Thailand) · A Little Wild (Malaysia)' },
   { id: 'justbe', title: 'JustBe Temple (Hongdae) — Eco Community Manager' },
   { id: 'wellness-cert', title: 'Wellness Expert LV2 · Mindfulness Practical Instructor' },
+  { id: 'farming-exploration', title: 'Farming Exploration — Across Korea' },
   { id: 'yeongwol', title: 'Yeongwol Youth Village-Building Project' },
   { id: 'vipassana', title: 'Dhamma Korea Vipassana · Temple Kitchen' },
   { id: 'marketing', title: 'Performance Marketing · YouTube Channel' },

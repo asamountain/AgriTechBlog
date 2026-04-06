@@ -14,8 +14,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!uri) return res.status(500).json({ message: 'MONGODB_URI not set' });
 
-  // Require authentication for all admin endpoints
-  if (!requireAuth(req, res)) return;
+  // GET is public (used by about page), POST/DELETE require auth
+  if (req.method !== 'GET') {
+    if (!requireAuth(req, res)) return;
+  }
 
   const client = new MongoClient(uri);
 

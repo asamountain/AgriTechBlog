@@ -83,11 +83,11 @@ export default function Navigation() {
                 {/* Language Toggle */}
                 <button
                   onClick={toggleLang}
-                  className="relative flex items-center w-[52px] h-7 rounded-full border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer select-none overflow-hidden"
+                  className="relative flex items-center w-[52px] h-7 rounded-md border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer select-none overflow-hidden"
                   aria-label="Toggle language"
                 >
                   <span
-                    className="absolute top-0.5 w-6 h-6 rounded-full bg-forest-green transition-transform duration-200 ease-out"
+                    className="absolute top-0.5 w-6 h-6 rounded-sm bg-forest-green transition-transform duration-200 ease-out"
                     style={{ left: 1, transform: lang === "ko" ? "translateX(23px)" : "translateX(0)" }}
                   />
                   <span className={`relative z-10 flex-1 text-center text-xs font-medium transition-colors duration-200 ${lang === "en" ? "text-white" : "text-gray-500"}`}>
