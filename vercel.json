@@ -102,7 +102,11 @@
       "destination": "/api/meta?type=blog&slug=:slug"
     },
     {
-      "source": "/((?!api|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
+      "source": "/auth/callback",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!api|auth|sitemap.*\\.xml|rss\\.xml|robots\\.txt).*)",
       "destination": "/index.html"
     }
   ]

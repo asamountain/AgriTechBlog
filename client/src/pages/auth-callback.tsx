@@ -8,9 +8,26 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const provider = params.get('state'); // 'github' or 'google'
+
+        if (!code || !provider) {
+          console.error('Missing code or provider in callback');
+          window.location.href = '/admin';
+          return;
+        }
+
+        // Exchange the code for user data via our API
         const response = await fetch('/api/auth/user', {
-          method: 'GET',
+          method: 'POST',
           credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code,
+            provider,
+            redirectUri: `${window.location.origin}/auth/callback`,
+          }),
         });
 
         if (response.ok) {
@@ -33,6 +50,8 @@ export default function AuthCallback() {
             window.location.href = '/admin';
           }
         } else {
+          const err = await response.text();
+          console.error('Auth exchange failed:', err);
           window.location.href = '/admin';
         }
       } catch (error) {

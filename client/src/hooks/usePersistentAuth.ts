@@ -81,12 +81,18 @@ export function usePersistentAuth() {
     setIsAuthenticated(false);
   };
 
-  // Login function
+  // Login function — redirects directly to OAuth provider
   const login = async (provider: 'google' | 'github') => {
     try {
-      // Store login attempt for restoration after redirect
       localStorage.setItem('auth_login_attempt', provider);
-      window.location.href = `/auth/${provider}`;
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      if (provider === 'github') {
+        const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+        window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('user:email')}&state=github`;
+      } else {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid email profile')}&state=google`;
+      }
     } catch (error) {
       console.error('Login failed:', error);
     }
