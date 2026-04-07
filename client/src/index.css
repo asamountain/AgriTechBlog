@@ -390,6 +390,20 @@ h1, h2, h3, h4, h5, h6 {
   @apply text-forest-green hover:opacity-80 underline;
 }
 
+/* Highlighter pen cursor nudge — invites text selection for inline comments */
+.blog-content p,
+.blog-content li,
+.blog-content blockquote,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4 {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M15.5 4.5l4 4L8 20H4v-4L15.5 4.5z' fill='%232D5016' stroke='%231a3a0e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M13 7l4 4' stroke='%231a3a0e' stroke-width='1.2'/%3E%3Cpath d='M4 20h4' stroke='%231a3a0e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18.5 2.5l3 3' stroke='%23F59E0B' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") 2 26, text;
+}
+
+.blog-content a {
+  cursor: pointer;
+}
+
 /* Inline annotation highlights — forest-green tint */
 mark.inline-highlight {
   background-color: rgba(45, 80, 22, 0.12);

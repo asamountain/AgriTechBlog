@@ -6,11 +6,14 @@ import { useState } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { BlogListItemSkeleton } from "@/components/loading";
 import { useLanguage } from "@/contexts/language-context";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 interface BlogGridProps {}
 
 export default function BlogGrid({}: BlogGridProps) {
   const { lang } = useLanguage();
+  const headerReveal = useScrollReveal();
+  const listReveal = useScrollReveal();
   const [page, setPage] = useState(0);
   const limit = 9;
 
@@ -70,7 +73,10 @@ export default function BlogGrid({}: BlogGridProps) {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12">
+        <div
+          ref={headerReveal.ref}
+          className={`mb-12 transition-all duration-700 ${headerReveal.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+        >
           <h2 className="text-3xl font-playfair font-bold text-gray-900 italic mb-4">
             Latest Articles
           </h2>
@@ -87,7 +93,10 @@ export default function BlogGrid({}: BlogGridProps) {
           </div>
         ) : (
           <>
-            <div className="space-y-1">
+            <div
+              ref={listReveal.ref}
+              className={`space-y-1 transition-all duration-700 delay-150 ${listReveal.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+            >
               {displayedPosts.map((post, index) => (
                 <Link key={`${post.id}-${post.slug}-${index}`} href={`/blog/${post.slug}`}>
                   <article className="group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 rounded hover:bg-gray-50 transition-all duration-200">

@@ -1,17 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useState, useEffect, useRef } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { ProjectCardSkeleton } from "@/components/loading";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { stripMarkdown } from "@/lib/utils";
 import { useLanguage } from "@/contexts/language-context";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
-function ProjectCard({ project, lang }: { project: BlogPostWithDetails; lang: "ko" | "en" }) {
+function ProjectCard({ project, lang, index }: { project: BlogPostWithDetails; lang: "ko" | "en"; index: number }) {
+  const { ref, isVisible } = useScrollReveal();
   const excerptText = stripMarkdown(project.excerpt || "");
 
   return (
-    <div className="flex flex-col group h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+    <div
+      ref={ref}
+      className={`flex flex-col group h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+      style={{ transitionDelay: `${(index % 3) * 150}ms` }}
+    >
       <div className="relative overflow-hidden aspect-[16/10]">
         <img 
           src={project.featuredImage || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80'} 
@@ -63,6 +70,9 @@ function ProjectCard({ project, lang }: { project: BlogPostWithDetails; lang: "k
 
 export default function PortfolioPage() {
   const { lang } = useLanguage();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroVisible, setHeroVisible] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 100); return () => clearTimeout(t); }, []);
   const { data: projects, isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts", { postType: 'portfolio', includeDrafts: false }],
   });
@@ -74,14 +84,14 @@ export default function PortfolioPage() {
       <main className="pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
-          <div className="mb-20">
-            <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block">
+          <div ref={heroRef} className="mb-20">
+            <span className={`text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block transition-all duration-700 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               {lang === "ko" ? "주요 작업" : "Selected Work"}
             </span>
-            <h1 className="text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight">
+            <h1 className={`text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight transition-all duration-700 delay-150 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
               AgriTech <span className="italic">Portfolio</span>
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
+            <p className={`text-xl text-gray-600 leading-relaxed max-w-3xl transition-all duration-700 delay-300 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               {lang === "ko" ? "사례 연구 및 기술 구현." : "Case studies and technical implementations."}
             </p>
           </div>
@@ -95,8 +105,8 @@ export default function PortfolioPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
               {projects && projects.length > 0 ? (
-                projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} lang={lang} />
+                projects.map((project, i) => (
+                  <ProjectCard key={project.id} project={project} lang={lang} index={i} />
                 ))
               ) : (
                 <div className="col-span-full py-24 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">

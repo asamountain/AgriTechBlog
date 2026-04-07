@@ -32,6 +32,8 @@ import { useAnonymousUser } from "@/hooks/useAnonymousUser";
 import { applyHighlights } from "@/lib/highlight-utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/contexts/language-context";
+import { useTranslation, useTranslateText } from "@/hooks/useTranslation";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -50,6 +52,7 @@ export default function BlogPost() {
   const { userId } = useAnonymousUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { lang } = useLanguage();
 
   const {
     data: post,
@@ -211,6 +214,10 @@ export default function BlogPost() {
     };
   }, [post?.content]);
 
+  // Auto-translate content and title when language is Korean
+  const { content: translatedContent, isTranslating } = useTranslation(post?.content, slug, lang);
+  const translatedTitle = useTranslateText(post?.title, lang);
+
   // Memoize the entire ReactMarkdown output so unrelated re-renders don't destroy <mark> highlights
   const renderedContent = useMemo(() => (
     <ReactMarkdown
@@ -218,9 +225,9 @@ export default function BlogPost() {
       rehypePlugins={rehypePluginsMemo}
       components={markdownComponents}
     >
-      {ensureMarkdown(post?.content || '')}
+      {ensureMarkdown(translatedContent || '')}
     </ReactMarkdown>
-  ), [remarkPluginsMemo, rehypePluginsMemo, markdownComponents, post?.content]);
+  ), [remarkPluginsMemo, rehypePluginsMemo, markdownComponents, translatedContent]);
 
   // Apply yellow flash highlight on sidebar click via DOM manipulation
   // (separate from useMemo to avoid destroying <mark> elements)
@@ -320,7 +327,7 @@ export default function BlogPost() {
                 <header className="mb-8">
                   <div className="mb-4">
                     <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair leading-tight">
-                      {stripMarkdown(post.title)}
+                      {stripMarkdown(translatedTitle || post.title)}
                     </h1>
                   </div>
 
@@ -329,7 +336,7 @@ export default function BlogPost() {
 
                     {/* Date */}
                     <time dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}>
-                      {new Date(post.createdAt).toLocaleDateString('en-US', {
+                      {new Date(post.createdAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
@@ -338,7 +345,7 @@ export default function BlogPost() {
 
                     {/* Read Time */}
                     <span>•</span>
-                    <span>{post.readTime} min read</span>
+                    <span>{lang === "ko" ? `${post.readTime}분 읽기` : `${post.readTime} min read`}</span>
                   </div>
 
 
@@ -355,7 +362,7 @@ export default function BlogPost() {
                         </div>
                         <div className="flex-1">
                           <h3 className="text-lg font-semibold text-forest-green mb-2">
-                            Article Summary
+                            {lang === "ko" ? "요약" : "Article Summary"}
                           </h3>
                           <p className="text-gray-700 leading-relaxed">
                             {post.summary}
@@ -395,8 +402,19 @@ export default function BlogPost() {
                   />
                 )}
 
+            {/* Translation indicator */}
+            {isTranslating && (
+              <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 animate-pulse">
+                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                {lang === "ko" ? "번역 중..." : "Translating..."}
+              </div>
+            )}
+
             {/* Article Content */}
-            <div 
+            <div
               ref={contentRef}
               className="blog-content prose prose-lg max-w-none mb-8
                 prose-headings:text-forest-green prose-headings:font-playfair

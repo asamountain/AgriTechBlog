@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { useLanguage } from "@/contexts/language-context";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 interface TimelineEntry {
   year: string;
@@ -136,29 +137,6 @@ const TIMELINE: TimelineEntry[] = [
 
 type ImageMap = Record<string, string[]>;
 
-function useScrollReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(el);
-        }
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  return { ref, isVisible };
-}
-
 function TimelineCard({
   entry,
   index,
@@ -176,7 +154,7 @@ function TimelineCard({
   const hasImages = images.length > 0;
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative md:pt-8">
       {/* Dot on the timeline */}
       <div
         className={`absolute left-4 md:left-1/2 w-3.5 h-3.5 rounded-full -translate-x-[7px] md:-translate-x-[7px] top-2 z-10 ring-4 ring-white transition-all duration-700 ${
@@ -304,7 +282,7 @@ export default function AboutPage() {
       <main className="pt-32 pb-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero */}
-          <div ref={heroRef} className="mb-32 text-center">
+          <div ref={heroRef} className="mb-20">
             <span
               className={`text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block transition-all duration-700 ${
                 heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -313,7 +291,7 @@ export default function AboutPage() {
               {lang === "ko" ? "소개" : "About"}
             </span>
             <h1
-              className={`text-5xl sm:text-7xl font-playfair font-bold text-gray-900 mb-6 leading-tight transition-all duration-700 delay-150 ${
+              className={`text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight transition-all duration-700 delay-150 ${
                 heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
               }`}
             >
@@ -326,7 +304,7 @@ export default function AboutPage() {
               )}
             </h1>
             <p
-              className={`text-xl sm:text-2xl text-gray-600 leading-relaxed max-w-2xl mx-auto font-light transition-all duration-700 delay-300 ${
+              className={`text-xl text-gray-600 leading-relaxed max-w-3xl transition-all duration-700 delay-300 ${
                 heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
@@ -335,7 +313,7 @@ export default function AboutPage() {
                 : "From social impact to agriculture, then to tech."}
             </p>
             <p
-              className={`mt-8 text-sm text-gray-400 max-w-xl mx-auto leading-relaxed transition-all duration-700 delay-500 ${
+              className={`mt-6 text-sm text-gray-400 max-w-xl leading-relaxed transition-all duration-700 delay-500 ${
                 heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
@@ -343,15 +321,6 @@ export default function AboutPage() {
                 ? "농사를 짓는 사람이 아니라, 농업이 제대로 작동할 수 있는 인프라를 만드는 사람이 되기로 했습니다."
                 : "I decided to become not the farmer, but the one who builds the infrastructure that makes farming actually work."}
             </p>
-
-            {/* Scroll indicator */}
-            <div
-              className={`mt-16 transition-all duration-700 delay-700 ${
-                heroVisible ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <div className="w-px h-12 bg-gradient-to-b from-gray-200 to-transparent mx-auto" />
-            </div>
           </div>
 
           {/* Timeline */}

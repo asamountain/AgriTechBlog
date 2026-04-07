@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { FeaturedStorySkeleton } from "@/components/loading";
 import { useLanguage } from "@/contexts/language-context";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 function formatDateEnglish(date: string | Date): string {
   const d = new Date(date);
@@ -18,13 +19,18 @@ function formatDateEnglish(date: string | Date): string {
   return `${monthName} ${day}, ${year}`;
 }
 
-function StoryCard({ story, lang }: { story: BlogPostWithDetails; lang: "ko" | "en" }) {
+function StoryCard({ story, lang, index }: { story: BlogPostWithDetails; lang: "ko" | "en"; index: number }) {
+  const { ref, isVisible } = useScrollReveal();
   const excerptText = stripMarkdown(story.excerpt || "");
   const tagText = story.tags?.[0] || 'TECH';
   const secondTagText = story.tags?.[1] ? `, ${story.tags[1].toUpperCase()}` : '';
 
   return (
-    <div className="flex flex-col group h-full">
+    <div
+      ref={ref}
+      className={`flex flex-col group h-full transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+      style={{ transitionDelay: `${index * 150}ms` }}
+    >
       {/* Image Container with Offset Content Box */}
       <div className="relative mb-8">
         <Link href={`/blog/${story.slug}`}>
@@ -77,6 +83,7 @@ function StoryCard({ story, lang }: { story: BlogPostWithDetails; lang: "ko" | "
 
 export default function FeaturedStories() {
   const { lang } = useLanguage();
+  const headerReveal = useScrollReveal();
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts/featured", { includeDrafts: false, postType: 'blog' }],
   });
@@ -111,7 +118,10 @@ export default function FeaturedStories() {
     <section id="featured-stories" className="py-24 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header - Subtle and Professional */}
-        <div className="mb-16 border-b border-gray-100 pb-8">
+        <div
+          ref={headerReveal.ref}
+          className={`mb-16 border-b border-gray-100 pb-8 transition-all duration-700 ${headerReveal.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+        >
           <h2 className="text-3xl font-playfair font-bold text-gray-900 italic">
             Featured Stories
           </h2>
@@ -119,8 +129,8 @@ export default function FeaturedStories() {
         
         {/* Grid Layout - 3 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
-          {displayPosts.map((story) => (
-            <StoryCard key={story.id} story={story} lang={lang} />
+          {displayPosts.map((story, i) => (
+            <StoryCard key={story.id} story={story} lang={lang} index={i} />
           ))}
         </div>
       </div>

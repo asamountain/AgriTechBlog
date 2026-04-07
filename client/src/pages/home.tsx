@@ -5,9 +5,11 @@ import BlogGrid from "@/components/blog-grid";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
 import { useLanguage } from "@/contexts/language-context";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function Home() {
   const { lang } = useLanguage();
+  const visionReveal = useScrollReveal();
   const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const keywords = [
     'agricultural technology',
@@ -45,7 +47,10 @@ export default function Home() {
       
       {/* Vision Section */}
       <section className="py-24 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div
+          ref={visionReveal.ref}
+          className={`max-w-4xl mx-auto px-6 text-center transition-all duration-700 ${visionReveal.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        >
           <h2 className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-6">
             {lang === "ko" ? "이야기" : "The Story"}
           </h2>
