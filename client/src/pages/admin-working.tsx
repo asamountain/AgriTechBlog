@@ -74,8 +74,16 @@ interface Post {
 }
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated } = usePersistentAuth();
+  const { user, isAuthenticated, isLoading } = usePersistentAuth();
   const { logout } = usePersistentAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50 flex items-center justify-center">
+        <AdaptiveLoader size="lg" text="Checking authentication..." />
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) {
     return <AdminLoginSimple />;

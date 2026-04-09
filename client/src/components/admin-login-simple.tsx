@@ -9,18 +9,24 @@ export default function AdminLoginSimple() {
   const handleGoogleLogin = () => {
     setIsLoading(true);
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/auth/callback`;
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const redirectUri = `${appUrl}/auth/callback`;
+    const currentOrigin = window.location.origin;
+    const state = currentOrigin !== appUrl ? `google|${currentOrigin}` : 'google';
     const scope = 'openid email profile';
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=google`;
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`;
     window.location.href = url;
   };
 
   const handleGitHubLogin = () => {
     setIsLoading(true);
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/auth/callback`;
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const redirectUri = `${appUrl}/auth/callback`;
+    const currentOrigin = window.location.origin;
+    const state = currentOrigin !== appUrl ? `github|${currentOrigin}` : 'github';
     const scope = 'user:email';
-    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=github`;
+    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`;
     window.location.href = url;
   };
 
