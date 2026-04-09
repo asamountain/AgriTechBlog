@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export interface AuthUser {
   id: string;
@@ -60,7 +60,7 @@ export function usePersistentAuth() {
   }, []);
 
   // Save auth state to localStorage
-  const saveAuthState = (userData: AuthUser, sessionId?: string) => {
+  const saveAuthState = useCallback((userData: AuthUser, sessionId?: string) => {
     try {
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
       if (sessionId) {
@@ -71,7 +71,7 @@ export function usePersistentAuth() {
     } catch (error) {
       console.error('Failed to save auth state:', error);
     }
-  };
+  }, []);
 
   // Clear auth state
   const clearAuthState = () => {

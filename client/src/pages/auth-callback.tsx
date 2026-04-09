@@ -1,11 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePersistentAuth } from '@/hooks/usePersistentAuth';
 import { AdaptiveLoader } from '@/components/loading';
 
 export default function AuthCallback() {
   const { saveAuthState } = usePersistentAuth();
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    // Prevent double-execution (e.g. from React StrictMode or dependency changes)
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     const handleAuthCallback = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
