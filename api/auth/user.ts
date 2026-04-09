@@ -101,13 +101,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // POST: Exchange OAuth code for user data and set session cookie
+  // POST: Exchange OAuth code (or transfer token) for user data and set session cookie
   if (req.method === 'POST') {
-    const { code, provider, redirectUri } = req.body;
-    if (!code || !provider) return res.status(400).json({ message: 'Missing code or provider' });
-
     const sessionSecret = process.env.SESSION_SECRET;
     if (!sessionSecret) return res.status(500).json({ message: 'Session secret not configured' });
+
+    // Handle transfer token verification (cross-origin preview auth)
+    if (req.body.transferToken) {
+      try {
+        const decoded = Buffer.from(req.body.transferToken, 'base64url').toString();
+        const unsigned = signature.unsign(decoded, sessionSecret);
+        if (unsigned === false) return res.status(401).json({ message: 'Invalid transfer token' });
+
+        const { user, exp } = JSON.parse(unsigned);
+        if (Date.now() > exp) return res.status(401).json({ message: 'Transfer token expired' });
+
+        // Set cookies on this domain (the preview domain)
+        const userJson = JSON.stringify(user);
+        const signed = 's:' + signature.sign(userJson, sessionSecret);
+        const sessionId = crypto.randomUUID();
+        const signedSid = 's:' + signature.sign(sessionId, sessionSecret);
+
+        res.setHeader('Set-Cookie', [
+          cookie.serialize('auth_user', signed, {
+            httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60,
+          }),
+          cookie.serialize('connect.sid', signedSid, {
+            httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60,
+          }),
+        ]);
+
+        return res.status(200).json(user);
+      } catch {
+        return res.status(401).json({ message: 'Invalid transfer token' });
+      }
+    }
+
+    // Normal OAuth code exchange
+    const { code, provider, redirectUri } = req.body;
+    if (!code || !provider) return res.status(400).json({ message: 'Missing code or provider' });
 
     try {
       let user: AuthUser;
@@ -144,7 +176,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }),
       ]);
 
-      return res.status(200).json(user);
+      // Create a short-lived transfer token for cross-origin preview auth
+      const transferPayload = JSON.stringify({ user, exp: Date.now() + 60000 });
+      const transferToken = Buffer.from(
+        signature.sign(transferPayload, sessionSecret)
+      ).toString('base64url');
+
+      return res.status(200).json({ ...user, transferToken });
     } catch (error) {
       console.error('OAuth exchange error:', error);
       return res.status(500).json({ message: error instanceof Error ? error.message : 'OAuth failed' });

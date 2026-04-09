@@ -82,16 +82,22 @@ export function usePersistentAuth() {
   };
 
   // Login function — redirects directly to OAuth provider
+  // Uses VITE_APP_URL (production URL) as redirect_uri so OAuth works on preview deployments too.
+  // The current origin is encoded in the state param for cross-origin redirect back.
   const login = async (provider: 'google' | 'github') => {
     try {
       localStorage.setItem('auth_login_attempt', provider);
-      const redirectUri = `${window.location.origin}/auth/callback`;
+      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const redirectUri = `${appUrl}/auth/callback`;
+      const currentOrigin = window.location.origin;
+      const state = currentOrigin !== appUrl ? `${provider}|${currentOrigin}` : provider;
+
       if (provider === 'github') {
         const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('user:email')}&state=github`;
+        window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('user:email')}&state=${encodeURIComponent(state)}`;
       } else {
         const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid email profile')}&state=google`;
+        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid email profile')}&state=${encodeURIComponent(state)}`;
       }
     } catch (error) {
       console.error('Login failed:', error);
