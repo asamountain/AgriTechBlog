@@ -4,6 +4,42 @@
 
 ---
 
+## **FIX #011: Global Scroll Reveal Animation Fix & Prevention System**
+
+**Date:** April 9, 2026  
+**Status:** ✅ RESOLVED  
+**Priority:** MEDIUM  
+**Affected:** Entire site (Home, About, Portfolio, Posts), UI visibility
+
+### **Problem Description**
+- Elements using the `useScrollReveal` hook were sporadically staying invisible (`opacity-0`).
+- Affected critical sections like Search Bar, Tag Cloud, and "Latest Articles".
+- The hook failed to trigger if elements were already above the fold on load or if the page was too short to scroll.
+
+### **Root Causes Identified**
+1. **Strict Threshold:** Default `0.15` (15%) required too much of the element to be visible before triggering.
+2. **Negative Root Margin:** `-40px` prevented elements near the edges from revealing.
+3. **No Initial Check:** The hook only waited for a scroll event/intersection change and didn't check if the element was *already* visible on mount.
+
+### **Solution Implemented (The Prevention System)**
+Refactored the global `client/src/hooks/useScrollReveal.ts` hook to be bulletproof:
+1. **Callback Ref Implementation:** Changed the hook to use a `useState` for the DOM element instead of `useRef`. This ensures the hook reacts immediately when an element mounts, even if it was behind a loading state (e.g., `if (isLoading) return ...`).
+2. **Multi-Layered Fallbacks:** Added `getBoundingClientRect()` checks inside a `useEffect`. It checks once immediately on mount, and then at **50ms, 250ms, and 1000ms intervals** to handle cases where layout shifts or slow-loading content might move an element into view.
+3. **Scroll Listener Fallback:** Added a window `scroll` listener as a final safeguard to guarantee elements reveal the moment a user interacts with the page.
+4. **Zero Threshold:** Changed threshold to `0` so the reveal starts as soon as a single pixel enters the frame.
+5. **Positive Root Margin:** Changed to `50px` so animations trigger *slightly before* the user reaches them for a smoother experience.
+
+### **Files Modified**
+- `client/src/hooks/useScrollReveal.ts` - Core hook logic refactored with callback refs.
+- `client/src/pages/posts.tsx` - Removed temporary hardcoded visibility fixes in favor of the now-working global hook.
+
+### **⚠️ PREVENTIONAL STANDARDS:**
+1. **ALWAYS use the `useScrollReveal` hook** for fade-in animations rather than custom timeouts or hardcoded logic.
+2. **NEVER assume `useRef` will capture elements** that are conditionally rendered after an initial mount; use the callback ref pattern in `useScrollReveal`.
+3. **TEST elements behind loading states** (like Blog Grid or Featured Stories) to ensure they reveal correctly once data arrives.
+
+---
+
 ## **FIX #010: React Rules of Hooks Violation - Edit Post Page Crashing**
 
 **Date:** January 20, 2025  
