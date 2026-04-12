@@ -192,8 +192,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .limit(limitNum)
         .toArray();
       
-      const posts = docs.map(mapPostDocument).filter(Boolean);
-      const uniquePosts = deduplicatePosts(posts);
+      // Strip heavy 'content' field for list views to optimize payload size
+      const posts = docs.map(doc => {
+        const mapped = mapPostDocument(doc);
+        if (mapped) {
+          const { content, ...rest } = mapped;
+          return rest;
+        }
+        return null;
+      }).filter(Boolean);
+      
+      const uniquePosts = deduplicatePosts(posts as any);
       
       res.status(200).json(uniquePosts);
       return;
@@ -244,8 +253,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     console.log(`📄 POSTS: Found ${docs.length} published posts`);
     
-    const posts = docs.map(mapPostDocument).filter(Boolean);
-    const uniquePosts = deduplicatePosts(posts);
+    // Strip heavy 'content' field for list views to optimize payload size
+    const posts = docs.map(doc => {
+      const mapped = mapPostDocument(doc);
+      if (mapped) {
+        const { content, ...rest } = mapped;
+        return rest;
+      }
+      return null;
+    }).filter(Boolean);
+    
+    const uniquePosts = deduplicatePosts(posts as any);
     
     res.status(200).json(uniquePosts);
     

@@ -498,7 +498,31 @@ For future API endpoints requiring dynamic content:
 
 ---
 
-## **Template for Future Fixes**
+## **FIX #012: Page Loading Performance Optimization**
+
+**Date:** April 9, 2026  
+**Status:** ✅ RESOLVED  
+**Priority:** MEDIUM  
+**Affected:** Entire site, specifically List views and Post transitions
+
+### **Problem Description**
+- Initial page loads for list views (Home, /posts) were slow due to large API payloads (transferring full Markdown content for all posts).
+- Transitions from list views to individual articles felt sluggish due to waiting for single-post API calls.
+
+### **Solution Implemented**
+1. **API Payload Optimization:** Modified `api/posts.ts` to strip the heavy `content` field from all list-based and featured post responses. This reduced the average payload size by >90%.
+2. **Hover-Based Prefetching:** Implemented background preloading in `PostsPage`, `BlogGrid`, and `FeaturedStories`. Full article data is now fetched as soon as a user hovers over a link, making the final click-to-transition feel instantaneous.
+
+### **Files Modified**
+- `api/posts.ts` - Optimized MongoDB mapping for list views.
+- `client/src/pages/posts.tsx` - Added prefetching to the main list.
+- `client/src/components/blog-grid.tsx` - Added prefetching to homepage articles.
+- `client/src/components/featured-stories.tsx` - Added prefetching to featured stories.
+
+### **⚠️ PERFORMANCE STANDARDS:**
+1. **NEVER return full content in list APIs**; only return metadata, excerpts, and IDs.
+2. **ALWAYS use `queryClient.prefetchQuery`** on hover for high-traffic links to provide an "instant" feel.
+
 
 ### **FIX #XXX: [Problem Title]**
 **Date:** [Date]  

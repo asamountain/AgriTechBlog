@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDate, stripMarkdown } from "@/lib/utils";
 import { Link } from "wouter";
+import { useCallback } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { FeaturedStorySkeleton } from "@/components/loading";
 import { useLanguage } from "@/contexts/language-context";
@@ -19,7 +20,7 @@ function formatDateEnglish(date: string | Date): string {
   return `${monthName} ${day}, ${year}`;
 }
 
-function StoryCard({ story, lang, index }: { story: BlogPostWithDetails; lang: "ko" | "en"; index: number }) {
+function StoryCard({ story, lang, index, prefetch }: { story: BlogPostWithDetails; lang: "ko" | "en"; index: number; prefetch: (slug: string) => void }) {
   const { ref, isVisible } = useScrollReveal();
   const excerptText = stripMarkdown(story.excerpt || "");
   const tagText = story.tags?.[0] || 'TECH';
@@ -28,6 +29,7 @@ function StoryCard({ story, lang, index }: { story: BlogPostWithDetails; lang: "
   return (
     <div
       ref={ref}
+      onMouseEnter={() => prefetch(story.slug)}
       className={`flex flex-col group h-full transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: `${index * 150}ms` }}
     >
@@ -83,7 +85,21 @@ function StoryCard({ story, lang, index }: { story: BlogPostWithDetails; lang: "
 
 export default function FeaturedStories() {
   const { lang } = useLanguage();
+  const queryClient = useQueryClient();
   const headerReveal = useScrollReveal();
+
+  const prefetchPost = useCallback((slug: string) => {
+    queryClient.prefetchQuery({
+      queryKey: [`/api/blog-post`, { slug }],
+      queryFn: async () => {
+        const response = await fetch(`/api/blog-post?slug=${slug}`);
+        if (!response.ok) throw new Error("Failed to prefetch post");
+        return response.json();
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+
   const { data: featuredPosts, isLoading } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts/featured", { includeDrafts: false, postType: 'blog' }],
   });
@@ -130,7 +146,7 @@ export default function FeaturedStories() {
         {/* Grid Layout - 3 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
           {displayPosts.map((story, i) => (
-            <StoryCard key={story.id} story={story} lang={lang} index={i} />
+            <StoryCard key={story.id} story={story} lang={lang} index={i} prefetch={prefetchPost} />
           ))}
         </div>
       </div>

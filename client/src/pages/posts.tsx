@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Calendar, Clock, User, X } from "lucide-react";
-import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback, type ReactNode } from "react";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SEOHead from "@/components/seo-head";
@@ -26,12 +26,25 @@ function RevealSection({ children, className = "" }: { children: ReactNode; clas
 
 export default function PostsPage() {
   const { lang } = useLanguage();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const [heroVisible, setHeroVisible] = useState(false);
   useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 100); return () => clearTimeout(t); }, []);
   const filtersReveal = useScrollReveal();
+
+  const prefetchPost = useCallback((slug: string) => {
+    queryClient.prefetchQuery({
+      queryKey: [`/api/blog-post`, { slug }],
+      queryFn: async () => {
+        const response = await fetch(`/api/blog-post?slug=${slug}`);
+        if (!response.ok) throw new Error("Failed to prefetch post");
+        return response.json();
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["/api/blog-posts"],
@@ -258,7 +271,9 @@ export default function PostsPage() {
                 <div className="space-y-1">
                   {(posts as any[]).map((post, index) => (
                     <Link key={post.id} href={`/blog/${post.slug}`}>
-                      <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
+                      <article 
+                        onMouseEnter={() => prefetchPost(post.slug)}
+                        className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
                         index !== (posts as any[]).length - 1 ? 'border-b border-gray-100' : ''
                       }`}>
                         <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">

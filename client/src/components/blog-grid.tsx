@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { formatDate, stripMarkdown } from "@/lib/utils";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
 import { BlogListItemSkeleton } from "@/components/loading";
 import { useLanguage } from "@/contexts/language-context";
@@ -12,10 +12,23 @@ interface BlogGridProps {}
 
 export default function BlogGrid({}: BlogGridProps) {
   const { lang } = useLanguage();
+  const queryClient = useQueryClient();
   const headerReveal = useScrollReveal();
   const listReveal = useScrollReveal();
   const [page, setPage] = useState(0);
   const limit = 9;
+
+  const prefetchPost = useCallback((slug: string) => {
+    queryClient.prefetchQuery({
+      queryKey: [`/api/blog-post`, { slug }],
+      queryFn: async () => {
+        const response = await fetch(`/api/blog-post?slug=${slug}`);
+        if (!response.ok) throw new Error("Failed to prefetch post");
+        return response.json();
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
 
   const { data: blogPosts, isLoading, error } = useQuery<BlogPostWithDetails[]>({
     queryKey: ["/api/blog-posts", { limit: (page + 1) * limit + 5, offset: 0, includeDrafts: false, postType: 'blog' }],
@@ -99,7 +112,9 @@ export default function BlogGrid({}: BlogGridProps) {
             >
               {displayedPosts.map((post, index) => (
                 <Link key={`${post.id}-${post.slug}-${index}`} href={`/blog/${post.slug}`}>
-                  <article className="group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 rounded hover:bg-gray-50 transition-all duration-200">
+                  <article 
+                    onMouseEnter={() => prefetchPost(post.slug)}
+                    className="group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 rounded hover:bg-gray-50 transition-all duration-200">
                     <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
                       {stripMarkdown(post.title)}
                     </h3>
