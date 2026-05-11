@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import SocialShare from "@/components/social-share";
@@ -12,7 +12,7 @@ import { formatDate, stripMarkdown } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import type { BlogPostWithDetails, Annotation } from "@shared/schema";
+import type { BlogPostWithDetails } from "@shared/schema";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import TagDisplay from "@/components/tag-display";
@@ -25,11 +25,7 @@ import rehypeSlug from 'rehype-slug';
 import 'highlight.js/styles/github-dark.css';
 import { ensureMarkdown } from '@/lib/html-to-markdown';
 import CommentSection from "@/components/comments/comment-section";
-import { SelectionToolbar, type AnnotationAction } from "@/components/selection-toolbar";
-import { InlineCommentSidebar } from "@/components/inline-comment-sidebar";
-import { useTextSelection } from "@/hooks/useTextSelection";
 import { useAnonymousUser } from "@/hooks/useAnonymousUser";
-import { applyHighlights } from "@/lib/highlight-utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/language-context";
@@ -38,16 +34,6 @@ import { useTranslation, useTranslateText } from "@/hooks/useTranslation";
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
-  const { selection, clearSelection } = useTextSelection(contentRef);
-  const [highlightedParagraph, setHighlightedParagraph] = useState<string | null>(null);
-  const [activeAnnotation, setActiveAnnotation] = useState<{
-    selectedText: string;
-    paragraphId: string;
-    startOffset: number;
-    endOffset: number;
-    parentAnnotationId?: string;
-  } | null>(null);
-  const [noteInput, setNoteInput] = useState<{ show: boolean; text: string; paragraphId: string; startOffset: number; endOffset: number } | null>(null);
 
   const { userId } = useAnonymousUser();
   const { toast } = useToast();
@@ -75,121 +61,11 @@ export default function BlogPost() {
     enabled: !!post?.id,
   });
 
-  // Fetch annotations for this post
-  // Query key matches invalidation key (without userId) so cache refreshes properly after mutations
-  const { data: annotations = [] } = useQuery<Annotation[]>({
-    queryKey: [`/api/blog-posts/${post?.id}/inline-comments`],
-    queryFn: async () => {
-      const res = await fetch(`/api/blog-posts/${post?.id}/inline-comments?userId=${userId}`, {
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Failed to fetch annotations');
-      return res.json();
-    },
-    enabled: !!post?.id,
-  });
-
-  // Mutation for creating annotations (highlights, notes)
-  const createAnnotation = useMutation({
-    mutationFn: async (data: any) => {
-      return await apiRequest('POST', `/api/blog-posts/${post?.id}/inline-comments`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/blog-posts/${post?.id}/inline-comments`] });
-    },
-  });
-
-  // Apply text highlights after render
-  useEffect(() => {
-    if (!contentRef.current || !annotations.length) return;
-    const timer = requestAnimationFrame(() => {
-      if (contentRef.current) {
-        applyHighlights(contentRef.current, annotations, (annotationId) => {
-          const annotation = annotations.find((a) => a.id === annotationId);
-          if (annotation) {
-            setActiveAnnotation({
-              selectedText: annotation.selectedText,
-              paragraphId: annotation.paragraphId,
-              startOffset: annotation.startOffset,
-              endOffset: annotation.endOffset,
-              parentAnnotationId: annotation.id,
-            });
-          }
-        });
-      }
-    });
-    return () => cancelAnimationFrame(timer);
-  }, [annotations, post?.content]);
-
-  // Handle toolbar actions
-  const handleToolbarAction = (action: AnnotationAction) => {
-    if (!selection || !post) return;
-
-    if (action === 'highlight') {
-      createAnnotation.mutate({
-        type: 'highlight',
-        selectedText: selection.text,
-        paragraphId: selection.paragraphId,
-        startOffset: selection.startOffset,
-        endOffset: selection.endOffset,
-        anonymousUserId: userId,
-      });
-      toast({ title: 'Text highlighted!' });
-      clearSelection();
-    }
-
-    if (action === 'respond') {
-      setActiveAnnotation({
-        selectedText: selection.text,
-        paragraphId: selection.paragraphId,
-        startOffset: selection.startOffset,
-        endOffset: selection.endOffset,
-      });
-      clearSelection();
-    }
-
-    if (action === 'share') {
-      const shareUrl = `${window.location.origin}/blog/${post.slug}#:~:text=${encodeURIComponent(selection.text.substring(0, 200))}`;
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        toast({ title: 'Link copied!', description: 'Share this highlighted text with others.' });
-      });
-      clearSelection();
-    }
-
-    if (action === 'note') {
-      setNoteInput({
-        show: true,
-        text: selection.text,
-        paragraphId: selection.paragraphId,
-        startOffset: selection.startOffset,
-        endOffset: selection.endOffset,
-      });
-      clearSelection();
-    }
-  };
-
-  // Submit private note
-  const submitNote = (noteContent: string) => {
-    if (!noteInput || !post) return;
-    createAnnotation.mutate({
-      type: 'note',
-      selectedText: noteInput.text,
-      paragraphId: noteInput.paragraphId,
-      startOffset: noteInput.startOffset,
-      endOffset: noteInput.endOffset,
-      anonymousUserId: userId,
-      content: noteContent,
-    });
-    toast({ title: 'Note saved!' });
-    setNoteInput(null);
-  };
-
-  // Memoize plugin arrays to prevent ReactMarkdown re-renders that destroy <mark> elements
+  // Memoize plugin arrays to prevent ReactMarkdown re-renders
   const remarkPluginsMemo = useMemo(() => [remarkGfm], []);
   const rehypePluginsMemo = useMemo(() => [rehypeSlug, rehypeHighlight], []);
 
   // Stable paragraph ID components for ReactMarkdown
-  // IMPORTANT: Only depend on post?.content to prevent DOM destruction that wipes <mark> highlights
   const markdownComponents = useMemo(() => {
     let paragraphIndex = 0;
     return {
@@ -218,7 +94,7 @@ export default function BlogPost() {
   const { content: translatedContent, isTranslating } = useTranslation(post?.content, slug, lang);
   const translatedTitle = useTranslateText(post?.title, lang);
 
-  // Memoize the entire ReactMarkdown output so unrelated re-renders don't destroy <mark> highlights
+  // Memoize the entire ReactMarkdown output
   const renderedContent = useMemo(() => (
     <ReactMarkdown
       remarkPlugins={remarkPluginsMemo}
@@ -228,21 +104,6 @@ export default function BlogPost() {
       {ensureMarkdown(translatedContent || '')}
     </ReactMarkdown>
   ), [remarkPluginsMemo, rehypePluginsMemo, markdownComponents, translatedContent]);
-
-  // Apply yellow flash highlight on sidebar click via DOM manipulation
-  // (separate from useMemo to avoid destroying <mark> elements)
-  useEffect(() => {
-    if (!contentRef.current) return;
-    contentRef.current.querySelectorAll('[data-paragraph-id].bg-yellow-50').forEach((el) => {
-      el.classList.remove('bg-yellow-50', 'transition-colors');
-    });
-    if (highlightedParagraph) {
-      const el = contentRef.current.querySelector(`[data-paragraph-id="${highlightedParagraph}"]`);
-      if (el) {
-        el.classList.add('bg-yellow-50', 'transition-colors');
-      }
-    }
-  }, [highlightedParagraph]);
 
   if (isLoading) {
     return <BlogPostSkeleton />;
@@ -314,7 +175,7 @@ export default function BlogPost() {
         
         <main className="container mx-auto px-6 pt-24">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Table of Contents Sidebar - Left */}
               <aside className="lg:col-span-1 hidden lg:block">
                 <div className="sticky top-24">
@@ -428,50 +289,6 @@ export default function BlogPost() {
               {renderedContent}
             </div>
 
-            {/* Selection Toolbar */}
-            {selection && post && (
-              <SelectionToolbar
-                position={selection.position}
-                onAction={handleToolbarAction}
-              />
-            )}
-
-            {/* Private Note Input */}
-            {noteInput?.show && (
-              <div className="fixed z-50 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 p-4 animate-in fade-in"
-                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-              >
-                <div className="text-xs text-amber-800 bg-amber-50 p-2 rounded mb-3 border-l-2 border-amber-400 italic max-h-20 overflow-y-auto">
-                  "{noteInput.text.length > 100 ? noteInput.text.substring(0, 100) + '...' : noteInput.text}"
-                </div>
-                <textarea
-                  autoFocus
-                  placeholder="Write a private note..."
-                  className="w-full text-sm border rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  rows={3}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      const value = (e.target as HTMLTextAreaElement).value.trim();
-                      if (value) submitNote(value);
-                    }
-                    if (e.key === 'Escape') setNoteInput(null);
-                  }}
-                />
-                <div className="flex justify-end gap-2 mt-2">
-                  <button onClick={() => setNoteInput(null)} className="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
-                  <button
-                    onClick={(e) => {
-                      const textarea = (e.currentTarget.parentElement?.previousElementSibling as HTMLTextAreaElement);
-                      const value = textarea?.value?.trim();
-                      if (value) submitNote(value);
-                    }}
-                    className="text-xs bg-amber-500 text-white px-3 py-1 rounded hover:bg-amber-600"
-                  >Save Note</button>
-                </div>
-              </div>
-            )}
-
             {/* Comment Section - Moved here to be right after article content */}
             <CommentSection postId={post.id.toString()} postTitle={post.title} />
 
@@ -499,32 +316,6 @@ export default function BlogPost() {
             />
 
               </article>
-
-              {/* Inline Comment Sidebar - Right */}
-              <aside className="lg:col-span-1 hidden lg:block">
-                {post && (
-                  <InlineCommentSidebar
-                    postId={post.id.toString()}
-                    highlightedParagraph={highlightedParagraph}
-                    activeAnnotation={activeAnnotation}
-                    onCloseActiveAnnotation={() => setActiveAnnotation(null)}
-                    onCommentClick={(paragraphId) => {
-                      setHighlightedParagraph(paragraphId);
-                      const element = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
-                      if (element) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        // Blink the green highlights within this paragraph
-                        const marks = element.querySelectorAll('mark.inline-highlight');
-                        marks.forEach((mark) => {
-                          mark.classList.add('highlight-blink');
-                          setTimeout(() => mark.classList.remove('highlight-blink'), 2000);
-                        });
-                      }
-                      setTimeout(() => setHighlightedParagraph(null), 2000);
-                    }}
-                  />
-                )}
-              </aside>
             </div>
           </div>
         </main>
