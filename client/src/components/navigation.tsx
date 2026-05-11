@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import SearchOverlay from "./search-overlay";
 import { useLanguage } from "@/contexts/language-context";
 
 const NAV_ITEMS = [
@@ -14,7 +13,6 @@ const NAV_ITEMS = [
 
 export default function Navigation() {
   const [location] = useLocation();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -79,14 +77,6 @@ export default function Navigation() {
                     </span>
                   </Link>
                 ))}
-
-                <Button
-                  onClick={() => setIsSearchOpen(true)}
-                  className="bg-forest-green text-white hover:opacity-80"
-                  size="sm"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
               </div>
             </div>
 
@@ -114,16 +104,6 @@ export default function Navigation() {
                         </span>
                       </Link>
                     ))}
-                    <Button
-                      onClick={() => {
-                        setIsSearchOpen(true);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="bg-forest-green text-white hover:bg-forest-green justify-start"
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      {lang === "ko" ? "검색" : "Search"}
-                    </Button>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -131,11 +111,6 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-
-      <SearchOverlay
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
     </>
   );
 }
