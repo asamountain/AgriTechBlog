@@ -135,6 +135,35 @@ const TIMELINE: TimelineEntry[] = [
   },
 ];
 
+interface VisionEntry {
+  heading: { en: string; ko: string };
+  body: { en: string; ko: string };
+}
+
+const VISION: VisionEntry[] = [
+  {
+    heading: { en: "Why a farmer", ko: "왜 농부인가" },
+    body: {
+      en: "Plants and animals don't lie — they grow honestly, thriving or struggling exactly as they are. Farming was my first childhood ambition, and it turned out to be the one vocation that could hold everything I'd since learned: coding, photography, education, wellness, community building.",
+      ko: "동물과 식물은 거짓말을 하지 않습니다. 좋으면 좋은 대로, 힘들면 힘든 대로 정직하게 자랍니다. 어릴 때 가장 되고 싶었던 것도 농부였습니다. 그동안 쌓아온 코딩, 사진·영상, 교육, 웰니스, 로컬 커뮤니티 경험을 하나로 담아낼 수 있는 일이 바로 농업이었습니다.",
+    },
+  },
+  {
+    heading: { en: "The farmer I'm becoming", ko: "어떤 농부가 되고 싶은가" },
+    body: {
+      en: "Ecological farming — permaculture, syntropic agriculture — is often written off as low-yield. But I've seen, firsthand on Workaway farms abroad, how diversified small-scale growing combined with processing and community builds real value. Add technology — sensors, automation, data — and nature and machine can generate abundance together. That's the farm I'm building.",
+      ko: "생태농업(퍼머컬처, 신트로피) 방식은 수확량이 적다고 여겨지지만, 해외 농장들에서 다품종 소량생산에 가공과 커뮤니티를 더해 실제 큰 부가가치를 만들어내는 사례들을 직접 봤습니다. 여기에 기술 — 센서, 자동화, 데이터 — 을 더하면 자연과 기계가 함께 풍요를 만드는 농장이 가능하다고 믿습니다. 그것이 제가 만들고 싶은 농장입니다.",
+    },
+  },
+  {
+    heading: { en: "Where it stands now", ko: "지금 하고 있는 일" },
+    body: {
+      en: "I'm searching for land in Jeju, selected for the Young Entrepreneur Farmer (청년창업농) program with a diversified, small-plot farm plan. Starting with rye and hairy vetch to build the soil, trialing kale, jicama, and lemon, and eventually keeping bees. The sensor and automation experience from ioCrops carries straight into the farm — and every crop will carry its own story, told through the same camera and code I've used all along.",
+      ko: "지금은 제주에서 땅을 찾고 있습니다. 청년창업농으로 선정되어 다품목 소량생산 농장을 준비 중입니다. 호밀과 헤어리베치로 토양을 살리고, 케일·얌빈·레몬 등을 시험 재배하며, 벌도 함께 기를 계획입니다. ioCrops에서 쌓은 센서·자동화 경험을 그대로 농장에 적용하고, 작물 하나하나의 이야기를 지금까지 써온 카메라와 코드로 계속 기록해나갈 생각입니다.",
+    },
+  },
+];
+
 type ImageMap = Record<string, string[]>;
 
 function TimelineCard({
@@ -243,6 +272,35 @@ function TimelineCard({
   );
 }
 
+function VisionSection({ lang }: { lang: "ko" | "en" }) {
+  const { ref, isVisible } = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      className={`mt-32 pt-16 border-t border-gray-100 transition-all duration-1000 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+    >
+      <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block text-center">
+        {lang === "ko" ? "비전" : "Vision"}
+      </span>
+      <h2 className="text-3xl sm:text-4xl font-playfair font-bold text-gray-900 mb-16 text-center italic">
+        {lang === "ko" ? "농부로서 바라보는 것" : "What I'm Growing Toward"}
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+        {VISION.map((entry, i) => (
+          <div key={i} className="text-center md:text-left">
+            <h3 className="text-lg font-playfair font-bold text-forest-green mb-3">
+              {entry.heading[lang]}
+            </h3>
+            <p className="text-sm text-gray-600 leading-relaxed">{entry.body[lang]}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AboutPage() {
   const { lang } = useLanguage();
   const [imageMap, setImageMap] = useState<ImageMap>({});
@@ -340,6 +398,8 @@ export default function AboutPage() {
               ))}
             </div>
           </div>
+
+          <VisionSection lang={lang} />
 
           {/* Closing */}
           <div
