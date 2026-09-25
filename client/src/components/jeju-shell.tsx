@@ -49,12 +49,12 @@ export default function JejuShell({ headerLeft, headerRight, children }: JejuShe
               <Link href="/posts">{ko ? "글" : "POSTS"}</Link>
               <Link href="/portfolio">{ko ? "포트폴리오" : "PORTFOLIO"}</Link>
               {SHOP_URL ? (
-                <a href={SHOP_URL} className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="SHOP — 준비 중 (coming soon)">
-                  {ko ? "쇼핑" : "SHOP"}
+                <a href={SHOP_URL} className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="FARM — 준비 중 (coming soon)">
+                  {ko ? "농장" : "FARM"}
                 </a>
               ) : (
-                <Link href="/shop" className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="SHOP — 준비 중 (coming soon)">
-                  {ko ? "쇼핑" : "SHOP"}
+                <Link href="/shop" className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="FARM — 준비 중 (coming soon)">
+                  {ko ? "농장" : "FARM"}
                 </Link>
               )}
               <Link href="/about">{ko ? "소개" : "ABOUT"}</Link>
