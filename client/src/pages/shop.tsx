@@ -6,15 +6,13 @@ import { CROPS, CROP_STATUS_LABEL, type Crop } from "@/data/crops";
 
 const CONTACT_EMAIL = "sjisyours@gmail.com";
 const INSTAGRAM_URL = "https://instagram.com/like__san";
-const FEATURED_IDS = new Set(["rye", "maca"]);
-const DARK_IDS = new Set(["maca"]);
 const GLYPHS = ["circle-tangerine", "circle-camellia", "triangle"] as const;
 
 function mailto(subject: string, body: string): string {
   return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-function CropCard({
+function CropRow({
   crop,
   index,
   lang,
@@ -27,36 +25,54 @@ function CropCard({
   selected: boolean;
   onToggle: () => void;
 }) {
-  const classes = ["jg-shop-card"];
-  if (FEATURED_IDS.has(crop.id)) classes.push("jg-shop-card--featured");
-  if (DARK_IDS.has(crop.id)) classes.push("jg-shop-card--dark");
   const ref = `CR-${String(index + 1).padStart(2, "0")}`;
+  const cells: { label: string; value: string }[] = [
+    { label: lang === "ko" ? "종류" : "Kind", value: crop.kind[lang] },
+    { label: lang === "ko" ? "상태" : "Status", value: CROP_STATUS_LABEL[crop.status][lang] },
+    {
+      label: lang === "ko" ? "수확 시기" : "Harvest",
+      value: crop.season ? crop.season[lang] : lang === "ko" ? "미정" : "TBA",
+    },
+    { label: lang === "ko" ? "발송지" : "Ships from", value: lang === "ko" ? "제주" : "Jeju" },
+  ];
 
   return (
-    <article className={classes.join(" ")}>
-      <div className="jg-shop-media">
+    <article className="jg-crop-row">
+      <div className="jg-shop-media jg-crop-media">
         {crop.image ? (
           <img src={crop.image} alt={crop.name[lang]} loading="lazy" />
         ) : (
           <span className={`jg-shop-glyph jg-shop-glyph--${GLYPHS[index % GLYPHS.length]}`} aria-hidden="true" />
         )}
-        <span className="jg-shop-tag">{CROP_STATUS_LABEL[crop.status][lang]}</span>
         {!crop.image && <span className="jg-shop-photo">{lang === "ko" ? "사진 준비 중" : "PHOTO COMING"}</span>}
       </div>
 
-      <div className="jg-shop-meta">
-        <h3 className="jg-shop-name">{crop.name[lang]}</h3>
-        <div className="jg-shop-side">
-          <span>{`REF: ${ref}`}</span>
-          <span>{crop.price ? crop.price[lang] : lang === "ko" ? "가격 미정" : "PRICE TBA"}</span>
+      <div className="jg-crop-info">
+        <div className="jg-crop-top">
+          <div className="jg-crop-main">
+            <span className="jg-crop-ref">{ref}</span>
+            <h3 className="jg-crop-name">{crop.name[lang]}</h3>
+            <p className="jg-crop-note">{crop.note[lang]}</p>
+          </div>
+          <div className="jg-crop-actions">
+            <div className="jg-crop-price">{crop.price ? crop.price[lang] : lang === "ko" ? "가격 미정" : "PRICE TBA"}</div>
+            <button type="button" className={`jg-crop-btn jg-crop-btn--primary${selected ? " is-active" : ""}`} aria-pressed={selected} onClick={onToggle}>
+              {selected ? (lang === "ko" ? "✓ 대기 명단에 담김" : "✓ ON THE WAITLIST") : lang === "ko" ? "+ 대기 명단에 담기" : "+ ADD TO WAITLIST"}
+            </button>
+            <a className="jg-crop-btn" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+              {lang === "ko" ? "인스타그램에서 문의" : "ASK ON INSTAGRAM"}
+            </a>
+          </div>
         </div>
+        <dl className="jg-crop-specs">
+          {cells.map((cell) => (
+            <div className="jg-crop-spec" key={cell.label}>
+              <dt>{cell.label}</dt>
+              <dd>{cell.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
-
-      <p className="jg-shop-note">{crop.note[lang]}</p>
-
-      <button type="button" className={`jg-shop-add${selected ? " is-active" : ""}`} aria-pressed={selected} onClick={onToggle}>
-        {selected ? (lang === "ko" ? "✓ 대기 명단에 담김" : "✓ ON THE WAITLIST") : lang === "ko" ? "+ 대기 명단에 담기" : "+ ADD TO WAITLIST"}
-      </button>
     </article>
   );
 }
@@ -101,18 +117,6 @@ export default function ShopPage() {
     },
   ];
 
-  const renderCards = (items: Crop[], offset: number) =>
-    items.map((crop, i) => (
-      <CropCard
-        key={crop.id}
-        crop={crop}
-        index={offset + i}
-        lang={lang}
-        selected={selected.includes(crop.id)}
-        onToggle={() => toggle(crop.id)}
-      />
-    ));
-
   return (
     <>
       <SEOHead
@@ -126,7 +130,7 @@ export default function ShopPage() {
       />
       <JejuShell
         headerLeft={["[SYSTEM] SHOP.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
-        headerRight={["SEASONAL BOX", `WAITLIST (${selected.length})`]}
+        headerRight={["SEASONAL BOX", `SELECTED (${selected.length})`]}
       >
         <div className="jg-body">
           <main className="jg-main">
@@ -170,9 +174,20 @@ export default function ShopPage() {
                 </div>
               </section>
 
-              <div className="jg-shop-grid">
-                {renderCards(CROPS.slice(0, 3), 0)}
+              <div className="jg-crop-list">
+                {CROPS.map((crop, i) => (
+                  <CropRow
+                    key={crop.id}
+                    crop={crop}
+                    index={i}
+                    lang={lang}
+                    selected={selected.includes(crop.id)}
+                    onToggle={() => toggle(crop.id)}
+                  />
+                ))}
+              </div>
 
+              <div className="jg-shop-band">
                 <section id="waitlist" className="jg-shop-detail" aria-label="Seasonal box waitlist">
                   <div className="jg-shop-gallery">
                     <div className="jg-shop-media">
@@ -218,7 +233,6 @@ export default function ShopPage() {
                   </div>
                 </section>
 
-                {renderCards(CROPS.slice(3), 3)}
               </div>
             </div>
           </main>

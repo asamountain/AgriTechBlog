@@ -8,6 +8,7 @@ interface Bilingual {
 export interface Crop {
   id: string;
   name: Bilingual;
+  kind: Bilingual;
   note: Bilingual;
   status: CropStatus;
   season?: Bilingual;
@@ -27,6 +28,7 @@ export const CROPS: Crop[] = [
   {
     id: "rye",
     name: { en: "Rye", ko: "호밀" },
+    kind: { en: "Grain", ko: "곡물" },
     note: {
       en: "Grain and soil-builder. Grown with hairy vetch as green manure; sourdough bread is the idea.",
       ko: "곡물이자 토양을 살리는 작물. 헤어리베치와 함께 녹비로 기르고, 사워도우 빵도 생각 중입니다.",
@@ -36,6 +38,7 @@ export const CROPS: Crop[] = [
   {
     id: "hairy-vetch",
     name: { en: "Hairy vetch", ko: "헤어리베치" },
+    kind: { en: "Cover crop", ko: "피복작물" },
     note: {
       en: "Cover crop that feeds the soil alongside rye. A soil-building partner, not a product yet.",
       ko: "호밀과 함께 토양을 살리는 피복작물. 아직 상품은 아니에요.",
@@ -45,6 +48,7 @@ export const CROPS: Crop[] = [
   {
     id: "kale",
     name: { en: "Kale", ko: "케일" },
+    kind: { en: "Vegetable", ko: "채소" },
     note: {
       en: "Trial crop. Testing whether it grows well and keeps steady quality.",
       ko: "시험 재배 작물. 잘 자라는지, 품질이 일정한지 확인합니다.",
@@ -54,6 +58,7 @@ export const CROPS: Crop[] = [
   {
     id: "jicama",
     name: { en: "Jicama (yam bean)", ko: "얌빈" },
+    kind: { en: "Root vegetable", ko: "뿌리채소" },
     note: {
       en: "Trial crop. I'll learn from farms already growing it first.",
       ko: "시험 재배 작물. 이미 기르는 농가에서 먼저 배우려 합니다.",
@@ -63,6 +68,7 @@ export const CROPS: Crop[] = [
   {
     id: "lemon",
     name: { en: "Lemon", ko: "레몬" },
+    kind: { en: "Fruit", ko: "과수" },
     note: {
       en: "Trial crop. Trees need land of my own before I can plant them.",
       ko: "시험 재배 작물. 내 땅이 있어야 심을 수 있어요.",
@@ -72,6 +78,7 @@ export const CROPS: Crop[] = [
   {
     id: "maca",
     name: { en: "Maca", ko: "마카" },
+    kind: { en: "Root crop", ko: "뿌리작물" },
     note: {
       en: "I hear it sells well, but I need to learn it properly before promising anything.",
       ko: "잘 팔린다고 알고 있지만, 제대로 배우기 전에는 약속하지 않으려 합니다.",
@@ -81,6 +88,7 @@ export const CROPS: Crop[] = [
   {
     id: "honey",
     name: { en: "Honey", ko: "꿀" },
+    kind: { en: "Bee product", ko: "양봉" },
     note: {
       en: "Bees are planned alongside the crops. Honey depends on how they settle in.",
       ko: "작물과 함께 벌도 기를 계획입니다. 꿀은 벌이 자리 잡는 만큼 기대해요.",
