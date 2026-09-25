@@ -1,68 +1,53 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { useState, useEffect, useRef } from "react";
 import type { BlogPostWithDetails } from "@shared/schema";
-import { ProjectCardSkeleton } from "@/components/loading";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
+import JejuShell from "@/components/jeju-shell";
 import { stripMarkdown } from "@/lib/utils";
 import { useLanguage } from "@/contexts/language-context";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
+
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80";
 
 function ProjectCard({ project, lang, index }: { project: BlogPostWithDetails; lang: "ko" | "en"; index: number }) {
-  const { ref, isVisible } = useScrollReveal();
   const excerptText = stripMarkdown(project.excerpt || "");
 
   return (
-    <div
-      ref={ref}
-      className={`flex flex-col group h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-      style={{ transitionDelay: `${(index % 3) * 150}ms` }}
-    >
-      <div className="relative overflow-hidden aspect-[16/10]">
-        <img 
-          src={project.featuredImage || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80'} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          alt={project.title}
-        />
-        {project.impact && (
-          <div className="absolute top-4 right-4 bg-forest-green text-white px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
-            {project.impact}
-          </div>
-        )}
+    <Link href={`/blog/${project.slug}`} className="jg-card">
+      <div className="jg-card-media">
+        <img src={project.featuredImage || FALLBACK_IMAGE} alt={project.title} loading="lazy" />
+        <span className="jg-card-code">{`PJ-${String(index + 1).padStart(2, "0")}`}</span>
+        {project.impact && <span className="jg-card-impact">{project.impact}</span>}
       </div>
 
-      <div className="p-8 flex flex-col flex-1">
-        <div className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-3">
-          {project.tags?.[0] || 'AgriTech'}
-        </div>
-        
-        <h2 className="text-2xl font-playfair font-bold text-gray-900 mb-4 italic leading-tight hover:text-forest-green cursor-pointer transition-colors">
-          <Link href={`/blog/${project.slug}`}>{project.title}</Link>
-        </h2>
-        
-        <p className="text-sm text-gray-600 leading-relaxed mb-6 line-clamp-3">
-          {excerptText}
-        </p>
+      <div className="jg-card-body">
+        <p className="jg-card-cat">{`[CATEGORY] ${project.tags?.[0] || "AgriTech"}`}</p>
+        <h2 className="jg-card-title">{project.title}</h2>
+        {excerptText && <p className="jg-card-excerpt">{excerptText}</p>}
 
         {project.tags && project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            {project.tags.map((tag) => (
-              <span key={tag} className="text-[9px] font-medium text-gray-500 bg-gray-50 px-2 py-1 border border-gray-100 uppercase tracking-wider">
+          <div className="jg-card-tags">
+            {project.tags.slice(0, 5).map((tag) => (
+              <span key={tag} className="jg-tag">
                 {tag}
               </span>
             ))}
           </div>
         )}
-        
-        <div className="mt-auto pt-6 border-t border-gray-50">
-          <Link href={`/blog/${project.slug}`}>
-            <span className="inline-flex items-center text-[10px] font-bold tracking-widest text-forest-green hover:opacity-70 transition-opacity cursor-pointer uppercase group">
-              {lang === "ko" ? "사례 보기" : "View Case Study"}
-              <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
-            </span>
-          </Link>
-        </div>
+
+        <span className="jg-card-cta">{lang === "ko" ? "사례 보기" : "View case study"} →</span>
+      </div>
+    </Link>
+  );
+}
+
+function CardPlaceholder({ delay }: { delay: number }) {
+  return (
+    <div className="jg-card jg-card--loading" aria-hidden="true">
+      <div className="jg-card-media jg-hero--loading" />
+      <div className="jg-card-body">
+        <span className="jg-skeleton jg-skeleton--block" style={{ width: "40%", height: 12, animationDelay: `${delay}ms` }} />
+        <span className="jg-skeleton jg-skeleton--block" style={{ width: "85%", height: 24, animationDelay: `${delay}ms` }} />
+        <span className="jg-skeleton jg-skeleton--block" style={{ width: "100%", height: 14, animationDelay: `${delay}ms` }} />
+        <span className="jg-skeleton jg-skeleton--block" style={{ width: "70%", height: 14, animationDelay: `${delay}ms` }} />
       </div>
     </div>
   );
@@ -70,57 +55,48 @@ function ProjectCard({ project, lang, index }: { project: BlogPostWithDetails; l
 
 export default function PortfolioPage() {
   const { lang } = useLanguage();
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVisible, setHeroVisible] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 100); return () => clearTimeout(t); }, []);
   const { data: projects, isLoading } = useQuery<BlogPostWithDetails[]>({
-    queryKey: ["/api/blog-posts", { postType: 'portfolio', includeDrafts: false }],
+    queryKey: ["/api/blog-posts", { postType: "portfolio", includeDrafts: false }],
   });
 
+  const count = projects?.length ?? 0;
+
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
-      
-      <main className="pt-32 pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header Section */}
-          <div ref={heroRef} className="mb-20">
-            <span className={`text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block transition-all duration-700 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              {lang === "ko" ? "주요 작업" : "Selected Work"}
-            </span>
-            <h1 className={`text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight transition-all duration-700 delay-150 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-              AgriTech <span className="italic">Portfolio</span>
-            </h1>
-            <p className={`text-xl text-gray-600 leading-relaxed max-w-3xl transition-all duration-700 delay-300 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+    <JejuShell
+      headerLeft={["[SYSTEM] PORTFOLIO.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
+      headerRight={["SELECTED WORK", isLoading ? "LOADING..." : `${count} ${count === 1 ? "PROJECT" : "PROJECTS"}`]}
+    >
+      <div className="jg-body">
+        <main className="jg-main">
+          <div className="jg-post jg-post--wide">
+            <p className="jg-meta">{lang === "ko" ? "[SELECTED WORK] 주요 작업" : "[SELECTED WORK]"}</p>
+            <h1 className="jg-post-title jg-post-title--md">AgriTech Portfolio.</h1>
+            <p className="jg-post-lede">
               {lang === "ko" ? "사례 연구 및 기술 구현." : "Case studies and technical implementations."}
             </p>
-          </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <ProjectCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-              {projects && projects.length > 0 ? (
-                projects.map((project, i) => (
+            {isLoading ? (
+              <div className="jg-cards" aria-busy="true">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <CardPlaceholder key={i} delay={i * 90} />
+                ))}
+              </div>
+            ) : projects && projects.length > 0 ? (
+              <div className="jg-cards">
+                {projects.map((project, i) => (
                   <ProjectCard key={project.id} project={project} lang={lang} index={i} />
-                ))
-              ) : (
-                <div className="col-span-full py-24 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                  <p className="text-gray-500 italic">
-                    {lang === "ko" ? "아직 프로젝트가 없습니다. 곧 다시 확인해 주세요!" : "No projects added yet. Check back soon!"}
-                  </p>
+                ))}
+              </div>
+            ) : (
+              <div className="jg-index">
+                <div className="jg-row-empty">
+                  {lang === "ko" ? "아직 프로젝트가 없습니다. 곧 다시 확인해 주세요!" : "NO PROJECTS ADDED YET. CHECK BACK SOON."}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </JejuShell>
   );
 }

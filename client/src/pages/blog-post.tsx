@@ -1,22 +1,14 @@
 import { useParams } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
+import JejuShell from "@/components/jeju-shell";
 import SocialShare from "@/components/social-share";
 import SEOHead from "@/components/seo-head";
-import TableOfContents from "@/components/table-of-contents";
-import ReadingProgress from "@/components/reading-progress";
-import ScrollToTopButton from "@/components/scroll-to-top-button";
-import RelatedPostsByTags from "@/components/related-posts-by-tags";
 import { formatDate, stripMarkdown } from "@/lib/utils";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BlogPostWithDetails } from "@shared/schema";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import TagDisplay from "@/components/tag-display";
-import { ContentSkeleton, BlogPostSkeleton } from "@/components/loading";
+import JejuPageSkeleton from "@/components/jeju-loading";
 import ReactMarkdown from 'react-markdown';
 import { stableParagraphId, extractTextFromChildren } from '@/lib/paragraph-utils';
 import remarkGfm from 'remark-gfm';
@@ -59,6 +51,10 @@ export default function BlogPost() {
   const { data: relatedPosts } = useQuery<BlogPostWithDetails[]>({
     queryKey: [`/api/blog-posts/${post?.id}/related`],
     enabled: !!post?.id,
+  });
+
+  const { data: allPosts } = useQuery<BlogPostWithDetails[]>({
+    queryKey: ["/api/blog-posts"],
   });
 
   // Memoize plugin arrays to prevent ReactMarkdown re-renders
@@ -105,31 +101,51 @@ export default function BlogPost() {
     </ReactMarkdown>
   ), [remarkPluginsMemo, rehypePluginsMemo, markdownComponents, translatedContent]);
 
+  const [tocItems, setTocItems] = useState<{ id: string; text: string; level: number }[]>([]);
+
+  useEffect(() => {
+    const root = contentRef.current;
+    if (!root) {
+      setTocItems([]);
+      return;
+    }
+    const items = Array.from(root.querySelectorAll<HTMLElement>("h2[id], h3[id]")).map((el) => ({
+      id: el.id,
+      text: el.textContent || "",
+      level: el.tagName === "H3" ? 3 : 2,
+    }));
+    setTocItems(items);
+  }, [renderedContent, post?.id]);
+
+  const scrollToId = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   if (isLoading) {
-    return <BlogPostSkeleton />;
+    return <JejuPageSkeleton variant="post" label="Fetching entry" />;
   }
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-white">
-        <Navigation />
-        <div className="pt-24 pb-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-3xl font-playfair font-bold text-gray-900 mb-4">
-              Article Not Found
-            </h1>
-            <p className="text-gray-600 mb-8">
-              The article you're looking for doesn't exist or has been moved.
-            </p>
-            <Link href="/">
-              <Button className="bg-forest-green hover:bg-forest-green text-white">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-              </Button>
-            </Link>
-          </div>
+      <JejuShell headerLeft={["[SYSTEM] ANNOUNCE.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]} headerRight={["POST NO. --", "NOT FOUND"]}>
+        <div className="jg-body">
+          <main className="jg-main">
+            <div className="jg-post">
+              <p className="jg-meta">[ERROR] 404</p>
+              <h1 className="jg-post-title jg-post-title--md">Article not found.</h1>
+              <p className="jg-post-lede">The article you're looking for doesn't exist or has been moved.</p>
+              <div className="jg-actions">
+                <Link href="/" className="jg-btn jg-btn--solid">
+                  Back home
+                </Link>
+                <Link href="/posts" className="jg-btn">
+                  All entries
+                </Link>
+              </div>
+            </div>
+          </main>
         </div>
-        <Footer />
-      </div>
+      </JejuShell>
     );
   }
 
@@ -153,6 +169,23 @@ export default function BlogPost() {
     ? post.featuredImage 
     : ogImageUrl;
 
+  const displayTitle = stripMarkdown(translatedTitle || post.title);
+  const titleSize = displayTitle.length > 70 ? " jg-post-title--sm" : displayTitle.length > 36 ? " jg-post-title--md" : "";
+  const created = new Date(post.createdAt);
+  const validDate = !isNaN(created.getTime());
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const dateDots = validDate ? `${created.getFullYear()}.${pad(created.getMonth() + 1)}.${pad(created.getDate())}` : "--";
+  const postNo = `${validDate ? String(created.getFullYear()).slice(2) : "--"}-${String(post.id).slice(-3)}`;
+  const primaryTag = post.tags?.[0] || "Field Note";
+  const excerptText = stripMarkdown(post.excerpt || "");
+  const postTags = post.tags || [];
+  const tagRelated = (allPosts || [])
+    .filter((p) => p.id !== post.id && p.tags?.some((tag) => postTags.includes(tag)))
+    .map((p) => ({ post: p, score: p.tags?.filter((tag) => postTags.includes(tag)).length || 0 }))
+    .sort((a, b) => b.score - a.score)
+    .map((entry) => entry.post);
+  const related = (tagRelated.length > 0 ? tagRelated : relatedPosts || []).filter((p) => p.id !== post.id).slice(0, 5);
+
   return (
     <>
       <SEOHead
@@ -170,159 +203,167 @@ export default function BlogPost() {
         modifiedTime={post.updatedAt instanceof Date ? post.updatedAt.toISOString() : post.updatedAt}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50">
-        <Navigation />
-        
-        <main className="container mx-auto px-6 pt-24">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Table of Contents Sidebar - Left */}
-              <aside className="lg:col-span-1 hidden lg:block">
-                <div className="sticky top-24">
-                  <TableOfContents content={post.content} />
+      <JejuShell
+        headerLeft={["[SYSTEM] ANNOUNCE.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
+        headerRight={[`POST NO. ${postNo}`, dateDots]}
+      >
+        <div className="jg-body">
+          <main className="jg-main">
+            <article className="jg-post">
+              <Link href="/posts" className="jg-back">
+                ← All entries
+              </Link>
+
+              {post.featuredImage && (
+                <figure className="jg-hero" style={{ margin: "0 0 32px" }}>
+                  <img src={post.featuredImage} alt={post.title} />
+                  <figcaption className="jg-hero-tag">{`FIG.01 — ${primaryTag} // AS-44`}</figcaption>
+                </figure>
+              )}
+
+              <p className="jg-meta">{`[CATEGORY] ${primaryTag}`}</p>
+              <h1 className={`jg-post-title${titleSize}`}>{displayTitle}</h1>
+              {excerptText && <p className="jg-post-lede">{excerptText}</p>}
+
+              <div className="jg-actions">
+                <a
+                  href="#comments"
+                  className="jg-btn jg-btn--solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToId("comments");
+                  }}
+                >
+                  {lang === "ko" ? "댓글 보기" : "Read comments"}
+                </a>
+                <span className="jg-btn">{lang === "ko" ? `${post.readTime}분 읽기` : `${post.readTime} min read`}</span>
+              </div>
+
+              <section className="jg-box" aria-label="Table of details">
+                <div className="jg-box-head">
+                  <span className="jg-box-dot" aria-hidden="true" />
+                  [T.O.D.] Table of Details
                 </div>
-              </aside>
-
-              {/* Main Content */}
-              <article className="lg:col-span-3">
-                <header className="mb-8">
-                  <div className="mb-4">
-                    <h1 className="text-4xl md:text-5xl font-bold text-forest-green font-playfair leading-tight">
-                      {stripMarkdown(translatedTitle || post.title)}
-                    </h1>
-                  </div>
-
-                  {/* Post Meta */}
-                  <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
-
-                    {/* Date */}
-                    <time dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}>
-                      {new Date(post.createdAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                <div className="jg-box-grid">
+                  <div className="jg-box-cell">
+                    <span className="jg-box-label">Published</span>
+                    <time
+                      className="jg-box-value"
+                      dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}
+                    >
+                      {dateDots}
                     </time>
-
-                    {/* Read Time */}
-                    <span>•</span>
-                    <span>{lang === "ko" ? `${post.readTime}분 읽기` : `${post.readTime} min read`}</span>
                   </div>
+                  <div className="jg-box-cell">
+                    <span className="jg-box-label">Read time</span>
+                    <span className="jg-box-value">{`${post.readTime} MIN`}</span>
+                  </div>
+                  <div className="jg-box-cell">
+                    <span className="jg-box-label">Tags</span>
+                    <span className="jg-box-value">
+                      {post.tags && post.tags.length > 0 ? post.tags.slice(0, 3).join(" / ").toUpperCase() : "—"}
+                    </span>
+                  </div>
+                  <div className="jg-box-cell">
+                    <span className="jg-box-label">Author</span>
+                    <span className="jg-box-value">SAN // AS-44</span>
+                  </div>
+                </div>
+              </section>
 
+              {post.summary && (
+                <section className="jg-box" aria-label="Summary">
+                  <div className="jg-box-head">
+                    <span className="jg-box-dot" aria-hidden="true" />
+                    {lang === "ko" ? "[SUMMARY] 요약" : "[SUMMARY] Article Summary"}
+                  </div>
+                  <p className="jg-summary">{post.summary}</p>
+                </section>
+              )}
 
-                  {/* Article Summary Box */}
-                  {post.summary && (
-                    <div className="bg-gradient-to-r from-sage-50 to-fresh-lime-50 border-l-4 border-forest-green rounded-lg p-6 mb-8">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-forest-green rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-forest-green mb-2">
-                            {lang === "ko" ? "요약" : "Article Summary"}
-                          </h3>
-                          <p className="text-gray-700 leading-relaxed">
-                            {post.summary}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </header>
+              {tocItems.length > 1 && (
+                <details className="jg-box jg-toc" aria-label="Table of contents">
+                  <summary className="jg-box-head">
+                    <span className="jg-box-dot" aria-hidden="true" />
+                    {`[T.O.C.] Table of Contents (${tocItems.length})`}
+                  </summary>
+                  <ul className="jg-box-list">
+                    {tocItems.map((item, i) => (
+                      <li key={item.id}>
+                        <a
+                          href={`#${item.id}`}
+                          className={item.level === 3 ? "jg-toc-sub" : undefined}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            scrollToId(item.id);
+                          }}
+                        >
+                          <span className="jg-toc-num">{pad(i + 1)}</span>
+                          <span>{item.text}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
 
-                {/* Featured Image */}
-                {post.featuredImage && (
-                  <img 
-                    src={post.featuredImage} 
-                    alt={post.title}
-                    className="w-full h-auto max-h-[32rem] md:max-h-[40rem] lg:max-h-[48rem] object-cover object-center featured-image-no-margin mb-8"
-                    style={{
-                      aspectRatio: 'auto',
-                      maxWidth: '100%',
-                      height: 'auto',
-                      margin: '0 0 2rem 0', // Only bottom margin for spacing from content
-                      display: 'block' // Ensure no inline spacing
-                    }}
-                    onLoad={(e) => {
-                      const img = e.target as HTMLImageElement;
-                      const aspectRatio = img.naturalWidth / img.naturalHeight;
-                      
-                      // If image is portrait (height > width)
-                      if (aspectRatio < 1) {
-                        img.style.objectFit = 'contain';
-                        img.style.maxHeight = '48rem';
-                      } else {
-                        // Landscape images
-                        img.style.objectFit = 'cover';
-                      }
-                    }}
-                  />
-                )}
+              {isTranslating && <div className="jg-notice">{lang === "ko" ? "번역 중..." : "Translating..."}</div>}
 
-            {/* Translation indicator */}
-            {isTranslating && (
-              <div className="flex items-center gap-2 text-sm text-gray-400 mb-4 animate-pulse">
-                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3" />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                {lang === "ko" ? "번역 중..." : "Translating..."}
+              <div ref={contentRef} className="jg-prose">
+                {renderedContent}
               </div>
-            )}
 
-            {/* Article Content */}
-            <div
-              ref={contentRef}
-              className="blog-content prose prose-lg max-w-none mb-8
-                prose-headings:text-forest-green prose-headings:font-playfair
-                prose-p:text-gray-700 prose-p:leading-relaxed
-                prose-a:text-sage-600 hover:prose-a:text-sage-700
-                prose-strong:text-forest-green
-                prose-blockquote:border-l-sage-500 prose-blockquote:text-gray-600
-                prose-code:bg-sage-100 prose-code:text-sage-800 prose-code:px-1 prose-code:rounded
-              "
-            >
-              {renderedContent}
-            </div>
+              {post.tags && post.tags.length > 0 && (
+                <nav className="jg-pills" aria-label="Tags" style={{ paddingBottom: 0 }}>
+                  {post.tags.map((tag) => (
+                    <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="jg-pill">
+                      {tag}
+                    </Link>
+                  ))}
+                </nav>
+              )}
 
-            {/* Comment Section - Moved here to be right after article content */}
-            <CommentSection postId={post.id.toString()} postTitle={post.title} />
+              <section id="comments" className="jg-section">
+                <p className="jg-label">[COMMENTS]</p>
+                <CommentSection postId={post.id.toString()} postTitle={post.title} />
+              </section>
 
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="border-t border-gray-200 pt-6 mb-8">
-                <TagDisplay
-                  tags={post.tags}
-                />
-              </div>
-            )}
-
-            {/* Social Share */}
-            <div className="border-t border-gray-200 pt-6 mb-8">
-              <SocialShare 
+              <section className="jg-section">
+                <p className="jg-label">[SHARE]</p>
+                <SocialShare
                   url={`/blog/${post.slug}`}
                   title={post.title}
                   excerpt={stripMarkdown(post.excerpt)}
-               />
-            </div>
-            {/* Related Posts */}
-            <RelatedPostsByTags 
-              currentPostId={post.id} 
-              currentPostTags={post.tags || []}
-            />
+                />
+              </section>
 
-              </article>
-            </div>
-          </div>
-        </main>
-
-        <Footer />
-        <ScrollToTopButton />
-      </div>
+              {related.length > 0 && (
+                <section className="jg-section">
+                  <h2 className="jg-section-title">Related entries</h2>
+                  <div className="jg-index-head">
+                    <span>Code</span>
+                    <span>Article Title</span>
+                    <span>Status</span>
+                  </div>
+                  {related.map((item, index) => {
+                    const d = new Date(item.createdAt);
+                    const year = isNaN(d.getTime()) ? "----" : d.getFullYear();
+                    return (
+                      <Link key={item.id} href={`/blog/${item.slug}`} className="jg-row">
+                        <span className="jg-row-code">{`AT-${year}-${String(index + 1).padStart(3, "0")}`}</span>
+                        <span className="jg-row-title">{item.title}</span>
+                        <span className="jg-row-status">
+                          <span className="jg-status">Read</span>
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </section>
+              )}
+            </article>
+          </main>
+        </div>
+      </JejuShell>
     </>
   );
 }

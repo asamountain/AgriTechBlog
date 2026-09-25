@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import Navigation from "@/components/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Hash, Clock, Calendar } from "lucide-react";
 import { Link } from "wouter";
-
-import { ContentSkeleton, AdaptiveLoader } from "@/components/loading";
-import { markdownToText } from "@/lib/html-to-markdown";
+import JejuShell from "@/components/jeju-shell";
+import JejuPageSkeleton from "@/components/jeju-loading";
 
 interface BlogPostWithDetails {
   id: number;
@@ -137,13 +133,6 @@ export default function TaggedPosts() {
     queryKey: ['/api/blog-posts'],
   });
 
-  // Fetch updated profile data for author information
-  const { data: profile } = useQuery({
-    queryKey: ["/api/profile"],
-    staleTime: 0,
-    gcTime: 5 * 60 * 1000,
-  });
-
   const [sortedPosts, setSortedPosts] = useState<BlogPostWithDetails[]>([]);
 
   // Filter and sort posts when data loads
@@ -167,103 +156,102 @@ export default function TaggedPosts() {
     trackPostView(postId);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const formatDots = (dateString: string) => {
+    const d = new Date(dateString);
+    return isNaN(d.getTime()) ? "--" : `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <AdaptiveLoader size="lg" text="Loading posts..." color="text-forest-green" />
-          </div>
-        </div>
-      </div>
-    );
+    return <JejuPageSkeleton variant="list" label="Fetching tag index" />;
   }
 
-  return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
-      
-      <main className="pt-24 pb-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-12 text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Hash className="h-8 w-8 text-forest-green mr-3" />
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-                {decodedTag}
-              </h1>
-            </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Explore all posts tagged with "{decodedTag}" - personalized based on your interests
-            </p>
-            <div className="mt-6">
-              <Badge 
-                variant="outline"
-                className="border-forest-green text-forest-green p-golden-xs rounded-golden-sm text-lg"
-              >
-                {sortedPosts.length} {sortedPosts.length === 1 ? 'post' : 'posts'} found
-              </Badge>
-            </div>
-          </div>
+  const count = sortedPosts.length;
+  const tagLabel = decodedTag.toUpperCase();
+  const otherTags = Array.from(
+    new Set(
+      sortedPosts
+        .flatMap((post) => post.tags || [])
+        .filter((t) => t.toLowerCase() !== decodedTag.toLowerCase()),
+    ),
+  ).slice(0, 8);
 
-          {/* Posts List */}
-          {sortedPosts.length > 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden max-w-4xl mx-auto">
-              <div className="space-y-1">
-                {sortedPosts.map((post, index) => (
-                  <Link 
-                    key={post.id} 
-                    href={`/blog/${post.slug}`}
-                    onClick={() => handlePostClick(post.id.toString())}
-                  >
-                    <article className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
-                      index !== sortedPosts.length - 1 ? 'border-b border-gray-100' : ''
-                    }`}>
-                      <div className="flex items-center flex-1">
-                        <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200">
-                          {post.title}
-                        </h3>
-                        {post.isFeatured && (
-                          <Badge className="bg-forest-green text-white ml-3 text-xs">
-                            Featured
-                          </Badge>
-                        )}
-                      </div>
-                      <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
-                        {formatDate(post.createdAt)}
-                      </span>
-                    </article>
+  return (
+    <JejuShell
+      headerLeft={["[SYSTEM] TAG.INDEX.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
+      headerRight={[`TAG // ${tagLabel}`, `${count} ${count === 1 ? "ENTRY" : "ENTRIES"}`]}
+    >
+      <div className="jg-body">
+        <main className="jg-main">
+          <div className="jg-post">
+            <Link href="/posts" className="jg-back">
+              ← All entries
+            </Link>
+
+            <p className="jg-meta">[TAG] INDEX</p>
+            <h1 className={`jg-post-title${tagLabel.length > 18 ? " jg-post-title--md" : ""}`}>{`#${tagLabel}`}</h1>
+            <p className="jg-post-lede">
+              {`Explore all posts tagged with "${decodedTag}" — personalized based on your interests.`}
+            </p>
+
+            <div className="jg-actions">
+              <span className="jg-btn jg-btn--solid">{`${count} ${count === 1 ? "post" : "posts"} found`}</span>
+            </div>
+
+            {otherTags.length > 0 && (
+              <nav className="jg-pills" aria-label="Related tags">
+                {otherTags.map((t) => (
+                  <Link key={t} href={`/tags/${encodeURIComponent(t)}`} className="jg-pill">
+                    {t}
                   </Link>
                 ))}
+              </nav>
+            )}
+
+            {count > 0 ? (
+              <div className="jg-index">
+                <div className="jg-index-head">
+                  <span>Code</span>
+                  <span>Article Title</span>
+                  <span>Status</span>
+                </div>
+                {sortedPosts.map((post, index) => {
+                  const d = new Date(post.createdAt);
+                  const year = isNaN(d.getTime()) ? "----" : d.getFullYear();
+                  return (
+                    <Link
+                      key={post.id}
+                      href={`/blog/${post.slug}`}
+                      className="jg-row"
+                      onClick={() => handlePostClick(post.id.toString())}
+                    >
+                      <span className="jg-row-code">{`AT-${year}-${String(index + 1).padStart(3, "0")}`}</span>
+                      <span className="jg-row-title">
+                        {post.title}
+                        <span className="jg-row-sub">{formatDots(post.createdAt)}</span>
+                      </span>
+                      <span className="jg-row-status">
+                        <span className={`jg-status${post.isFeatured ? " jg-status--new" : ""}`}>
+                          {post.isFeatured ? "Featured" : "Read"}
+                        </span>
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <Hash className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                No posts found for "{decodedTag}"
-              </h2>
-              <p className="text-gray-600 mb-8">
-                There are currently no published posts with this tag.
-              </p>
-              <Link href="/">
-                <Badge className="bg-forest-green text-white hover:opacity-80 cursor-pointer p-golden-sm text-base">
-                  Explore All Posts
-                </Badge>
-              </Link>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+            ) : (
+              <div className="jg-index">
+                <div className="jg-row-empty">{`NO ENTRIES FOUND FOR "${tagLabel}"`}</div>
+                <div className="jg-actions">
+                  <Link href="/" className="jg-btn jg-btn--solid">
+                    Explore all posts
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </JejuShell>
   );
 }

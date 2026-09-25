@@ -10,7 +10,7 @@ import { useEffect, lazy, Suspense } from "react";
 // import { useAnalytics } from "./hooks/use-analytics"; // DISABLED
 import { debugTracker } from "./lib/debug-tracker";
 import "./lib/crash-detector"; // Initialize crash detector
-import { GlobalPageSkeleton } from "@/components/loading";
+import JejuPageSkeleton from "@/components/jeju-loading";
 import { ProgressBarProvider } from "@/hooks/useProgressBar";
 import { TopProgressBar } from "@/components/ui/top-progress-bar";
 import { useRouteProgress } from "@/hooks/useRouteProgress";
@@ -26,6 +26,7 @@ const AdminSEODashboard = lazy(() => import("@/pages/admin-seo-dashboard"));
 const CreatePost = lazy(() => import("@/pages/create-post"));
 const Portfolio = lazy(() => import("@/pages/portfolio"));
 const About = lazy(() => import("@/pages/about"));
+const Shop = lazy(() => import("@/pages/shop"));
 const OpenGraphTester = lazy(() => import("@/pages/og-tester"));
 const TaggedPosts = lazy(() => import("@/pages/tagged-posts"));
 const AuthCallback = lazy(() => import("@/pages/auth-callback"));
@@ -38,9 +39,17 @@ function Router() {
   // useAnalytics(); // DISABLED
   useRouteProgress();
   useQueryProgress();
+  const [location] = useLocation();
+  const skeletonVariant = location.startsWith("/blog/")
+    ? "post"
+    : location.startsWith("/tags/") || location === "/posts" || location === "/shop"
+      ? "list"
+      : location === "/portfolio"
+        ? "cards"
+        : "page";
 
   return (
-    <Suspense fallback={<GlobalPageSkeleton />}>
+    <Suspense fallback={<JejuPageSkeleton variant={skeletonVariant} />}>
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/posts" component={Posts} />
@@ -50,6 +59,7 @@ function Router() {
         <Route path="/create-post" component={CreatePost} />
         <Route path="/portfolio" component={Portfolio} />
         <Route path="/about" component={About} />
+        <Route path="/shop" component={Shop} />
         <Route path="/edit-post/:id" component={CreatePost} />
         <Route path="/og-test" component={OpenGraphTester} />
         <Route path="/auth/callback" component={AuthCallback} />

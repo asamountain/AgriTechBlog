@@ -1,8 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
+import { useState, useEffect, useCallback } from "react";
+import JejuShell from "@/components/jeju-shell";
 import { useLanguage } from "@/contexts/language-context";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 interface TimelineEntry {
   year: string;
@@ -14,63 +12,15 @@ interface TimelineEntry {
 
 const TIMELINE: TimelineEntry[] = [
   {
-    year: "2008–2015",
-    imageId: "undergrad",
-    title: {
-      en: "University — Special Education & Culinary Arts",
-      ko: "학부 — 중등특수교육 / 호텔외식조리 복수전공",
-    },
-    story: {
-      en: "Caring for the vulnerable was in my DNA. When my father had major pancreas surgery, I saw how food is health. While everyone turned to exercise, I chose the kitchen — a different path to the same goal.",
-      ko: "약자를 돌보는 일이 체질이었습니다. 아버지의 큰 췌장 수술을 겪으며, 먹는 것이 곧 건강이라는 확신을 얻었습니다. 모두가 운동으로 건강을 찾을 때, 저는 다른 길을 선택했습니다.",
-    },
-  },
-  {
-    year: "2009–2011",
-    imageId: "army",
-    title: {
-      en: "Korean Army — DMZ Frontline, 22nd Division",
-      ko: "대한민국 육군 — 22사단 56연대, DMZ 최전방",
-    },
-    story: {
-      en: "Rifleman → signalman → squad leader. Daily journaling became a habit that earned natural trust. When conflicts arose, I chose tea and conversation over force. Four commendations, including first landmine discovery in the DMZ.",
-      ko: "소총병에서 분대장까지. 매일 메모하는 습관이 자연스러운 신뢰로 이어졌습니다. 갈등이 생기면 차를 나누며 이야기를 들었습니다. GOP작전유공 등 포상 4회 수상.",
-    },
-  },
-  {
-    year: "2015–2017",
-    imageId: "workingholiday",
-    title: {
-      en: "France & Australia — Working Holidays",
-      ko: "프랑스 · 호주 워킹홀리데이",
-    },
-    story: {
-      en: "Walked into a Paris guesthouse with my resume on day one and landed a kitchen job. In Australia, I packed strawberries and hauled pallets for months. The grueling repetition of farm labor planted a seed: there has to be a better way. Automation isn't optional — it's essential.",
-      ko: "파리 도착 당일 이력서를 들고 직접 문을 두드려 주방 스태프로 일했습니다. 호주에서는 딸기 패키징과 팔레트 운반을 수개월간. 장시간 단순 반복 노동의 현실이 하나의 씨앗을 심었습니다 — 자동화는 선택이 아니라 필수라는 것.",
-    },
-  },
-  {
     year: "2017–2021",
     imageId: "marketing",
     title: {
-      en: "Performance Marketing & YouTube",
-      ko: "퍼포먼스 마케팅 · 유튜브",
+      en: "Performance Marketing, YouTube & a Permaculture Garden",
+      ko: "퍼포먼스 마케팅 · 유튜브 · 퍼머컬처 밭",
     },
     story: {
-      en: "Discovered the explosive power of data and automation — Python, Selenium, precision marketing. Built a cat rescue YouTube channel from zero to 4,500 subscribers and secured $2,000/month in sponsorships. But when the structure lacked substance, I walked away. \"Structures without integrity don't last.\"",
-      ko: "데이터와 자동화의 폭발적인 힘을 체험했습니다 — Python, Selenium, 정밀 마케팅. 고양이 구조 유튜브를 0에서 4,500명까지 키우고 월 $2,000 스폰서십을 수주했습니다. 하지만 알맹이 없는 구조는 오래 못 간다는 걸 깨닫고 떠났습니다.",
-    },
-  },
-  {
-    year: "2021",
-    imageId: "vipassana",
-    title: {
-      en: "Vipassana Meditation & Temple Kitchen",
-      ko: "위빳사나 수행 · 정관스님 주방",
-    },
-    story: {
-      en: "Ten days of complete silence at Dhamma Korea — learning to observe emotions without reacting. Then trained in Master Jeong-gwan's temple kitchen, one of the toughest and most humbling environments I've known.",
-      ko: "담마코리아에서 10일 이상의 침묵 수행 — 감정을 다루는 방식을 내면에서 재정비했습니다. 이후 정관스님 주방에서 수련. 매섭고 어려운 환경이었지만, 음식의 기초를 배웠습니다.",
+      en: "Discovered the explosive power of data and automation — Python, Selenium, precision marketing. Built a cat rescue YouTube channel from zero to 4,500 subscribers and secured $2,000/month in sponsorships. But when the structure lacked substance, I walked away. \"Structures without integrity don't last.\" Around the same time I built a hügelkultur mound and grew a permaculture garden with my own hands.",
+      ko: "데이터와 자동화의 폭발적인 힘을 체험했습니다 — Python, Selenium, 정밀 마케팅. 고양이 구조 유튜브를 0에서 4,500명까지 키우고 월 $2,000 스폰서십을 수주했습니다. 하지만 알맹이 없는 구조는 오래 못 간다는 걸 깨닫고 떠났습니다. 같은 시기에 후겔쿨투어(hügelkultur) 둔덕을 직접 만들며 퍼머컬처 밭을 직접 일궜습니다.",
     },
   },
   {
@@ -122,51 +72,197 @@ const TIMELINE: TimelineEntry[] = [
     },
   },
   {
-    year: "2023–Now",
-    imageId: "iocrops",
+    year: "2026.08.21",
+    imageId: "cheongchangnong",
     title: {
-      en: "Computer Science & ioCrops — Building the Infrastructure",
-      ko: "컴퓨터과학과 · ioCrops — 인프라를 만드는 사람",
+      en: "Young Entrepreneur Farmer — Western Jeju",
+      ko: "청년창업농 시작 — 제주 서부",
     },
     story: {
-      en: "Enrolled in KNOU Computer Science to systematically understand sensors and embedded systems. At ioCrops, I debug STM32 firmware, calibrate EC/pH sensors, and support 18 smart farms nationwide. I went from defect rate 6.4% to 0% on 33 drainage pumps. This is where all the threads converge.",
-      ko: "센서와 임베디드 하드웨어를 체계적으로 이해하기 위해 컴퓨터과학과에 진학했습니다. ioCrops에서 STM32 펌웨어 디버깅, EC/pH 센서 캘리브레이션, 전국 18개 농가 기술지원을 수행합니다. 배수펌프 불량률 6.4%에서 0%를 달성했습니다. 모든 실이 여기서 하나로 모입니다.",
+      en: "Started as a Young Entrepreneur Farmer (청창농) in western Jeju. Now I'm looking for land and preparing a diversified, small-plot farm — every piece of the path so far pointing here.",
+      ko: "제주 서부에서 청년창업농(청창농)으로 첫걸음을 뗐습니다. 지금은 땅을 찾고, 다품목 소량생산 농장을 준비하고 있습니다. 지금까지의 모든 길이 이곳을 향해 있었습니다.",
     },
   },
 ];
 
-interface VisionEntry {
-  heading: { en: string; ko: string };
-  body: { en: string; ko: string };
+interface Bilingual {
+  en: string;
+  ko: string;
 }
 
-const VISION: VisionEntry[] = [
+const PRINCIPLES: { label: string; value: Bilingual }[] = [
+  {
+    label: "Abundance",
+    value: {
+      en: "Connection, giving, and always having something left after the gift",
+      ko: "사람들과의 연결, 나눔, 넉넉히 나눠도 늘 남는 삶",
+    },
+  },
+  {
+    label: "Competence",
+    value: {
+      en: "Running my own venture: trying, failing, growing",
+      ko: "직접 경영하며 시도하고, 실패하고, 성장하는 삶",
+    },
+  },
+  {
+    label: "Nature × Tech",
+    value: {
+      en: "Solarpunk: nature and machine making abundance together",
+      ko: "솔라펑크 — 자연과 기술이 함께 만드는 풍요",
+    },
+  },
+  {
+    label: "Independence",
+    value: {
+      en: "Building my own ground instead of building other people's dreams",
+      ko: "남의 꿈이 아니라 내 터를 일구는 삶",
+    },
+  },
+];
+
+interface DirectionEntry {
+  heading: Bilingual;
+  body: { en: string[]; ko: string[] };
+  list?: boolean;
+  image?: { src: string; alt: Bilingual; caption: Bilingual };
+}
+
+const DIRECTION: DirectionEntry[] = [
   {
     heading: { en: "Why a farmer", ko: "왜 농부인가" },
+    image: {
+      src: "/images/about/childhood-with-cat.jpg",
+      alt: { en: "Me as a small child, holding my cat", ko: "어린 시절, 고양이를 안고 있는 나" },
+      caption: { en: "FIG.02 — ME AND MY CAT", ko: "FIG.02 — 어린 시절, 고양이와" },
+    },
     body: {
-      en: "Plants and animals don't lie — they grow honestly, thriving or struggling exactly as they are. Farming was my first childhood ambition, and it turned out to be the one vocation that could hold everything I'd since learned: coding, photography, education, wellness, community building.",
-      ko: "동물과 식물은 거짓말을 하지 않습니다. 좋으면 좋은 대로, 힘들면 힘든 대로 정직하게 자랍니다. 어릴 때 가장 되고 싶었던 것도 농부였습니다. 그동안 쌓아온 코딩, 사진·영상, 교육, 웰니스, 로컬 커뮤니티 경험을 하나로 담아낼 수 있는 일이 바로 농업이었습니다.",
+      en: [
+        "Animals and plants don't lie — good or bad, they are exactly what they are. Whenever life got hard, in the army and after, plants kept teaching me: broken, they still sprout in gaps nobody notices, take root without complaint, and bloom.",
+        "Farming was my first pick as a kid, and it turned out to hold everything I've gathered — code, photo and video, data analysis. It's a lifelong job that's hard for AI to generalize, and one I can grow slowly and widely alongside other technologies. Nature gives solar energy away for free; if I understand its systems well enough, I can feed more than just myself and help solve problems around me.",
+      ],
+      ko: [
+        "동물과 식물은 거짓말을 하지 않습니다. 좋으면 좋은 대로, 힘들면 힘든 대로 정직합니다. 군 생활 때도, 삶이 힘들 때마다 식물은 저에게 가르침을 줬습니다. 꺾여도, 아무도 알아보지 않는 틈에서도 싹을 틔우고, 군말 없이 제 자리에 뿌리를 내리고 꽃을 피웁니다.",
+        "어릴 때 적성 1순위도 농부였고, 지금까지 쌓은 코딩, 사진·영상, 데이터 분석을 한 그릇에 담을 수 있는 직업입니다. AI가 일반화하기 어려운 평생 직업이고, 빨리빨리보다 천천히 넓게 풍요롭게 다른 기술과 접목해 키워나갈 수 있습니다. 자연이 무료로 내어주는 태양에너지로 생산을 시작할 수 있고, 자연의 원리를 제대로 이해하면 나 하나 먹고사는 데서 그치지 않고 주변을 먹이고 사회의 문제도 풀 수 있다고 믿습니다.",
+      ],
     },
   },
   {
-    heading: { en: "The farmer I'm becoming", ko: "어떤 농부가 되고 싶은가" },
+    heading: { en: "Why Jeju", ko: "왜 제주인가" },
     body: {
-      en: "Ecological farming — permaculture, syntropic agriculture — is often written off as low-yield. But I've seen, firsthand on Workaway farms abroad, how diversified small-scale growing combined with processing and community builds real value. Add technology — sensors, automation, data — and nature and machine can generate abundance together. That's the farm I'm building.",
-      ko: "생태농업(퍼머컬처, 신트로피) 방식은 수확량이 적다고 여겨지지만, 해외 농장들에서 다품종 소량생산에 가공과 커뮤니티를 더해 실제 큰 부가가치를 만들어내는 사례들을 직접 봤습니다. 여기에 기술 — 센서, 자동화, 데이터 — 을 더하면 자연과 기계가 함께 풍요를 만드는 농장이 가능하다고 믿습니다. 그것이 제가 만들고 싶은 농장입니다.",
+      en: [
+        "A place where my partner can be welcomed: open to diversity and to people from many countries. On my working holiday in France I fell for that variety — different standards of beauty, people from everywhere, never boring. As a tourism island, Jeju is culturally open and multicultural.",
+        "I wanted mountains, sea, rivers and fields together, because abundance follows ecological variety. I also wanted subtropical crops: my time in Bali taught me the value of that kind of health — papaya, banana, mangosteen, dragon fruit. And I know how hard cold places are on the body, from frostbitten toes in the army to frozen pipes in Paju.",
+      ],
+      ko: [
+        "파트너가 받아들여질 수 있는 곳, 다양성을 받아들이는 곳이 필요했습니다. 프랑스 워킹홀리데이에서 다양함이 주는 매력을 알게 됐습니다 — 다양한 미의 기준, 다양한 국적의 사람들, 질리지 않는 곳. 제주는 관광의 섬이라 외국인에게도 열려 있고 문화적으로 풍요로운 곳입니다.",
+        "산, 바다, 강, 들이 모두 있는 곳을 원했습니다. 생태의 다양한 요소가 있는 곳에 풍요도 있기 때문입니다. 아열대 작물도 희망했습니다. 따뜻한 발리에서 파파야, 바나나, 망고스틴, 용과가 주는 건강함이 좋았고, 강원도 군생활의 발가락 동상, 파주의 동파처럼 추운 곳의 괴로움도 겪어봤습니다.",
+      ],
     },
   },
   {
-    heading: { en: "Where it stands now", ko: "지금 하고 있는 일" },
+    heading: { en: "Why ecological farming", ko: "왜 생태농업인가" },
     body: {
-      en: "I'm searching for land in Jeju, selected for the Young Entrepreneur Farmer (청년창업농) program with a diversified, small-plot farm plan. Starting with rye and hairy vetch to build the soil, trialing kale, jicama, and lemon, and eventually keeping bees. The sensor and automation experience from ioCrops carries straight into the farm — and every crop will carry its own story, told through the same camera and code I've used all along.",
-      ko: "지금은 제주에서 땅을 찾고 있습니다. 청년창업농으로 선정되어 다품목 소량생산 농장을 준비 중입니다. 호밀과 헤어리베치로 토양을 살리고, 케일·얌빈·레몬 등을 시험 재배하며, 벌도 함께 기를 계획입니다. ioCrops에서 쌓은 센서·자동화 경험을 그대로 농장에 적용하고, 작물 하나하나의 이야기를 지금까지 써온 카메라와 코드로 계속 기록해나갈 생각입니다.",
+      en: [
+        "It matches my values — diversity. And I saw the possibility first-hand on Workaway farms abroad: small-scale, many-crop growing, permaculture farms like Bec Hellouin in France and Krameterhof in Switzerland. Some of them started from almost nothing; it was a question of will.",
+        "Ecological farming is often written off as low-yield. But add processing, community, and technology — sensors, automation, data — and I believe it can become real, stable income.",
+      ],
+      ko: [
+        "가치관이 맞습니다. 다양성입니다. 그리고 해외 Workaway 농장에서 가능성을 직접 봤습니다. 다품종 소량생산, 프랑스 벡 엘루앙이나 스위스 Krameterhof 같은 퍼머컬처 농장들. 아무것도 없이 시작한 곳도 있었고, 결국 의지의 문제였습니다.",
+        "생태농업은 수확량이 적다고들 하지만, 가공과 커뮤니티, 그리고 센서·자동화·데이터 같은 기술을 더하면 실제 안정적인 소득이 될 수 있다고 믿습니다.",
+      ],
+    },
+  },
+  {
+    heading: { en: "Why now", ko: "왜 지금인가" },
+    body: {
+      en: [
+        "I recently got married, and we need a place to settle. City life meant not being able to do what I love. It also feels like the right moment: in the age of AI, starting your own venture is encouraged. I passed the Young Entrepreneur Farmer program, so the only thing left is to begin — and I can keep coding with AI along the way.",
+      ],
+      ko: [
+        "최근 결혼했고, 함께 살 정착지가 필요합니다. 도시에서 살며 느낀 건 좋아하는 것들을 할 수 없다는 괴로움이었습니다. 대 AI 시대, 창업을 권하는 타이밍이기도 합니다. 마침 청년창업농에도 합격했으니 이제 시작만 하면 됩니다. AI를 활용해 코딩도 계속 해나갈 수 있습니다.",
+      ],
+    },
+  },
+  {
+    heading: { en: "Harder than I thought", ko: "생각보다 어려운 것들" },
+    list: true,
+    body: {
+      en: [
+        "Without land nothing can start. Fruit trees are hard to plant on land that isn't mine, so the planting systems I imagined can't be tried right away.",
+        "Passing the program doesn't create income by itself. Some kind people advised me to grow tangerines and earn steadily first.",
+        "Jeju's groundwater is scarce and precious, and livestock is a sensitive issue on a tourism island — ecological farming here has many limits.",
+        "Tropical crops can't survive freezing winters outside a greenhouse. Cold-tolerant tropicals exist, but many are labor-heavy, cheap, or slow to mature.",
+        "Shipping from the island costs around ₩6,000, so selling to the mainland needs a real premium.",
+        "AI video isn't automatic: it takes a lot of tokens and, in the end, a human hand for the finish.",
+        "Boundaries matter. When you can code, shoot video and speak languages, everyone wants to borrow you. I said yes to everything and burned out — I'm learning to say no, carefully.",
+      ],
+      ko: [
+        "땅이 없으면 아무것도 시작할 수 없습니다. 내 땅이 아니면 과수를 심기도 어려워서, 생각했던 식재 방식을 곧장 시도해볼 수 없습니다.",
+        "청년창업농이 되었다고 바로 돈이 만들어지는 구조는 아닙니다. 차라리 감귤로 당장 소득을 만들어가며 하라는 소중한 조언도 들었습니다.",
+        "제주는 지하수가 중요하고 많지 않은 자원이며, 관광지라 가축 문제에 매우 민감합니다. 생태농업을 마음껏 할 수 있는 공간은 아니고 제한이 많습니다.",
+        "열대 작물은 겨울에 영하로 떨어지면 온실이 아닌 곳에서는 얼어 죽습니다. 저온형 열대 작물도 손이 많이 가거나, 가격이 싸거나, 오래 길러야 하는 경우가 많습니다.",
+        "도서산간 배송비가 약 6,000원입니다. 육지로 팔려면 분명한 프리미엄이 있어야 합니다.",
+        "AI로 영상을 만든다고 저절로 예쁘게 나오지 않습니다. 토큰도 많이 들고, 결국 사람 손의 섬세한 마무리가 필요합니다.",
+        "경계를 지키는 것이 중요합니다. 컴퓨터, 카메라, 외국어를 다룰 줄 알면 여기저기서 데려다 쓰려 합니다. 모든 곳에 Yes라고 하다 번아웃이 왔고, 조심스럽게 No라고 말하는 법을 배우고 있습니다.",
+      ],
+    },
+  },
+  {
+    heading: { en: "What failure means to me", ko: "나에게 실패란" },
+    body: {
+      en: [
+        "Failure isn't earning a little less; a little short but at peace is best. Failure is misjudging so badly that I'm buried in debt, anxious and afraid every day, and lose my peace of mind. It's also drifting — growing older while doing nothing each day. That won't happen.",
+        "Surviving as a farmer means calculating, measuring, forecasting, managing risk, and thriving together with the people around you. I've been assembling this life piece by piece from my past, and the growth from continuing to try will be the real return.",
+      ],
+      ko: [
+        "조금 부족해도 마음이 편안한 게 최고입니다. 제가 생각하는 실패는 지독하게 오판해서 수억 원의 빚에 매일 허덕이고 불안해하며 마음의 평화를 모두 잃는 것, 그리고 하루하루 나태해져서 아무것도 안 하고 나이만 먹어가는 것입니다. 그런 일은 없을 겁니다.",
+        "농부로서 생존한다는 건 계산하고 측량하고 예측하고 추정하며, 리스크를 관리하고, 주변 사람들과 상생해나가는 일입니다. 저는 이 삶을 과거부터 조금씩 퍼즐을 맞춰왔고, 계속 시도하는 과정에서 얻는 성장이 클 것입니다.",
+      ],
+    },
+  },
+  {
+    heading: { en: "What I'm doing now", ko: "지금 하고 있는 일" },
+    list: true,
+    body: {
+      en: [
+        "Looking for land. Once it comes, I want to plant autumn and winter crops and learn whether they grow, and whether I have the stamina to grow them.",
+        "Testing rye and hairy vetch together as green manure: on a plot of about 400–500 pyeong, is that enough fertility without outside compost? Can rye really become bread, and its straw a healthy mulch?",
+        "Keeping bees: will they thrive, will the honey come? And can a plot this size cover our basic energy needs, with room for extra income to fund next year?",
+        "Deciding how to sell: a web page that tells our world and our food in detail, alongside a marketplace store. I'd rather run both and let the data say which works better.",
+        "Going slowly and naturally, at my own pace, instead of rushing into burnout.",
+      ],
+      ko: [
+        "땅을 알아보고 있습니다. 땅이 나오면 가을·겨울 작물을 심어보고, 잘 자라는지, 그걸 기를 체력과 여력이 되는지 확인하려 합니다.",
+        "호밀과 헤어리베치를 함께 뿌렸을 때, 400~500평 밭에서 외부 퇴비 없이도 충분한지 시험해보려 합니다. 호밀로 실제 빵을 만들 수 있는지, 호밀 짚으로 멀칭이 건강하게 되는지도요.",
+        "벌통을 두고 벌도 함께 기를 계획입니다. 잘 자랄지, 꿀이 잘 나올지, 이 규모의 땅에서 기본 에너지를 자급할 수 있는지, 다음 해에도 이어갈 부가 소득을 만들 수 있는지 윤곽을 그려보는 중입니다.",
+        "판매는 우리의 세계관과 음식을 자세히 설명할 수 있는 웹페이지와 쇼핑몰을 함께 운영해보고, 데이터를 보며 어느 쪽이 나은지 판단하려 합니다.",
+        "급하게 가다 번아웃이 되기보다, 제 흐름에 맞춰 천천히 자연스럽게 가려 합니다.",
+      ],
     },
   },
 ];
 
 type ImageMap = Record<string, string[]>;
 
-function TimelineCard({
+// Remote timeline photos that are served from a local copy in /public instead.
+const LOCAL_IMAGE_OVERRIDES: Record<string, string> = {
+  "https://res.cloudinary.com/dt8sr1dil/image/upload/v1773396740/agritech-blog/ot0utftc04pjyntu0uqg.jpg":
+    "/images/about/yeongwol-field-filming.jpg",
+  "https://res.cloudinary.com/dt8sr1dil/image/upload/v1773395830/agritech-blog/xbnisfeistv5topljqks.png":
+    "/images/about/workaway-permaculture-class.jpg",
+};
+
+const DETAILS: { label: string; value: { en: string; ko: string } }[] = [
+  { label: "Base", value: { en: "JEJU, KOREA", ko: "제주" } },
+  { label: "Previous", value: { en: "IOCROPS // JUN 2025 – MAR 2026", ko: "ioCrops // 2025.06 – 2026.03" } },
+  { label: "Education", value: { en: "KNOU COMPUTER SCIENCE", ko: "컴퓨터과학과 (KNOU)" } },
+  { label: "Status", value: { en: "YOUNG ENTREPRENEUR FARMER", ko: "청년창업농 선정" } },
+];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+function TimelineItem({
   entry,
   index,
   images,
@@ -177,125 +273,39 @@ function TimelineCard({
   images: string[];
   lang: "ko" | "en";
 }) {
-  const { ref, isVisible } = useScrollReveal();
   const [expandedImg, setExpandedImg] = useState<string | null>(null);
-  const isLeft = index % 2 === 0;
-  const hasImages = images.length > 0;
 
   return (
-    <div ref={ref} className="relative md:pt-8">
-      {/* Dot on the timeline */}
-      <div
-        className={`absolute left-4 md:left-1/2 w-3.5 h-3.5 rounded-full -translate-x-[7px] md:-translate-x-[7px] top-2 z-10 ring-4 ring-white transition-all duration-700 ${
-          isVisible ? "bg-forest-green scale-100" : "bg-gray-300 scale-75"
-        }`}
-      />
-
-      {/* Year badge - centered on desktop */}
-      <div className="hidden md:block absolute left-1/2 -translate-x-1/2 -top-6">
-        <span
-          className={`inline-block text-[10px] font-bold tracking-[0.25em] text-forest-green uppercase bg-white px-3 py-1 border border-forest-green/20 rounded-full transition-all duration-500 delay-200 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-          }`}
-        >
-          {entry.year}
-        </span>
+    <div className="jg-tl-item">
+      <div className="jg-tl-when">
+        <span className="jg-tl-index">{`[${pad(index + 1)}]`}</span>
+        <span className="jg-tl-year">{entry.year}</span>
       </div>
+      <div className="jg-tl-body">
+        <h3 className="jg-tl-title">{entry.title[lang]}</h3>
+        <p className="jg-tl-story">{entry.story[lang]}</p>
 
-      {/* Card */}
-      <div
-        className={`ml-12 md:ml-0 md:w-[calc(50%-2.5rem)] transition-all duration-700 ease-out ${
-          isLeft ? "md:mr-auto" : "md:ml-auto"
-        } ${
-          isVisible
-            ? "opacity-100 translate-y-0"
-            : `opacity-0 translate-y-8 ${isLeft ? "md:-translate-x-4" : "md:translate-x-4"}`
-        }`}
-        style={{ transitionDelay: "150ms" }}
-      >
-        {/* Mobile year */}
-        <span className="md:hidden text-[10px] font-bold tracking-[0.25em] text-forest-green uppercase">
-          {entry.year}
-        </span>
-
-        <div className="mt-1 bg-white border border-gray-100 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-300 group">
-          {/* Images strip */}
-          {hasImages && (
-            <div className="mb-4 -mx-6 -mt-6">
-              <div className={`grid gap-0.5 rounded-t-lg overflow-hidden ${
-                images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-3"
-              }`}>
-                {images.map((url, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setExpandedImg(expandedImg === url ? null : url)}
-                    className="relative aspect-[4/3] overflow-hidden cursor-pointer focus:outline-none"
-                  >
-                    <img
-                      src={url}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Expanded image lightbox */}
-          {expandedImg && (
-            <div className="mb-4 -mx-6">
+        {images.length > 0 && (
+          <div className="jg-tl-images">
+            {images.map((url, i) => (
               <button
-                onClick={() => setExpandedImg(null)}
-                className="w-full focus:outline-none cursor-pointer"
+                key={i}
+                type="button"
+                className="jg-tl-thumb"
+                onClick={() => setExpandedImg(expandedImg === url ? null : url)}
+                aria-label={`${entry.title[lang]} — image ${i + 1}`}
               >
-                <img
-                  src={expandedImg}
-                  alt=""
-                  className="w-full max-h-80 object-contain bg-gray-50"
-                />
+                <img src={url} alt="" loading="lazy" />
               </button>
-            </div>
-          )}
-
-          <h3 className="text-lg font-playfair font-bold text-gray-900 mb-3 leading-snug">
-            {entry.title[lang]}
-          </h3>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {entry.story[lang]}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function VisionSection({ lang }: { lang: "ko" | "en" }) {
-  const { ref, isVisible } = useScrollReveal();
-  return (
-    <div
-      ref={ref}
-      className={`mt-32 pt-16 border-t border-gray-100 transition-all duration-1000 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
-    >
-      <span className="text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block text-center">
-        {lang === "ko" ? "비전" : "Vision"}
-      </span>
-      <h2 className="text-3xl sm:text-4xl font-playfair font-bold text-gray-900 mb-16 text-center italic">
-        {lang === "ko" ? "농부로서 바라보는 것" : "What I'm Growing Toward"}
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-        {VISION.map((entry, i) => (
-          <div key={i} className="text-center md:text-left">
-            <h3 className="text-lg font-playfair font-bold text-forest-green mb-3">
-              {entry.heading[lang]}
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed">{entry.body[lang]}</p>
+            ))}
           </div>
-        ))}
+        )}
+
+        {expandedImg && (
+          <button type="button" className="jg-tl-expanded" onClick={() => setExpandedImg(null)}>
+            <img src={expandedImg} alt="" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -304,15 +314,6 @@ function VisionSection({ lang }: { lang: "ko" | "en" }) {
 export default function AboutPage() {
   const { lang } = useLanguage();
   const [imageMap, setImageMap] = useState<ImageMap>({});
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVisible, setHeroVisible] = useState(false);
-  const closingReveal = useScrollReveal();
-
-  useEffect(() => {
-    // Trigger hero animation on mount
-    const timer = setTimeout(() => setHeroVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     fetch("/api/admin/timeline-images")
@@ -329,112 +330,125 @@ export default function AboutPage() {
   }, []);
 
   const getImages = useCallback(
-    (imageId: string) => imageMap[imageId] || [],
+    (imageId: string) => (imageMap[imageId] || []).map((url) => LOCAL_IMAGE_OVERRIDES[url] ?? url),
     [imageMap]
   );
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
-
-      <main className="pt-32 pb-24">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Hero */}
-          <div ref={heroRef} className="mb-20">
-            <span
-              className={`text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block transition-all duration-700 ${
-                heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-            >
-              {lang === "ko" ? "소개" : "About"}
-            </span>
-            <h1
-              className={`text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight transition-all duration-700 delay-150 ${
-                heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-              }`}
-            >
-              {lang === "ko" ? (
-                <>윤승진</>
-              ) : (
-                <>
-                  SeungJin <span className="italic">Youn</span>
-                </>
-              )}
-            </h1>
-            <p
-              className={`text-xl text-gray-600 leading-relaxed max-w-3xl transition-all duration-700 delay-300 ${
-                heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-            >
+    <JejuShell
+      headerLeft={["[SYSTEM] PROFILE.V1", "[REGION] JEJU PROVINCE"]}
+      headerRight={["ENTRY // ABOUT", "SEUNGJIN YOUN"]}
+    >
+      <div className="jg-body">
+        <main className="jg-main">
+          <div className="jg-post">
+            <p className="jg-meta">{lang === "ko" ? "[ABOUT] 소개" : "[ABOUT] PROFILE"}</p>
+            <h1 className="jg-post-title">{lang === "ko" ? "윤승진." : "SeungJin Youn."}</h1>
+            <p className="jg-post-lede">
               {lang === "ko"
                 ? "사회적 일을 하다 농업으로, 그리고 테크로."
                 : "From social impact to agriculture, then to tech."}
             </p>
-            <p
-              className={`mt-6 text-sm text-gray-400 max-w-xl leading-relaxed transition-all duration-700 delay-500 ${
-                heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-            >
+            <p className="jg-post-sub">
               {lang === "ko"
                 ? "농사를 짓는 사람이 아니라, 농업이 제대로 작동할 수 있는 인프라를 만드는 사람이 되기로 했습니다."
                 : "I decided to become not the farmer, but the one who builds the infrastructure that makes farming actually work."}
             </p>
-          </div>
 
-          {/* Timeline */}
-          <div className="relative">
-            {/* Vertical line */}
-            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-forest-green/30 to-transparent md:-translate-x-px" />
-
-            <div className="space-y-16 md:space-y-24">
-              {TIMELINE.map((entry, i) => (
-                <TimelineCard
-                  key={i}
-                  entry={entry}
-                  index={i}
-                  images={getImages(entry.imageId)}
-                  lang={lang}
-                />
-              ))}
-            </div>
-          </div>
-
-          <VisionSection lang={lang} />
-
-          {/* Closing */}
-          <div
-            ref={closingReveal.ref}
-            className={`mt-32 pt-16 border-t border-gray-100 text-center transition-all duration-1000 ${
-              closingReveal.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-          >
-            <blockquote className="text-2xl sm:text-3xl font-playfair italic text-gray-800 leading-relaxed max-w-2xl mx-auto">
-              {lang === "ko"
-                ? "\"\uACB0\uAD6D \uD14C\uD06C\uB97C \uC81C\uB300\uB85C \uACF5\uBD80\uD558\uACE0 \uB098\uC544\uAC00\uB294 \uC218\uBC16\uC5D0 \uC5C6\uACA0\uB2E4.\""
-                : "\"In the end, the only way forward is to truly learn tech and keep going.\""}
-            </blockquote>
-            <div className="mt-16 flex justify-center gap-8 text-sm">
-              <a
-                href="mailto:sjisyours@gmail.com"
-                className="text-gray-400 hover:text-forest-green transition-colors duration-300"
-              >
+            <div className="jg-actions">
+              <a href="mailto:sjisyours@gmail.com" className="jg-btn jg-btn--solid">
                 sjisyours@gmail.com
               </a>
-              <span className="text-gray-200">|</span>
-              <a
-                href="https://github.com/asamountain"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-forest-green transition-colors duration-300"
-              >
+              <a href="https://github.com/asamountain" target="_blank" rel="noopener noreferrer" className="jg-btn">
                 GitHub
               </a>
             </div>
-          </div>
-        </div>
-      </main>
 
-      <Footer />
-    </div>
+            <section className="jg-box" aria-label="Table of details">
+              <div className="jg-box-head">
+                <span className="jg-box-dot" aria-hidden="true" />
+                [T.O.D.] Table of Details
+              </div>
+              <div className="jg-box-grid">
+                {DETAILS.map((d) => (
+                  <div className="jg-box-cell" key={d.label}>
+                    <span className="jg-box-label">{d.label}</span>
+                    <span className="jg-box-value">{d.value[lang]}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="jg-section">
+              <h2 className="jg-section-title">{lang === "ko" ? "주요 이정표" : "Key milestones"}</h2>
+              <div className="jg-timeline">
+                {[...TIMELINE].reverse().map((entry, i) => (
+                  <TimelineItem key={entry.imageId} entry={entry} index={i} images={getImages(entry.imageId)} lang={lang} />
+                ))}
+              </div>
+            </section>
+
+            <section className="jg-section">
+              <p className="jg-label">{lang === "ko" ? "[DIRECTION] 2026년 9월, 나의 마인드맵에서" : "[DIRECTION] FROM MY MIND MAP, SEPT 2026"}</p>
+              <h2 className="jg-section-title">{lang === "ko" ? "내가 향하는 삶" : "The life I'm building toward"}</h2>
+              <section className="jg-box" aria-label="Direction">
+                <div className="jg-box-head">
+                  <span className="jg-box-dot" aria-hidden="true" />
+                  [D.I.R.] Direction
+                </div>
+                <div className="jg-box-grid">
+                  {PRINCIPLES.map((p) => (
+                    <div className="jg-box-cell" key={p.label}>
+                      <span className="jg-box-label">{p.label}</span>
+                      <span className="jg-box-value">{p.value[lang]}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </section>
+
+            <section className="jg-section">
+              <p className="jg-label">{lang === "ko" ? "[Q&A] 스스로에게 묻고 답하기" : "[Q&A] QUESTIONS I ASK MYSELF"}</p>
+              <h2 className="jg-section-title">{lang === "ko" ? "왜, 그리고 어떻게" : "Why, and how"}</h2>
+              {DIRECTION.map((entry, i) => (
+                <section className="jg-box" key={i} aria-label={entry.heading.en}>
+                  <div className="jg-box-head">
+                    <span className="jg-box-dot" aria-hidden="true" />
+                    {`[${pad(i + 1)}] ${entry.heading[lang]}`}
+                  </div>
+                  <div className={`jg-summary${entry.image ? " jg-summary--media" : ""}`}>
+                    {entry.image && (
+                      <figure className="jg-fig">
+                        <img src={entry.image.src} alt={entry.image.alt[lang]} loading="lazy" />
+                        <figcaption className="jg-hero-tag">{entry.image.caption[lang]}</figcaption>
+                      </figure>
+                    )}
+                    <div className="jg-summary-text">
+                      {entry.list ? (
+                        <ul className="jg-qa-list">
+                          {entry.body[lang].map((line, j) => (
+                            <li key={j}>{line}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        entry.body[lang].map((para, j) => <p key={j}>{para}</p>)
+                      )}
+                    </div>
+                  </div>
+                </section>
+              ))}
+            </section>
+
+            <section className="jg-section">
+              <blockquote className="jg-quote">
+                {lang === "ko"
+                  ? "\"\uACB0\uAD6D \uD14C\uD06C\uB97C \uC81C\uB300\uB85C \uACF5\uBD80\uD558\uACE0 \uB098\uC544\uAC00\uB294 \uC218\uBC16\uC5D0 \uC5C6\uACA0\uB2E4.\""
+                  : "\"In the end, the only way forward is to truly learn tech and keep going.\""}
+              </blockquote>
+            </section>
+          </div>
+        </main>
+      </div>
+    </JejuShell>
   );
 }

@@ -33,3 +33,7 @@ Thumbs.db
 *.jpeg
 attached_assets/
 .env*.local
+
+# Site images served from client/public (About page photos)
+!client/public/images/
+!client/public/images/**/*.jpg

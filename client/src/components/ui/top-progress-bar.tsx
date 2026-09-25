@@ -19,8 +19,7 @@ export function TopProgressBar() {
         className="h-full transition-all duration-200 ease-out"
         style={{
           width: `${progress}%`,
-          background: 'linear-gradient(90deg, #2D5016, #7CB342)',
-          boxShadow: '0 0 8px rgba(45, 80, 22, 0.4)',
+          background: 'linear-gradient(90deg, #000000 0%, #000000 88%, #FF422E 100%)',
           opacity: progress >= 100 ? 0 : 1,
           transition: progress >= 100
             ? 'width 200ms ease-out, opacity 300ms ease-out 100ms'
