@@ -937,7 +937,7 @@
 
 .jg-tl-item {
   display: grid;
-  grid-template-columns: 160px 1fr;
+  grid-template-columns: 160px minmax(0, 1fr);
   gap: 24px;
   padding: 28px 0;
   border-bottom: 1px solid var(--rule);
@@ -961,8 +961,13 @@
   letter-spacing: 0.04em;
 }
 
+.jg-tl-body {
+  min-width: 0;
+}
+
 .jg-tl-title {
   margin: 0 0 12px;
+  overflow-wrap: break-word;
   font-size: 22px;
   font-weight: 800;
   line-height: 1.1;
@@ -1141,13 +1146,36 @@ a.jg-card:hover {
 
 @media (max-width: 1023px) {
   .jg-tl-item {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
 
   .jg-tl-when {
     flex-direction: row;
     gap: 12px;
+  }
+
+  .jg-tl-title {
+    font-size: 20px;
+  }
+}
+
+/* Phones: two-up photo grid that always fits the screen width.
+   With an odd count, the first photo becomes a full-width lead image. */
+@media (max-width: 640px) {
+  .jg-tl-images {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 16px;
+  }
+
+  .jg-tl-thumb:first-child:nth-last-child(odd) {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 9;
+  }
+
+  .jg-tl-expanded img {
+    max-height: 70vh;
   }
 }
 
