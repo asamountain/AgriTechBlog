@@ -315,11 +315,37 @@
 
 .jg-footer-links {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.jg-footer-links a:hover {
-  text-decoration: underline;
+/* Footer menu: bordered buttons so they read as navigation, not body text */
+.jg-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.jg-nav-link:hover,
+.jg-nav-link[aria-current="page"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.jg-nav-link[aria-current="page"] {
+  box-shadow: inset 0 -3px 0 var(--tangerine);
 }
 
 .jg-footer-meta {
@@ -411,7 +437,26 @@
 
   .jg-footer-meta {
     flex-direction: column;
+    align-items: flex-start;
     gap: 4px;
+  }
+
+  /* Phones: full-width 2x2 menu with 44px tap targets */
+  .jg-footer-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    margin: 4px 0 8px;
+  }
+
+  .jg-nav-link {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  .jg-lang button {
+    min-height: 32px;
+    padding: 4px 12px;
   }
 }
 
@@ -1668,42 +1713,29 @@ a.jg-card:hover {
   }
 }
 
-/* Menu item that is not open yet: strikethrough plus a hover note */
-.jg-nav-soon {
-  position: relative;
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
+/* Menu item that is not open yet: dashed border plus a visible badge
+   (a hover tooltip never shows on touch screens) */
+.jg-nav-link.jg-nav-soon {
+  border-style: dashed;
+  color: rgba(0, 0, 0, 0.55);
 }
 
-.jg-footer-links a.jg-nav-soon:hover {
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
+.jg-nav-link.jg-nav-soon:hover {
+  background: var(--bg);
+  color: var(--ink);
 }
 
-.jg-nav-soon::after {
-  content: attr(data-tip);
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  padding: 5px 10px;
+.jg-nav-link.jg-nav-soon[aria-current="page"] {
   background: var(--ink);
   color: var(--bg);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  text-decoration: none;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 4px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.jg-nav-soon:hover::after,
-.jg-nav-soon:focus-visible::after {
-  opacity: 1;
-  transform: translate(-50%, 0);
+.jg-nav-badge {
+  padding: 1px 5px;
+  background: var(--tangerine);
+  color: #fff;
+  font-size: 9px;
+  letter-spacing: 0.04em;
 }
 
 .jg-shop-band {

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/contexts/language-context";
 import { SHOP_URL } from "@/config/site";
 import "@/styles/home-geometric.css";
@@ -13,6 +13,9 @@ interface JejuShellProps {
 export default function JejuShell({ headerLeft, headerRight, children }: JejuShellProps) {
   const { lang, setLang } = useLanguage();
   const ko = lang === "ko";
+  const [location] = useLocation();
+  const current = (href: string) =>
+    location === href || location.startsWith(`${href}/`) ? ("page" as const) : undefined;
 
   return (
     <div className="jg-page" lang={lang}>
@@ -46,18 +49,20 @@ export default function JejuShell({ headerLeft, headerRight, children }: JejuShe
               ECO AGRI-INDEX
             </Link>
             <nav className="jg-footer-links" aria-label="Site">
-              <Link href="/posts">{ko ? "글" : "POSTS"}</Link>
-              <Link href="/portfolio">{ko ? "포트폴리오" : "PORTFOLIO"}</Link>
+              <Link href="/posts" className="jg-nav-link" aria-current={current("/posts")}>{ko ? "글" : "POSTS"}</Link>
+              <Link href="/portfolio" className="jg-nav-link" aria-current={current("/portfolio")}>{ko ? "포트폴리오" : "PORTFOLIO"}</Link>
               {SHOP_URL ? (
-                <a href={SHOP_URL} className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="FARM — 준비 중 (coming soon)">
+                <a href={SHOP_URL} className="jg-nav-link jg-nav-soon" aria-label="FARM — 준비 중 (coming soon)">
                   {ko ? "농장" : "FARM"}
+                  <span className="jg-nav-badge" aria-hidden="true">{ko ? "준비 중" : "SOON"}</span>
                 </a>
               ) : (
-                <Link href="/shop" className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="FARM — 준비 중 (coming soon)">
+                <Link href="/shop" className="jg-nav-link jg-nav-soon" aria-current={current("/shop")} aria-label="FARM — 준비 중 (coming soon)">
                   {ko ? "농장" : "FARM"}
+                  <span className="jg-nav-badge" aria-hidden="true">{ko ? "준비 중" : "SOON"}</span>
                 </Link>
               )}
-              <Link href="/about">{ko ? "소개" : "ABOUT"}</Link>
+              <Link href="/about" className="jg-nav-link" aria-current={current("/about")}>{ko ? "소개" : "ABOUT"}</Link>
             </nav>
             <div className="jg-footer-meta">
               <span>[LOC] 33.4890° N, 126.4983° E</span>
