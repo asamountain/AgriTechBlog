@@ -1,38 +1,20 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Calendar, Clock, User, X } from "lucide-react";
-import { useState, useMemo, useRef, useEffect, useCallback, type ReactNode } from "react";
-import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
+import { useState, useMemo, useCallback } from "react";
+import JejuShell from "@/components/jeju-shell";
+import JejuPageSkeleton from "@/components/jeju-loading";
 import SEOHead from "@/components/seo-head";
-import { markdownToText } from "@/lib/html-to-markdown";
-import { AdaptiveLoader } from "@/components/loading";
 import { stripMarkdown } from "@/lib/utils";
 import { useLanguage } from "@/contexts/language-context";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
 
-function RevealSection({ children, className = "" }: { children: ReactNode; className?: string }) {
-  const { ref, isVisible } = useScrollReveal();
-  return (
-    <div ref={ref} className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"} ${className}`}>
-      {children}
-    </div>
-  );
-}
+const VISIBLE_TAGS = 14;
 
 export default function PostsPage() {
   const { lang } = useLanguage();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [heroVisible, setHeroVisible] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 100); return () => clearTimeout(t); }, []);
-  const filtersReveal = useScrollReveal();
+  const [showAllTags, setShowAllTags] = useState(false);
 
   const prefetchPost = useCallback((slug: string) => {
     queryClient.prefetchQuery({
@@ -67,17 +49,20 @@ export default function PostsPage() {
     return counts;
   }, [posts]);
 
-  const allTags = useMemo(() => Array.from(tagCounts.keys()).sort(), [tagCounts]);
+  const sortedTags = useMemo(
+    () => Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([tag]) => tag),
+    [tagCounts],
+  );
 
   // Filter posts based on search term and selected tag
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
-    
+
     return posts.filter((post: any) => {
       const matchesSearch = searchTerm === "" ||
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (post.tags && post.tags.some((tag: string) => 
+        (post.tags && post.tags.some((tag: string) =>
           tag.toLowerCase().includes(searchTerm.toLowerCase())
         ));
 
@@ -95,21 +80,19 @@ export default function PostsPage() {
       return { [allLabel]: filteredPosts };
     }
 
-    const grouped = filteredPosts.reduce((acc: any, post: any) => {
+    return filteredPosts.reduce((acc: any, post: any) => {
       const month = new Date(post.createdAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
         year: 'numeric',
         month: 'long'
       });
-      
+
       if (!acc[month]) {
         acc[month] = [];
       }
       acc[month].push(post);
       return acc;
     }, {});
-
-    return grouped;
-  }, [filteredPosts, selectedTag, searchTerm]);
+  }, [filteredPosts, selectedTag, searchTerm, lang]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -119,17 +102,14 @@ export default function PostsPage() {
   const hasActiveFilters = searchTerm !== "" || selectedTag !== null;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-fresh-lime-50 flex flex-col">
-        <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <AdaptiveLoader size="lg" text="Loading posts..." color="text-forest-green" />
-          </div>
-        </div>
-      </div>
-    );
+    return <JejuPageSkeleton variant="list" />;
   }
+
+  const total = posts?.length ?? 0;
+  const visibleTags = showAllTags ? sortedTags : sortedTags.slice(0, VISIBLE_TAGS);
+  const hiddenCount = sortedTags.length - VISIBLE_TAGS;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  let running = 0;
 
   return (
     <>
@@ -143,172 +123,122 @@ export default function PostsPage() {
         author="San"
       />
 
-      <div className="min-h-screen bg-faint-lime/30">
-        <Navigation />
-        
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
-          {/* Header */}
-          <div ref={heroRef} className="mb-20">
-            <span className={`text-xs font-bold tracking-[0.4em] text-gray-400 uppercase mb-4 block transition-all duration-700 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              {lang === "ko" ? "지식 저장소" : "Knowledge Base"}
-            </span>
-            <h1 className={`text-5xl sm:text-6xl font-playfair font-bold text-gray-900 mb-8 leading-tight transition-all duration-700 delay-150 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-              {lang === "ko" ? (<>모든 블로그 <span className="italic">글</span></>) : (<>All Blog <span className="italic">Posts</span></>)}
-            </h1>
-            <p className={`text-xl text-gray-600 leading-relaxed max-w-3xl transition-all duration-700 delay-300 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              {lang === "ko"
-                ? "농업 기술, 지속 가능한 농업, 그리고 솔루션에 대한 인사이트를 탐색하세요."
-                : "Discover insights on agricultural technology, sustainable farming practices, and solutions."}
-            </p>
-          </div>
+      <JejuShell
+        headerLeft={["[SYSTEM] ARCHIVE.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
+        headerRight={["ALL ENTRIES", `${total} ${total === 1 ? "POST" : "POSTS"}`]}
+      >
+        <div className="jg-body">
+          <main className="jg-main">
+            <div className="jg-post">
+              <p className="jg-meta">{lang === "ko" ? "[KNOWLEDGE BASE] 지식 저장소" : "[KNOWLEDGE BASE]"}</p>
+              <h1 className="jg-post-title jg-post-title--md">{lang === "ko" ? "모든 블로그 글." : "All blog posts."}</h1>
+              <p className="jg-post-lede">
+                {lang === "ko"
+                  ? "농업 기술, 지속 가능한 농업, 그리고 솔루션에 대한 인사이트를 탐색하세요."
+                  : "Discover insights on agricultural technology, sustainable farming practices, and solutions."}
+              </p>
 
-          {/* Search and Filters */}
-          <div
-            ref={filtersReveal.ref}
-            className={`mb-8 space-y-4 transition-all duration-700 ${filtersReveal.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-          >
-            {/* Search */}
-            <div className="relative max-w-md mx-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder={lang === "ko" ? "글 검색..." : "Search posts..."}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-sage-300 focus:border-forest-green focus:ring-forest-green"
-              />
-            </div>
+              <div className="jg-search-wrap">
+                <label className="jg-label" htmlFor="post-search">
+                  {lang === "ko" ? "[SEARCH] 검색" : "[SEARCH]"}
+                </label>
+                <input
+                  id="post-search"
+                  type="search"
+                  className="jg-search"
+                  placeholder={lang === "ko" ? "글 검색..." : "Search posts..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
 
-            {/* Tag Tree Cloud */}
-            {allTags.length > 0 && (() => {
-              const maxCount = Math.max(...tagCounts.values());
-              const minCount = Math.min(...tagCounts.values());
-              const range = maxCount - minCount || 1;
-
-              // Sort tags by count descending for tree layout
-              const sorted = [...allTags].sort((a, b) => (tagCounts.get(b) || 0) - (tagCounts.get(a) || 0));
-
-              // Build tree rows: 1, 2, 3, 5, 7, 9... items per row (widening like a tree canopy)
-              const rows: string[][] = [];
-              let idx = 0;
-              const rowSizes = [1, 2, 3, 5, 7, 9, 11, 13, 15];
-              for (const size of rowSizes) {
-                if (idx >= sorted.length) break;
-                rows.push(sorted.slice(idx, idx + size));
-                idx += size;
-              }
-              // Remaining tags go into the last row
-              if (idx < sorted.length) {
-                rows.push(sorted.slice(idx));
-              }
-
-              return (
-                <div className="flex flex-col items-center gap-1 py-6">
-                  <span className="text-xs font-bold tracking-[0.3em] text-gray-400 uppercase mb-3">
-                    {lang === "ko" ? "태그 탐색" : "Explore Tags"}
-                  </span>
-
-                  {/* Tree canopy */}
-                  {rows.map((row, ri) => (
-                    <div key={ri} className="flex flex-wrap justify-center gap-x-3 gap-y-1.5" style={{ maxWidth: `${Math.min(100, 20 + ri * 12)}%` }}>
-                      {row.map(tag => {
-                        const count = tagCounts.get(tag) || 1;
-                        const t = (count - minCount) / range; // 0..1
-                        const fontSize = 11 + t * 18; // 11px to 29px
-                        const opacity = 0.45 + t * 0.55; // 0.45 to 1
-                        const isSelected = selectedTag === tag;
-                        return (
-                          <button
-                            key={tag}
-                            onClick={() => setSelectedTag(isSelected ? null : tag)}
-                            className="transition-all duration-200 hover:scale-110 cursor-pointer rounded-sm px-1"
-                            style={{
-                              fontSize,
-                              lineHeight: 1.6,
-                              fontWeight: t > 0.5 ? 700 : t > 0.2 ? 500 : 400,
-                              color: isSelected ? "#fff" : `rgba(45,80,22,${opacity})`,
-                              background: isSelected ? "var(--forest-green, #2D5016)" : "transparent",
-                            }}
-                            title={`${tag} (${count})`}
-                          >
-                            {tag}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-
-                  {/* Tree trunk */}
-                  <div className="flex flex-col items-center mt-1">
-                    <div className="w-3 h-6 rounded-sm bg-forest-green/30" />
-                    <div className="w-8 h-1.5 rounded-full bg-forest-green/15 mt-0.5" />
+              {sortedTags.length > 0 && (
+                <div className="jg-tagfilter">
+                  <p className="jg-label">{lang === "ko" ? "[TAGS] 태그 탐색" : "[TAGS] EXPLORE"}</p>
+                  <div className="jg-pills" style={{ paddingBottom: 0 }}>
+                    {visibleTags.map((tag) => {
+                      const active = selectedTag === tag;
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          className={`jg-pill${active ? " is-active" : ""}`}
+                          aria-pressed={active}
+                          onClick={() => setSelectedTag(active ? null : tag)}
+                        >
+                          {`${tag} ${tagCounts.get(tag)}`}
+                        </button>
+                      );
+                    })}
+                    {hiddenCount > 0 && (
+                      <button type="button" className="jg-pill jg-pill--ghost" onClick={() => setShowAllTags((v) => !v)}>
+                        {showAllTags
+                          ? lang === "ko" ? "접기 −" : "SHOW LESS −"
+                          : lang === "ko" ? `+${hiddenCount}개 더 보기` : `+${hiddenCount} MORE`}
+                      </button>
+                    )}
                   </div>
                 </div>
-              );
-            })()}
-
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <div className="text-center">
-                <Button onClick={clearFilters} variant="ghost" size="sm">
-                  <X className="h-4 w-4 mr-2" />
-                  {lang === "ko" ? "필터 초기화" : "Clear filters"}
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Posts List */}
-          {Object.entries(groupedPosts).map(([period, posts]) => (
-            <RevealSection key={period} className="mb-12">
-              {period !== (lang === "ko" ? "전체 글" : "All Posts") && (
-                <h2 className="text-2xl font-bold text-forest-green mb-6 font-playfair">
-                  {period}
-                </h2>
               )}
-              
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="space-y-1">
-                  {(posts as any[]).map((post, index) => (
-                    <Link key={post.id} href={`/blog/${post.slug}`}>
-                      <article 
-                        onMouseEnter={() => prefetchPost(post.slug)}
-                        className={`group cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 px-4 hover:bg-gray-50 transition-all duration-200 ${
-                        index !== (posts as any[]).length - 1 ? 'border-b border-gray-100' : ''
-                      }`}>
-                        <h3 className="text-lg text-gray-900 group-hover:text-forest-green group-hover:translate-x-1 transition-all duration-200 flex-1">
-                          {stripMarkdown(post.title)}
-                        </h3>
-                        <span className="text-sm text-gray-500 mt-1 sm:mt-0 sm:ml-4 whitespace-nowrap">
-                          {new Date(post.createdAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      </article>
-                    </Link>
-                  ))}
+
+              {hasActiveFilters && (
+                <div className="jg-actions">
+                  <button type="button" className="jg-btn" onClick={clearFilters}>
+                    {lang === "ko" ? "필터 초기화 ×" : "Clear filters ×"}
+                  </button>
                 </div>
-              </div>
-            </RevealSection>
-          ))}
+              )}
 
-          {/* No Results */}
-          {filteredPosts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600 text-lg mb-4">
-                {lang === "ko" ? "조건에 맞는 글이 없습니다." : "No posts found matching your criteria."}
-              </p>
-              <Button onClick={clearFilters} variant="outline">
-                {lang === "ko" ? "필터를 초기화하여 모든 글 보기" : "Clear filters to see all posts"}
-              </Button>
+              {Object.entries(groupedPosts).map(([period, group]) => (
+                <section className="jg-section" key={period}>
+                  <p className="jg-label">{`[${period.toUpperCase()}] ${(group as any[]).length}`}</p>
+                  <div className="jg-index">
+                    <div className="jg-index-head">
+                      <span>{lang === "ko" ? "코드" : "Code"}</span>
+                      <span>{lang === "ko" ? "글 제목" : "Article Title"}</span>
+                      <span>{lang === "ko" ? "날짜" : "Date"}</span>
+                    </div>
+                    {(group as any[]).map((post) => {
+                      running += 1;
+                      const d = new Date(post.createdAt);
+                      const valid = !isNaN(d.getTime());
+                      return (
+                        <Link
+                          key={post.id}
+                          href={`/blog/${post.slug}`}
+                          className="jg-row"
+                          onMouseEnter={() => prefetchPost(post.slug)}
+                        >
+                          <span className="jg-row-code">{`AT-${valid ? d.getFullYear() : "----"}-${String(running).padStart(3, "0")}`}</span>
+                          <span className="jg-row-title">{stripMarkdown(post.title)}</span>
+                          <span className="jg-row-status">
+                            <span className="jg-status">
+                              {valid ? `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}` : "--"}
+                            </span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+
+              {filteredPosts.length === 0 && (
+                <div className="jg-index">
+                  <div className="jg-row-empty">
+                    {lang === "ko" ? "조건에 맞는 글이 없습니다." : "NO POSTS FOUND MATCHING YOUR CRITERIA."}
+                  </div>
+                  <div className="jg-actions">
+                    <button type="button" className="jg-btn jg-btn--solid" onClick={clearFilters}>
+                      {lang === "ko" ? "필터를 초기화하여 모든 글 보기" : "Clear filters to see all posts"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </main>
-
-        <Footer />
-      </div>
+          </main>
+        </div>
+      </JejuShell>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import JejuShell from "@/components/jeju-shell";
+import { useLanguage } from "@/contexts/language-context";
 
 type Variant = "post" | "list" | "cards" | "page";
 
@@ -121,17 +122,28 @@ function PagePlaceholder() {
   );
 }
 
-export default function JejuPageSkeleton({ variant = "page", label = "Loading" }: JejuPageSkeletonProps) {
+const DEFAULT_LABELS: Record<Variant, { en: string; ko: string }> = {
+  post: { en: "Fetching entry", ko: "글 불러오는 중" },
+  list: { en: "Fetching entries", ko: "글 목록 불러오는 중" },
+  cards: { en: "Loading projects", ko: "프로젝트 불러오는 중" },
+  page: { en: "Loading", ko: "불러오는 중" },
+};
+
+export default function JejuPageSkeleton({ variant = "page", label }: JejuPageSkeletonProps) {
+  const { lang } = useLanguage();
+  const ko = lang === "ko";
+  const text = label ?? DEFAULT_LABELS[variant][lang];
+
   return (
     <JejuShell
       headerLeft={["[SYSTEM] ECO.AGRI.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
-      headerRight={["STATUS", "LOADING..."]}
+      headerRight={[ko ? "상태" : "STATUS", ko ? "불러오는 중..." : "LOADING..."]}
     >
       <div className="jg-body">
         <main className="jg-main" aria-busy="true">
           <div className={`jg-post${variant === "cards" ? " jg-post--wide" : ""}`}>
             <p className="jg-loading-label" role="status">
-              {`[${label.toUpperCase()}]`}
+              {`[${text.toUpperCase()}]`}
               <span className="jg-cursor" aria-hidden="true">
                 _
               </span>

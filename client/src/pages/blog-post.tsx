@@ -86,9 +86,15 @@ export default function BlogPost() {
     };
   }, [post?.content]);
 
-  // Auto-translate content and title when language is Korean
-  const { content: translatedContent, isTranslating } = useTranslation(post?.content, slug, lang);
-  const translatedTitle = useTranslateText(post?.title, lang);
+  // Auto-translate content and title when language is Korean (readers can switch back to the original)
+  const [showOriginal, setShowOriginal] = useState(false);
+  const { content: machineContent, isTranslating } = useTranslation(post?.content, slug, lang);
+  const machineTitle = useTranslateText(post?.title, lang);
+  const translatedContent = showOriginal ? post?.content : machineContent;
+  const translatedTitle = showOriginal ? post?.title : machineTitle;
+  const machineExcerpt = useTranslateText(post?.excerpt, lang);
+  const translatedExcerpt = showOriginal ? post?.excerpt : machineExcerpt;
+  const isMachineTranslated = lang === "ko" && !!machineContent && machineContent !== post?.content;
 
   // Memoize the entire ReactMarkdown output
   const renderedContent = useMemo(() => (
@@ -122,7 +128,7 @@ export default function BlogPost() {
   };
 
   if (isLoading) {
-    return <JejuPageSkeleton variant="post" label="Fetching entry" />;
+    return <JejuPageSkeleton variant="post" />;
   }
 
   if (error || !post) {
@@ -132,14 +138,18 @@ export default function BlogPost() {
           <main className="jg-main">
             <div className="jg-post">
               <p className="jg-meta">[ERROR] 404</p>
-              <h1 className="jg-post-title jg-post-title--md">Article not found.</h1>
-              <p className="jg-post-lede">The article you're looking for doesn't exist or has been moved.</p>
+              <h1 className="jg-post-title jg-post-title--md">{lang === "ko" ? "글을 찾을 수 없습니다." : "Article not found."}</h1>
+              <p className="jg-post-lede">
+                {lang === "ko"
+                  ? "찾으시는 글이 없거나 다른 곳으로 옮겨졌습니다."
+                  : "The article you're looking for doesn't exist or has been moved."}
+              </p>
               <div className="jg-actions">
                 <Link href="/" className="jg-btn jg-btn--solid">
-                  Back home
+                  {lang === "ko" ? "홈으로" : "Back home"}
                 </Link>
                 <Link href="/posts" className="jg-btn">
-                  All entries
+                  {lang === "ko" ? "모든 글" : "All entries"}
                 </Link>
               </div>
             </div>
@@ -177,7 +187,7 @@ export default function BlogPost() {
   const dateDots = validDate ? `${created.getFullYear()}.${pad(created.getMonth() + 1)}.${pad(created.getDate())}` : "--";
   const postNo = `${validDate ? String(created.getFullYear()).slice(2) : "--"}-${String(post.id).slice(-3)}`;
   const primaryTag = post.tags?.[0] || "Field Note";
-  const excerptText = stripMarkdown(post.excerpt || "");
+  const excerptText = stripMarkdown(translatedExcerpt || post.excerpt || "");
   const postTags = post.tags || [];
   const tagRelated = (allPosts || [])
     .filter((p) => p.id !== post.id && p.tags?.some((tag) => postTags.includes(tag)))
@@ -211,7 +221,7 @@ export default function BlogPost() {
           <main className="jg-main">
             <article className="jg-post">
               <Link href="/posts" className="jg-back">
-                ← All entries
+                {lang === "ko" ? "← 모든 글" : "← All entries"}
               </Link>
 
               {post.featuredImage && (
@@ -221,7 +231,7 @@ export default function BlogPost() {
                 </figure>
               )}
 
-              <p className="jg-meta">{`[CATEGORY] ${primaryTag}`}</p>
+              <p className="jg-meta">{`${lang === "ko" ? "[분류]" : "[CATEGORY]"} ${primaryTag}`}</p>
               <h1 className={`jg-post-title${titleSize}`}>{displayTitle}</h1>
               {excerptText && <p className="jg-post-lede">{excerptText}</p>}
 
@@ -242,11 +252,11 @@ export default function BlogPost() {
               <section className="jg-box" aria-label="Table of details">
                 <div className="jg-box-head">
                   <span className="jg-box-dot" aria-hidden="true" />
-                  [T.O.D.] Table of Details
+                  {lang === "ko" ? "[T.O.D.] 상세 정보" : "[T.O.D.] Table of Details"}
                 </div>
                 <div className="jg-box-grid">
                   <div className="jg-box-cell">
-                    <span className="jg-box-label">Published</span>
+                    <span className="jg-box-label">{lang === "ko" ? "게시일" : "Published"}</span>
                     <time
                       className="jg-box-value"
                       dateTime={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}
@@ -255,17 +265,17 @@ export default function BlogPost() {
                     </time>
                   </div>
                   <div className="jg-box-cell">
-                    <span className="jg-box-label">Read time</span>
+                    <span className="jg-box-label">{lang === "ko" ? "읽는 시간" : "Read time"}</span>
                     <span className="jg-box-value">{`${post.readTime} MIN`}</span>
                   </div>
                   <div className="jg-box-cell">
-                    <span className="jg-box-label">Tags</span>
+                    <span className="jg-box-label">{lang === "ko" ? "태그" : "Tags"}</span>
                     <span className="jg-box-value">
                       {post.tags && post.tags.length > 0 ? post.tags.slice(0, 3).join(" / ").toUpperCase() : "—"}
                     </span>
                   </div>
                   <div className="jg-box-cell">
-                    <span className="jg-box-label">Author</span>
+                    <span className="jg-box-label">{lang === "ko" ? "글쓴이" : "Author"}</span>
                     <span className="jg-box-value">SAN // AS-44</span>
                   </div>
                 </div>
@@ -285,7 +295,7 @@ export default function BlogPost() {
                 <details className="jg-box jg-toc" aria-label="Table of contents">
                   <summary className="jg-box-head">
                     <span className="jg-box-dot" aria-hidden="true" />
-                    {`[T.O.C.] Table of Contents (${tocItems.length})`}
+                    {`${lang === "ko" ? "[T.O.C.] 목차" : "[T.O.C.] Table of Contents"} (${tocItems.length})`}
                   </summary>
                   <ul className="jg-box-list">
                     {tocItems.map((item, i) => (
@@ -308,6 +318,14 @@ export default function BlogPost() {
               )}
 
               {isTranslating && <div className="jg-notice">{lang === "ko" ? "번역 중..." : "Translating..."}</div>}
+              {(isMachineTranslated || showOriginal) && lang === "ko" && (
+                <div className="jg-translate-note">
+                  <span>{showOriginal ? "[ORIGINAL] 원문(영어)을 보고 있어요" : "[AUTO-TRANSLATED] 자동 번역된 글이에요"}</span>
+                  <button type="button" onClick={() => setShowOriginal((v) => !v)}>
+                    {showOriginal ? "번역 보기" : "원문 보기"}
+                  </button>
+                </div>
+              )}
 
               <div ref={contentRef} className="jg-prose">
                 {renderedContent}
@@ -324,12 +342,12 @@ export default function BlogPost() {
               )}
 
               <section id="comments" className="jg-section">
-                <p className="jg-label">[COMMENTS]</p>
+                <p className="jg-label">{lang === "ko" ? "[COMMENTS] 댓글" : "[COMMENTS]"}</p>
                 <CommentSection postId={post.id.toString()} postTitle={post.title} />
               </section>
 
               <section className="jg-section">
-                <p className="jg-label">[SHARE]</p>
+                <p className="jg-label">{lang === "ko" ? "[SHARE] 공유" : "[SHARE]"}</p>
                 <SocialShare
                   url={`/blog/${post.slug}`}
                   title={post.title}
@@ -339,11 +357,11 @@ export default function BlogPost() {
 
               {related.length > 0 && (
                 <section className="jg-section">
-                  <h2 className="jg-section-title">Related entries</h2>
+                  <h2 className="jg-section-title">{lang === "ko" ? "관련 글" : "Related entries"}</h2>
                   <div className="jg-index-head">
-                    <span>Code</span>
-                    <span>Article Title</span>
-                    <span>Status</span>
+                    <span>{lang === "ko" ? "코드" : "Code"}</span>
+                    <span>{lang === "ko" ? "글 제목" : "Article Title"}</span>
+                    <span>{lang === "ko" ? "상태" : "Status"}</span>
                   </div>
                   {related.map((item, index) => {
                     const d = new Date(item.createdAt);
@@ -353,7 +371,7 @@ export default function BlogPost() {
                         <span className="jg-row-code">{`AT-${year}-${String(index + 1).padStart(3, "0")}`}</span>
                         <span className="jg-row-title">{item.title}</span>
                         <span className="jg-row-status">
-                          <span className="jg-status">Read</span>
+                          <span className="jg-status">{lang === "ko" ? "읽기" : "Read"}</span>
                         </span>
                       </Link>
                     );

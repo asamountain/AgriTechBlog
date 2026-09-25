@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "wouter";
+import { useLanguage } from "@/contexts/language-context";
 import "@/styles/home-geometric.css";
 
 interface JejuShellProps {
@@ -9,8 +10,11 @@ interface JejuShellProps {
 }
 
 export default function JejuShell({ headerLeft, headerRight, children }: JejuShellProps) {
+  const { lang, setLang } = useLanguage();
+  const ko = lang === "ko";
+
   return (
-    <div className="jg-page">
+    <div className="jg-page" lang={lang}>
       <div className="jg-container">
         <aside className="jg-rail">
           <div className="jg-symbols" aria-hidden="true">
@@ -41,14 +45,24 @@ export default function JejuShell({ headerLeft, headerRight, children }: JejuShe
               ECO AGRI-INDEX
             </Link>
             <nav className="jg-footer-links" aria-label="Site">
-              <Link href="/posts">POSTS</Link>
-              <Link href="/portfolio">PORTFOLIO</Link>
-              <Link href="/shop">SHOP</Link>
-              <Link href="/about">ABOUT</Link>
+              <Link href="/posts">{ko ? "글" : "POSTS"}</Link>
+              <Link href="/portfolio">{ko ? "포트폴리오" : "PORTFOLIO"}</Link>
+              <Link href="/shop" className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="SHOP — 준비 중 (coming soon)">
+                {ko ? "쇼핑" : "SHOP"}
+              </Link>
+              <Link href="/about">{ko ? "소개" : "ABOUT"}</Link>
             </nav>
             <div className="jg-footer-meta">
               <span>[LOC] 33.4890° N, 126.4983° E</span>
               <span>© 2026 SAN</span>
+              <span className="jg-lang" role="group" aria-label="Language">
+                <button type="button" className={ko ? "is-active" : ""} aria-pressed={ko} onClick={() => setLang("ko")}>
+                  한국어
+                </button>
+                <button type="button" className={ko ? "" : "is-active"} aria-pressed={!ko} onClick={() => setLang("en")}>
+                  EN
+                </button>
+              </span>
             </div>
           </footer>
         </div>

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import JejuShell from "@/components/jeju-shell";
 import JejuPageSkeleton from "@/components/jeju-loading";
+import { useLanguage } from "@/contexts/language-context";
 
 interface BlogPostWithDetails {
   id: number;
@@ -126,6 +127,8 @@ function sortPostsByPersonalization(posts: BlogPostWithDetails[], tag: string): 
 }
 
 export default function TaggedPosts() {
+  const { lang } = useLanguage();
+  const ko = lang === "ko";
   const { tag } = useParams<{ tag: string }>();
   const decodedTag = decodeURIComponent(tag || '');
   
@@ -163,7 +166,7 @@ export default function TaggedPosts() {
   };
 
   if (isLoading) {
-    return <JejuPageSkeleton variant="list" label="Fetching tag index" />;
+    return <JejuPageSkeleton variant="list" />;
   }
 
   const count = sortedPosts.length;
@@ -179,23 +182,25 @@ export default function TaggedPosts() {
   return (
     <JejuShell
       headerLeft={["[SYSTEM] TAG.INDEX.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
-      headerRight={[`TAG // ${tagLabel}`, `${count} ${count === 1 ? "ENTRY" : "ENTRIES"}`]}
+      headerRight={[`TAG // ${tagLabel}`, ko ? `${count}개의 글` : `${count} ${count === 1 ? "ENTRY" : "ENTRIES"}`]}
     >
       <div className="jg-body">
         <main className="jg-main">
           <div className="jg-post">
             <Link href="/posts" className="jg-back">
-              ← All entries
+              {ko ? "← 모든 글" : "← All entries"}
             </Link>
 
-            <p className="jg-meta">[TAG] INDEX</p>
+            <p className="jg-meta">{ko ? "[TAG] 태그 모아보기" : "[TAG] INDEX"}</p>
             <h1 className={`jg-post-title${tagLabel.length > 18 ? " jg-post-title--md" : ""}`}>{`#${tagLabel}`}</h1>
             <p className="jg-post-lede">
-              {`Explore all posts tagged with "${decodedTag}" — personalized based on your interests.`}
+              {ko
+                ? `"${decodedTag}" 태그가 붙은 모든 글 — 관심사에 맞춰 정렬했어요.`
+                : `Explore all posts tagged with "${decodedTag}" — personalized based on your interests.`}
             </p>
 
             <div className="jg-actions">
-              <span className="jg-btn jg-btn--solid">{`${count} ${count === 1 ? "post" : "posts"} found`}</span>
+              <span className="jg-btn jg-btn--solid">{ko ? `${count}개의 글` : `${count} ${count === 1 ? "post" : "posts"} found`}</span>
             </div>
 
             {otherTags.length > 0 && (
@@ -211,9 +216,9 @@ export default function TaggedPosts() {
             {count > 0 ? (
               <div className="jg-index">
                 <div className="jg-index-head">
-                  <span>Code</span>
-                  <span>Article Title</span>
-                  <span>Status</span>
+                  <span>{ko ? "코드" : "Code"}</span>
+                  <span>{ko ? "글 제목" : "Article Title"}</span>
+                  <span>{ko ? "상태" : "Status"}</span>
                 </div>
                 {sortedPosts.map((post, index) => {
                   const d = new Date(post.createdAt);
@@ -232,7 +237,7 @@ export default function TaggedPosts() {
                       </span>
                       <span className="jg-row-status">
                         <span className={`jg-status${post.isFeatured ? " jg-status--new" : ""}`}>
-                          {post.isFeatured ? "Featured" : "Read"}
+                          {post.isFeatured ? (ko ? "추천" : "Featured") : ko ? "읽기" : "Read"}
                         </span>
                       </span>
                     </Link>
@@ -241,10 +246,10 @@ export default function TaggedPosts() {
               </div>
             ) : (
               <div className="jg-index">
-                <div className="jg-row-empty">{`NO ENTRIES FOUND FOR "${tagLabel}"`}</div>
+                <div className="jg-row-empty">{ko ? `"${decodedTag}" 태그가 붙은 글이 없습니다` : `NO ENTRIES FOUND FOR "${tagLabel}"`}</div>
                 <div className="jg-actions">
                   <Link href="/" className="jg-btn jg-btn--solid">
-                    Explore all posts
+                    {ko ? "모든 글 보기" : "Explore all posts"}
                   </Link>
                 </div>
               </div>

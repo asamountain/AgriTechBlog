@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 export type Lang = "ko" | "en";
 
@@ -12,15 +12,27 @@ const LanguageContext = createContext<LanguageContextType>({
   setLang: () => {},
 });
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => {
+function detectInitialLang(): Lang {
+  try {
     const saved = localStorage.getItem("lang");
-    return saved === "ko" || saved === "en" ? saved : "en";
-  });
+    if (saved === "ko" || saved === "en") return saved;
+  } catch {}
+  const preferred = typeof navigator !== "undefined" ? navigator.languages?.[0] || navigator.language || "" : "";
+  return preferred.toLowerCase().startsWith("ko") ? "ko" : "en";
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(detectInitialLang);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("lang", l);
+    try {
+      localStorage.setItem("lang", l);
+    } catch {}
   };
 
   return (

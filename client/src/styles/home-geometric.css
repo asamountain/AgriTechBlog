@@ -5,8 +5,8 @@
   --camellia: #ff78c1;
   --sea: #0076ce;
   --rule: #e0e0e0;
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter', 'Noto Sans KR', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
 
   min-height: 100vh;
   padding: 20px;
@@ -1018,16 +1018,6 @@
   object-fit: contain;
 }
 
-.jg-quote {
-  margin: 0;
-  padding-left: 20px;
-  border-left: 4px solid var(--ink);
-  font-size: clamp(24px, 3vw, 40px);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-}
 
 .jg-cards {
   display: grid;
@@ -1648,4 +1638,168 @@ a.jg-card:hover {
   .jg-shop-detail {
     padding: 24px 16px;
   }
+}
+
+/* Menu item that is not open yet: strikethrough plus a hover note */
+.jg-nav-soon {
+  position: relative;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.jg-footer-links a.jg-nav-soon:hover {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.jg-nav-soon::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  padding: 5px 10px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-decoration: none;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.jg-nav-soon:hover::after,
+.jg-nav-soon:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.jg-shop-band {
+  margin: 0 0 32px;
+}
+
+/* Posts list: search and tag filters */
+.jg-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.jg-search-wrap .jg-label {
+  margin: 0;
+}
+
+.jg-search {
+  width: 100%;
+  max-width: 520px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.jg-search:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.jg-tagfilter {
+  margin-bottom: 8px;
+}
+
+button.jg-pill {
+  background: transparent;
+  cursor: pointer;
+}
+
+button.jg-pill:hover,
+button.jg-pill.is-active {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+button.jg-pill.jg-pill--ghost {
+  border-style: dashed;
+}
+
+/* Korean typography: looser tracking and word-based wrapping */
+.jg-page[lang="ko"] {
+  word-break: keep-all;
+}
+
+.jg-page[lang="ko"] .jg-title,
+.jg-page[lang="ko"] .jg-post-title,
+.jg-page[lang="ko"] .jg-section-title,
+.jg-page[lang="ko"] .jg-shop-title,
+.jg-page[lang="ko"] .jg-crop-name,
+.jg-page[lang="ko"] .jg-card-title,
+.jg-page[lang="ko"] .jg-tl-title,
+.jg-page[lang="ko"] .jg-row-title {
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  text-transform: none;
+}
+
+.jg-page[lang="ko"] .jg-title {
+  font-size: clamp(44px, 6vw, 84px);
+  line-height: 1.05;
+}
+
+.jg-page[lang="ko"] .jg-lede,
+.jg-page[lang="ko"] .jg-post-lede {
+  line-height: 1.5;
+}
+
+/* Language switch in the footer */
+.jg-lang {
+  display: inline-flex;
+  border: 1px solid var(--ink);
+}
+
+.jg-lang button {
+  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.jg-lang button.is-active {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.jg-translate-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 8px 12px;
+  border: 1px dashed var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.jg-translate-note button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }

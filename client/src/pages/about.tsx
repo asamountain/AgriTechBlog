@@ -243,6 +243,68 @@ const DIRECTION: DirectionEntry[] = [
   },
 ];
 
+const HOW_GRID: { label: Bilingual; value: Bilingual }[] = [
+  {
+    label: { en: "No chemical pesticides", ko: "화학 농약 없이" },
+    value: {
+      en: "Keep natural enemies and let the ecosystem balance the pests",
+      ko: "천적과 생태계를 살려서 해충이 스스로 균형을 잡게 해요",
+    },
+  },
+  {
+    label: { en: "No herbicides", ko: "제초제 없이" },
+    value: {
+      en: "Cover crops and mulch instead of spraying weeds",
+      ko: "풀은 뿌려 죽이지 않고, 피복작물과 멀칭으로 다스려요",
+    },
+  },
+  {
+    label: { en: "No-till", ko: "무경운" },
+    value: {
+      en: "Leave the soil structure alone and let roots do the work",
+      ko: "흙을 갈아엎지 않고, 뿌리가 일하게 둬요",
+    },
+  },
+  {
+    label: { en: "Permaculture × horticulture", ko: "퍼머컬처 × 원예" },
+    value: {
+      en: "Many crops on a small plot, designed to support each other",
+      ko: "작은 땅에 여러 작물을 서로 돕도록 설계해요",
+    },
+  },
+];
+
+const HOW_STEPS: { heading: Bilingual; body: { en: string; ko: string } }[] = [
+  {
+    heading: { en: "Let time and microbes build the soil", ko: "시간과 미생물이 흙을 만들게 합니다" },
+    body: {
+      en: "I don't want to force fertility with chemicals. With no-till and living roots in the ground, I believe microbes slowly turn the soil fertile on their own, and a fertile soil grows plenty of healthy food, given time. Rye and hairy vetch are where I'll start: they feed the soil, and their straw becomes mulch.",
+      ko: "화학 자재로 억지로 땅을 비옥하게 만들고 싶지 않습니다. 땅을 갈아엎지 않고 뿌리가 늘 살아 있게 두면, 시간이 지나며 미생물이 흙을 스스로 비옥하게 만들고, 비옥한 흙은 건강한 먹거리를 넉넉히 내어준다고 믿습니다. 시작은 호밀과 헤어리베치예요. 흙을 살리고, 그 짚은 멀칭이 됩니다.",
+    },
+  },
+  {
+    heading: { en: "No poisons — the ecosystem does the work", ko: "농약도 제초제도 쓰지 않아요" },
+    body: {
+      en: "No chemical pesticides and no herbicides. Instead I keep the ecosystem alive: natural enemies, diverse plants, living soil. Whether this can still make a living is the open question this whole site is about, so I'll measure it and share what I learn.",
+      ko: "화학 농약도 제초제도 쓰지 않습니다. 대신 천적, 다양한 식물, 살아 있는 흙 같은 생태계를 살려둡니다. 이렇게 하고도 생계가 되는지가 이 사이트가 다루는 열린 질문이고, 직접 재고 기록해서 나누겠습니다.",
+    },
+  },
+  {
+    heading: { en: "Design with permaculture and horticulture", ko: "퍼머컬처와 원예로 설계합니다" },
+    body: {
+      en: "Permaculture gives the layout: diverse crops on a small plot, each helping the others. Horticulture gives the craft: how to grow, tend and harvest each crop well. Together they let a small plot stay varied and productive without leaning on outside inputs.",
+      ko: "퍼머컬처는 전체 설계를 줍니다. 작은 땅에 여러 작물이 서로 돕도록 배치하는 것이죠. 원예는 기술을 줍니다. 각 작물을 잘 기르고, 돌보고, 수확하는 방법입니다. 둘을 합치면 작은 땅에서도 외부 자재에 기대지 않고 다양하고 알찬 농사를 지을 수 있다고 봅니다.",
+    },
+  },
+  {
+    heading: { en: "Grow what adds the most value, first", ko: "부가가치가 가장 큰 작물부터 먼저" },
+    body: {
+      en: "A small plot can't grow everything at once, so I'll pick crops by the value they can add: what people actually want to buy, what grows well here without heavy inputs, how much labor it takes, and whether it can be processed (dried, brewed, pressed, baked) so quality stays steady. I test each crop small first, learn from local growers, and sell only what I trust.",
+      ko: "작은 땅에서 모든 걸 한꺼번에 기를 수는 없어서, 부가가치가 큰 작물부터 고릅니다. 사람들이 실제로 사고 싶어 하는지, 자재를 많이 쓰지 않고도 이 땅에서 잘 자라는지, 노동이 얼마나 드는지, 말리기·차·즙·빵처럼 가공해서 품질을 일정하게 만들 수 있는지를 봅니다. 작게 시험 재배하고, 현지 농가에게 배우고, 믿을 수 있는 것만 팝니다.",
+    },
+  },
+];
+
 type ImageMap = Record<string, string[]>;
 
 // Remote timeline photos that are served from a local copy in /public instead.
@@ -253,12 +315,12 @@ const LOCAL_IMAGE_OVERRIDES: Record<string, string> = {
     "/images/about/workaway-permaculture-class.jpg",
 };
 
-const DETAILS: { label: string; value: { en: string; ko: string } }[] = [
-  { label: "Base", value: { en: "JEJU, KOREA", ko: "제주" } },
-  { label: "Previous", value: { en: "IOCROPS // JUN 2025 – MAR 2026", ko: "ioCrops // 2025.06 – 2026.03" } },
-  { label: "Education", value: { en: "KNOU COMPUTER SCIENCE", ko: "컴퓨터과학과 (KNOU)" } },
-  { label: "Status", value: { en: "YOUNG ENTREPRENEUR FARMER", ko: "청년창업농 선정" } },
-];
+const LABEL_KO: Record<string, string> = {
+  Abundance: "풍요",
+  Competence: "유능감",
+  "Nature × Tech": "자연 × 기술",
+  Independence: "독립",
+};
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -336,7 +398,7 @@ export default function AboutPage() {
 
   return (
     <JejuShell
-      headerLeft={["[SYSTEM] PROFILE.V1", "[REGION] JEJU PROVINCE"]}
+      headerLeft={["[SYSTEM] PROFILE.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
       headerRight={["ENTRY // ABOUT", "SEUNGJIN YOUN"]}
     >
       <div className="jg-body">
@@ -364,20 +426,6 @@ export default function AboutPage() {
               </a>
             </div>
 
-            <section className="jg-box" aria-label="Table of details">
-              <div className="jg-box-head">
-                <span className="jg-box-dot" aria-hidden="true" />
-                [T.O.D.] Table of Details
-              </div>
-              <div className="jg-box-grid">
-                {DETAILS.map((d) => (
-                  <div className="jg-box-cell" key={d.label}>
-                    <span className="jg-box-label">{d.label}</span>
-                    <span className="jg-box-value">{d.value[lang]}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
 
             <section className="jg-section">
               <h2 className="jg-section-title">{lang === "ko" ? "주요 이정표" : "Key milestones"}</h2>
@@ -399,7 +447,7 @@ export default function AboutPage() {
                 <div className="jg-box-grid">
                   {PRINCIPLES.map((p) => (
                     <div className="jg-box-cell" key={p.label}>
-                      <span className="jg-box-label">{p.label}</span>
+                      <span className="jg-box-label">{lang === "ko" ? LABEL_KO[p.label] ?? p.label : p.label}</span>
                       <span className="jg-box-value">{p.value[lang]}</span>
                     </div>
                   ))}
@@ -408,8 +456,38 @@ export default function AboutPage() {
             </section>
 
             <section className="jg-section">
+              <p className="jg-label">{lang === "ko" ? "[H.O.W.] 농사 방식" : "[H.O.W.] THE METHOD"}</p>
+              <h2 className="jg-section-title">{lang === "ko" ? "농장을 만드는 방법" : "How the farm is made"}</h2>
+              <section className="jg-box" aria-label="Method">
+                <div className="jg-box-head">
+                  <span className="jg-box-dot" aria-hidden="true" />
+                  {lang === "ko" ? "[H.O.W.] 기본 원칙" : "[H.O.W.] Principles"}
+                </div>
+                <div className="jg-box-grid">
+                  {HOW_GRID.map((g) => (
+                    <div className="jg-box-cell" key={g.label.en}>
+                      <span className="jg-box-label">{g.label[lang]}</span>
+                      <span className="jg-box-value">{g.value[lang]}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {HOW_STEPS.map((step, i) => (
+                <section className="jg-box" key={step.heading.en} aria-label={step.heading.en}>
+                  <div className="jg-box-head">
+                    <span className="jg-box-dot" aria-hidden="true" />
+                    {`[${pad(i + 1)}] ${step.heading[lang]}`}
+                  </div>
+                  <div className="jg-summary">
+                    <p>{step.body[lang]}</p>
+                  </div>
+                </section>
+              ))}
+            </section>
+
+            <section className="jg-section">
               <p className="jg-label">{lang === "ko" ? "[Q&A] 스스로에게 묻고 답하기" : "[Q&A] QUESTIONS I ASK MYSELF"}</p>
-              <h2 className="jg-section-title">{lang === "ko" ? "왜, 그리고 어떻게" : "Why, and how"}</h2>
+              <h2 className="jg-section-title">{lang === "ko" ? "왜, 그리고 현실" : "Why, and the hard parts"}</h2>
               {DIRECTION.map((entry, i) => (
                 <section className="jg-box" key={i} aria-label={entry.heading.en}>
                   <div className="jg-box-head">
@@ -439,13 +517,6 @@ export default function AboutPage() {
               ))}
             </section>
 
-            <section className="jg-section">
-              <blockquote className="jg-quote">
-                {lang === "ko"
-                  ? "\"\uACB0\uAD6D \uD14C\uD06C\uB97C \uC81C\uB300\uB85C \uACF5\uBD80\uD558\uACE0 \uB098\uC544\uAC00\uB294 \uC218\uBC16\uC5D0 \uC5C6\uACA0\uB2E4.\""
-                  : "\"In the end, the only way forward is to truly learn tech and keep going.\""}
-              </blockquote>
-            </section>
           </div>
         </main>
       </div>

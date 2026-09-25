@@ -64,13 +64,13 @@ export default function PortfolioPage() {
   return (
     <JejuShell
       headerLeft={["[SYSTEM] PORTFOLIO.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
-      headerRight={["SELECTED WORK", isLoading ? "LOADING..." : `${count} ${count === 1 ? "PROJECT" : "PROJECTS"}`]}
+      headerRight={[lang === "ko" ? "주요 작업" : "SELECTED WORK", isLoading ? (lang === "ko" ? "불러오는 중..." : "LOADING...") : lang === "ko" ? `${count}개의 프로젝트` : `${count} ${count === 1 ? "PROJECT" : "PROJECTS"}`]}
     >
       <div className="jg-body">
         <main className="jg-main">
           <div className="jg-post jg-post--wide">
             <p className="jg-meta">{lang === "ko" ? "[SELECTED WORK] 주요 작업" : "[SELECTED WORK]"}</p>
-            <h1 className="jg-post-title jg-post-title--md">AgriTech Portfolio.</h1>
+            <h1 className="jg-post-title jg-post-title--md">{lang === "ko" ? "애그리테크 포트폴리오." : "AgriTech Portfolio."}</h1>
             <p className="jg-post-lede">
               {lang === "ko" ? "사례 연구 및 기술 구현." : "Case studies and technical implementations."}
             </p>

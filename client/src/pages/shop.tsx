@@ -100,19 +100,19 @@ export default function ShopPage() {
 
   const details: { label: string; value: string }[] = [
     {
-      label: "Order",
+      label: lang === "ko" ? "주문" : "Order",
       value: lang === "ko" ? "이메일 대기 신청 // 아직 결제 없음" : "EMAIL WAITLIST // NO PAYMENT YET",
     },
     {
-      label: "Seasonal box",
+      label: lang === "ko" ? "시즌 박스" : "Seasonal box",
       value: lang === "ko" ? "검토 중 // 제철 작물을 묶어서 배송" : "UNDER CONSIDERATION // BUNDLED TO SAVE SHIPPING",
     },
     {
-      label: "Shipping",
+      label: lang === "ko" ? "배송" : "Shipping",
       value: lang === "ko" ? "제주에서 발송 // 택배비 약 6,000원" : "FROM JEJU // ABOUT ₩6,000 PER PARCEL",
     },
     {
-      label: "Status",
+      label: lang === "ko" ? "상태" : "Status",
       value: lang === "ko" ? "땅 찾는 중 // 첫 수확 시기 미정" : "LAND SEARCH IN PROGRESS // FIRST HARVEST TBA",
     },
   ];
@@ -130,7 +130,7 @@ export default function ShopPage() {
       />
       <JejuShell
         headerLeft={["[SYSTEM] SHOP.V1", "[FOCUS] ECOLOGICAL AGRICULTURE"]}
-        headerRight={["SEASONAL BOX", `SELECTED (${selected.length})`]}
+        headerRight={[lang === "ko" ? "시즌 박스" : "SEASONAL BOX", lang === "ko" ? `선택 (${selected.length})` : `SELECTED (${selected.length})`]}
       >
         <div className="jg-body">
           <main className="jg-main">
@@ -142,50 +142,6 @@ export default function ShopPage() {
                   ? "아직 판매 중인 것은 없어요. 앞으로 기르려는 작물, 어떻게 여러분께 닿을지, 그리고 가장 먼저 만나는 방법을 솔직하게 적었습니다."
                   : "Nothing is for sale yet. This is the honest list of what I'm planning to grow, how it could reach you, and how to be first in line."}
               </p>
-
-              <div className="jg-actions">
-                <a
-                  href="#waitlist"
-                  className="jg-btn jg-btn--solid"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                >
-                  {lang === "ko" ? "시즌 박스 대기 신청" : "Join the seasonal box waitlist"}
-                </a>
-                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="jg-btn">
-                  {lang === "ko" ? "인스타그램에서 문의" : "Ask on Instagram"}
-                </a>
-              </div>
-
-              <section className="jg-box" aria-label="How to get it">
-                <div className="jg-box-head">
-                  <span className="jg-box-dot" aria-hidden="true" />
-                  [H.T.G.] How to get it
-                </div>
-                <div className="jg-box-grid">
-                  {details.map((d) => (
-                    <div className="jg-box-cell" key={d.label}>
-                      <span className="jg-box-label">{d.label}</span>
-                      <span className="jg-box-value">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <div className="jg-crop-list">
-                {CROPS.map((crop, i) => (
-                  <CropRow
-                    key={crop.id}
-                    crop={crop}
-                    index={i}
-                    lang={lang}
-                    selected={selected.includes(crop.id)}
-                    onToggle={() => toggle(crop.id)}
-                  />
-                ))}
-              </div>
 
               <div className="jg-shop-band">
                 <section id="waitlist" className="jg-shop-detail" aria-label="Seasonal box waitlist">
@@ -234,6 +190,41 @@ export default function ShopPage() {
                 </section>
 
               </div>
+
+              <div className="jg-actions">
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="jg-btn">
+                  {lang === "ko" ? "인스타그램에서 문의" : "Ask on Instagram"}
+                </a>
+              </div>
+
+              <section className="jg-box" aria-label="How to get it">
+                <div className="jg-box-head">
+                  <span className="jg-box-dot" aria-hidden="true" />
+                  {lang === "ko" ? "[H.T.G.] 이용 방법" : "[H.T.G.] How to get it"}
+                </div>
+                <div className="jg-box-grid">
+                  {details.map((d) => (
+                    <div className="jg-box-cell" key={d.label}>
+                      <span className="jg-box-label">{d.label}</span>
+                      <span className="jg-box-value">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <div className="jg-crop-list">
+                {CROPS.map((crop, i) => (
+                  <CropRow
+                    key={crop.id}
+                    crop={crop}
+                    index={i}
+                    lang={lang}
+                    selected={selected.includes(crop.id)}
+                    onToggle={() => toggle(crop.id)}
+                  />
+                ))}
+              </div>
+
             </div>
           </main>
         </div>
