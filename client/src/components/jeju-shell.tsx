@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/language-context";
+import { SHOP_URL } from "@/config/site";
 import "@/styles/home-geometric.css";
 
 interface JejuShellProps {
@@ -47,9 +48,15 @@ export default function JejuShell({ headerLeft, headerRight, children }: JejuShe
             <nav className="jg-footer-links" aria-label="Site">
               <Link href="/posts">{ko ? "글" : "POSTS"}</Link>
               <Link href="/portfolio">{ko ? "포트폴리오" : "PORTFOLIO"}</Link>
-              <Link href="/shop" className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="SHOP — 준비 중 (coming soon)">
-                {ko ? "쇼핑" : "SHOP"}
-              </Link>
+              {SHOP_URL ? (
+                <a href={SHOP_URL} className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="SHOP — 준비 중 (coming soon)">
+                  {ko ? "쇼핑" : "SHOP"}
+                </a>
+              ) : (
+                <Link href="/shop" className="jg-nav-soon" data-tip="준비 중 · COMING SOON" aria-label="SHOP — 준비 중 (coming soon)">
+                  {ko ? "쇼핑" : "SHOP"}
+                </Link>
+              )}
               <Link href="/about">{ko ? "소개" : "ABOUT"}</Link>
             </nav>
             <div className="jg-footer-meta">
